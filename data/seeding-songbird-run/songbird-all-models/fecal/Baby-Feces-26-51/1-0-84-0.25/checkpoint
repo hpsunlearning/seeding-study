@@ -1,0 +1,2 @@
+model_checkpoint_path: "/home/cmartino/seeding-songbird-run/songbird-results/fecal/Baby-Feces-26-51/1-0-84-0.25/model.ckpt-0"
+all_model_checkpoint_paths: "/home/cmartino/seeding-songbird-run/songbird-results/fecal/Baby-Feces-26-51/1-0-84-0.25/model.ckpt-0"

@@ -1,4 +1,4 @@
-# Normalization of the microbiome first year trajectory by vaginal seeding in C-section born infants
+# Restoration of the microbiome trajectory by vaginal seeding of C-section born infants
 
 This repository includes all the source code, tests and notebooks to generate the figures used in the (Song et al. 2020). Each analysis step is outlined [here](https://github.com/knightlab-analyses/seeding-study/tree/master/code#notebooks-for-normalization-of-the-microbiome-first-year-trajectory-by-vaginal-seeding-in-c-section-born-infants).
 

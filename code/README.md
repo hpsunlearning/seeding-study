@@ -1,4 +1,4 @@
-# Notebooks for Normalization of the microbiome first year trajectory by vaginal seeding in C-section born infants 
+# Notebooks for Restoration of the microbiome trajectory by vaginal seeding of C-section born infants
 
 The script `run.sh` will re-generate all of the figures and tables from the
 analysis. Certain sections of code, such as those using heavy compute

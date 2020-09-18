@@ -1,0 +1,53 @@
+---
+title: "Blank Control Analysis"
+author: "Jincheng Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, message = FALSE)
+# Loading library here
+library(tidyverse)
+library(extrafont)
+# library(biomformat)
+# library(qiime2R)
+sessionInfo()
+np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
+```
+
+## Import files
+```{r}
+# import metadata
+mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+
+```
+
+```{r}
+BL = mf %>% filter(body_site_corrected=="Control" | is.na(body_site_corrected))
+
+BL <- BL[BL$sample_name!="1718.11.14.I01.DM.800P", ] # remove the miss labeled stool samples (from diaper materials)
+PC <- BL %>% filter(grepl("CONTROL A", orig_sampleid)) # these 2 are positive controls
+BL <- BL %>% filter(!sample_name%in% PC$sample_name) # remove the 2 positive controls
+BL <- BL[!(grepl("10894\\.CH|10894\\.NY", BL$sample_name) & is.na(BL$body_site_corrected)), ] # remove samplesBaby with no metadata info
+
+Lib_blank_control <- BL %>% filter(grepl("dna|pcr|blank", sample_name, ignore.case = T) | grepl("dna|ext|pcr", orig_sampleid, ignore.case = T)) %>% mutate(Cat_control = "Lib_BL")
+BL <- BL %>% filter(! sample_name %in% Lib_blank_control$sample_name) %>% mutate(Cat_control = "Field_BL")
+
+BL_new <- rbind(Lib_blank_control, BL)
+BL_new$seqcount[is.na(BL_new$seqcount)] <- 0
+
+ggplot(BL_new, aes(x = seqcount, fill = )) +
+    geom_histogram() +
+    facet_grid(.~Cat_control) +
+    coord_cartesian(ylim = c(0,30))
+
+split(BL_new, BL_new$Cat_control) %>% lapply(., function(x){stem(x$seqcount, scale = 4, width = 30)})
+
+BL_new %>% mutate(ints = cut(seqcount, breaks = c(-1,1,seq(1000, 5000, by = 1000), 10000))) %>% group_by(Cat_control, ints) %>% summarise(N = n()) %>% mutate(Pct = N/sum(N)*100)
+```
+

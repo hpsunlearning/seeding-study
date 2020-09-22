@@ -20,13 +20,14 @@ sessionInfo()
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 ```
 
-## Import files
+## Import metadata
 ```{r}
 # import metadata
 mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
 ```
 
-
+## Extracting blank control samples
+1. Metadata
 ```{r}
 BL = mf %>% filter(body_site_corrected=="Control" | is.na(body_site_corrected))
 
@@ -40,19 +41,10 @@ BL <- BL %>% filter(! sample_name %in% Lib_blank_control$sample_name) %>% mutate
 
 BL_new <- rbind(Lib_blank_control, BL)
 BL_new$seqcount[is.na(BL_new$seqcount)] <- 0
-
-ggplot(BL_new, aes(x = seqcount, fill = )) +
-    geom_histogram() +
-    facet_grid(.~Cat_control) +
-    coord_cartesian(ylim = c(0,30))
-
-split(BL_new, BL_new$Cat_control) %>% lapply(., function(x){stem(x$seqcount, scale = 4, width = 30)})
-
-BL_new %>% mutate(ints = cut(seqcount, breaks = c(-1,1,seq(1000, 5000, by = 1000), 10000))) %>% group_by(Cat_control, ints) %>% summarise(N = n()) %>% mutate(Pct = N/sum(N)*100)
-
 write.table(BL_new, file = "../data/processed-data/Metadata_controls.txt", quote = F, sep = "\t", row.names = F)
 ```
 
+2. Filter feature table to only include control samples
 ```{qiime}
 qiime feature-table filter-samples \
     --i-table ../data/processed-data/table.qza \
@@ -60,14 +52,21 @@ qiime feature-table filter-samples \
     --o-filtered-table ../data/processed-data/table-controls.qza &
 ```
 
+3. Import feature table with only control samples
 ```{r}
 # filtered feature table contain only control samples
 ft_qza <- read_qza("../data/processed-data/table-controls.qza")
 ## feature table in dataframe
 ft_bl <- ft_qza$data %>% as.data.frame() %>% rownames_to_column(var = "OTU_ID") %>% filter(rowSums(.[,-1])!=0)
 
+# actual sequencing count
+seqcount <- ft_bl[, -1] %>% colSums()
+## update BL_new seq count
+BL_new$seqcount[match(names(seqcount), BL_new$sample_name)] <- seqcount
+#BL_new$seqcount[!BL_new$sample_name %in% names(seqcount)]
+
 ## Metadata only with samples that have sequences
-mt_ft_bl <- BL_new %>% filter(sample_name %in% colnames(ft_bl)) 
+mt_ft_bl <- BL_new %>% filter(sample_name %in% colnames(ft_bl))
 
 # taxonomy
 taxa_qza <- read_qza("../data/processed-data/taxonomy.qza")
@@ -87,6 +86,107 @@ for (tt in c("Genus", "Family", "Order", "Class", "Phylum", "Domain")){
 }
 ft_glom_df <- data.table::rbindlist(ft_glom, use.names = T, fill = T, idcol = "taxa.glom")
 saveRDS(ft_glom_df, file = "tmp_ft_glom_df.Rds")
+```
+
+## Check the sequencing depth of control samples
+```{r}
+ggplot(BL_new, aes(x = seqcount)) +
+    geom_histogram() +
+    facet_grid(.~Cat_control) +
+    coord_cartesian(ylim = c(0,30))
+
+split(BL_new, BL_new$Cat_control) %>% lapply(., function(x){stem(x$seqcount, scale = 4, width = 30)})
+
+BL_new %>% mutate(ints = cut(seqcount, breaks = c(-1,1,seq(1000, 5000, by = 1000), 10000))) %>% group_by(Cat_control, ints) %>% summarise(N = n()) %>% mutate(Pct = N/sum(N)*100)
+```
+
+## Check the ASV richness of control samples
+```{r}
+asv_ct <- ft_bl %>% summarise(across(mt_ft_bl$sample_name, ~sum(.x>0))) %>% t()
+colnames(asv_ct) <- "ASV_ct"
+
+asv_dat <- merge(asv_ct, BL_new, by.x = 0, by.y = 1, all.x  = T)
+
+ggplot(asv_dat, aes(x = Cat_control, y = ASV_ct)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_point(aes(fill = seqcount), shape = 21, position = position_jitter(width = 0.2), size = 1, color = "grey") +
+    scale_fill_gradientn(colours = c('#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#253494'), values = scales::rescale(c(0, 5000)), limits = c(0, 7000), na.value = '#253494', breaks = c(0, 2000, 5000)) +
+    scale_y_continuous(n.breaks = 20) +
+    theme_bw() + theme(legend.position = "bottom", legend.box = "horizontal", aspect.ratio = 3) +
+    labs(x = "", y = "Number of ASV", fill = "Sequences per sample", title = "Number of ASV per sample") +
+    guides(fill = guide_colourbar(title.position = "top", title.hjust = 0.5))
+ggsave("../results/check_control_2.pdf", width = 3.5, useDingbats = F)
+```
+
+## Check the sequence count per ASVs
+```{r}
+ft_bl_l <- ft_bl %>% pivot_longer(-1, names_to = "sample_name", values_to = "seqcount") %>% filter(seqcount>0) %>% merge(., BL_new %>% select(sample_name, Cat_control), by = "sample_name", all.x = T) %>% group_by(OTU_ID) %>% mutate(Med_seq = median(seqcount)) %>% ungroup %>% arrange(Med_seq, OTU_ID)
+ft_bl_l$OTU_ID = factor(ft_bl_l$OTU_ID, levels = ft_bl_l$OTU_ID %>% unique)
+
+ggplot(ft_bl_l, aes(x = OTU_ID, y = seqcount)) +
+    geom_point(aes(color = Cat_control), size = 0.5) +
+    stat_summary(aes(group = 1), geom = "line", fun = median, size = 0.5) +
+    theme_bw() + theme(axis.text.x = element_blank(), aspect.ratio = 0.3) +
+    scale_y_continuous(trans = "log10", breaks = c(1, 5, 10, 100, 1000, 10000)) +
+    labs(x = "Individual ASVs ordered by median sequence count across blank samples", y = "Sequence Count per ASV in each sample", color = "", title = "Number of sequences in each ASV in individual samples")
+ggsave("../results/check_control_3.pdf", width = 9, useDingbats = F)
+
+```
+
+## Import samples feature tables
+```{r}
+# all body sites to use for now
+ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
+
+# baby qza address
+bb_qza_dirs <- paste0("../data/split-data/Baby-", ss[1:3])
+# mom qza address
+mm_qza_dirs <- paste0("../data/split-data/Mom-", ss)
+
+# import qza tables
+bb_qza <- parallel::mclapply(bb_qza_dirs, FUN = function(x){read_qza(paste0(x, "/table.qza"))}, mc.cores = np)
+names(bb_qza) <- paste0("Baby-", ss[1:3])
+#lapply(bb_qza, function(x){x$data %>% dim})
+
+mm_qza <- parallel::mclapply(mm_qza_dirs, FUN = function(x){read_qza(paste0(x, "/table.qza"))}, mc.cores = np )
+names(mm_qza) <- paste0("Mom-", ss)
+
+#lapply(mm_qza, function(x){x$data %>% dim})
+
+
+## extract metadata for to match the imported feature table
+mt_ss <- mf %>% filter(sample_name %in% (sapply(c(bb_qza, mm_qza), FUN = function(x)colnames(x$data)) %>% unlist()))
+mt_ss$body_site_corrected[mt_ss$body_site_corrected=="Right_Forearm"] = "Forearm"
+```
+
+## Compare controls with Samples
+```{r}
+# Control feature table and metadata
+ft_bl
+mt_ft_bl
+
+# Sample feature table and metadata
+bb_qza
+mm_qza
+mt_ss
+```
+
+```{r}
+otu_bl <- otu_table(ft_bl %>% column_to_rownames(var = "OTU_ID"), taxa_are_rows = T)
+otu_bbs <- parallel::mclapply(bb_qza, function(x){otu_table(x$data, taxa_are_rows = T)})
+otu_mms <- parallel::mclapply(mm_qza, function(x){otu_table(x$data, taxa_are_rows = T)})
+otu_all_lst <- c(list(otu_bl), otu_bbs, otu_mms)
+names(otu_all_lst)[1] <- "BL"
+for (i in seq(length(otu_all_lst))){
+    if (i==1){
+        otu_all = otu_all_lst[[i]]
+    }
+    otu_all = merge_phyloseq(otu_all, otu_all_lst[[i]])
+}
+
+mt_all <- plyr::rbind.fill(mt_ft_bl, mt_ss) %>% column_to_rownames(var = "sample_name")# merge the blank metadata with the feature metadata. The samples have NA in colume Cat_control
+
+phylo_all <- merge_phyloseq(otu_all, tax_table(taxa_tbl %>% select(Feature.ID, Domain:Species) %>% column_to_rownames(var = "Feature.ID")), sample_data(mt_all))
 ```
 
 

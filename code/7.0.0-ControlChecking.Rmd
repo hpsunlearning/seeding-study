@@ -16,14 +16,27 @@ library(tidyverse)
 library(extrafont)
 # library(biomformat)
 library(qiime2R)
+library(phyloseq)
 sessionInfo()
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 ```
 
-## Import metadata
+## Import
 ```{r}
 # import metadata
 mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+
+taxa_qza <- read_qza("../data/processed-data/taxonomy.qza")
+taxa_tbl <- taxa_qza$data %>% mutate(Taxon = gsub(pattern = "__", replacement = "_", Taxon)) %>% separate(Taxon, into = c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "; ", remove = T)
+taxa_tbl$Domain[is.na(taxa_tbl$Domain)] <- "k_"
+taxa_tbl$Phylum[is.na(taxa_tbl$Phylum)] <- "p_"
+taxa_tbl$Class[is.na(taxa_tbl$Class)] <- "c_"
+taxa_tbl$Order[is.na(taxa_tbl$Order)] <- "o_"
+taxa_tbl$Family[is.na(taxa_tbl$Family)] <- "f_"
+taxa_tbl$Genus[is.na(taxa_tbl$Genus)] <- "g_"
+taxa_tbl$Species[is.na(taxa_tbl$Species)] <- "s_"
+
+tree <- read_qza("../data/processed-data/tree.qza")
 ```
 
 ## Extracting blank control samples
@@ -41,7 +54,7 @@ BL <- BL %>% filter(! sample_name %in% Lib_blank_control$sample_name) %>% mutate
 
 BL_new <- rbind(Lib_blank_control, BL)
 BL_new$seqcount[is.na(BL_new$seqcount)] <- 0
-write.table(BL_new, file = "../data/processed-data/Metadata_controls.txt", quote = F, sep = "\t", row.names = F)
+#write.table(BL_new, file = "../data/processed-data/Metadata_controls.txt", quote = F, sep = "\t", row.names = F)
 ```
 
 2. Filter feature table to only include control samples
@@ -67,25 +80,7 @@ BL_new$seqcount[match(names(seqcount), BL_new$sample_name)] <- seqcount
 
 ## Metadata only with samples that have sequences
 mt_ft_bl <- BL_new %>% filter(sample_name %in% colnames(ft_bl))
-
-# taxonomy
-taxa_qza <- read_qza("../data/processed-data/taxonomy.qza")
-taxa_tbl <- taxa_qza$data %>% filter(Feature.ID %in% ft_bl$OTU_ID) %>% mutate(Taxon = gsub(pattern = "__", replacement = "_", Taxon)) %>% separate(Taxon, into = c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "; ", remove = F)
-taxa_tbl$Domain[is.na(taxa_tbl$Domain)] <- "k_"
-taxa_tbl$Phylum[is.na(taxa_tbl$Phylum)] <- "p_"
-taxa_tbl$Class[is.na(taxa_tbl$Class)] <- "c_"
-taxa_tbl$Order[is.na(taxa_tbl$Order)] <- "o_"
-taxa_tbl$Family[is.na(taxa_tbl$Family)] <- "f_"
-taxa_tbl$Genus[is.na(taxa_tbl$Genus)] <- "g_"
-taxa_tbl$Species[is.na(taxa_tbl$Species)] <- "s_"
-
-ft_w_taxa <- merge(taxa_tbl, ft_bl, by = 1)
-ft_glom <- list()
-for (tt in c("Genus", "Family", "Order", "Class", "Phylum", "Domain")){
-    ft_glom[[tt]] <- ft_w_taxa %>% group_by_at(vars("Domain":tt)) %>% summarise(across(mt_ft_bl$sample_name, sum, na.rm = T)) %>% ungroup()
-}
-ft_glom_df <- data.table::rbindlist(ft_glom, use.names = T, fill = T, idcol = "taxa.glom")
-saveRDS(ft_glom_df, file = "tmp_ft_glom_df.Rds")
+write.table(BL_new, file = "../data/processed-data/Metadata_controls.txt", quote = F, sep = "\t", row.names = F)
 ```
 
 ## Check the sequencing depth of control samples
@@ -186,7 +181,68 @@ for (i in seq(length(otu_all_lst))){
 
 mt_all <- plyr::rbind.fill(mt_ft_bl, mt_ss) %>% column_to_rownames(var = "sample_name")# merge the blank metadata with the feature metadata. The samples have NA in colume Cat_control
 
-phylo_all <- merge_phyloseq(otu_all, tax_table(taxa_tbl %>% select(Feature.ID, Domain:Species) %>% column_to_rownames(var = "Feature.ID")), sample_data(mt_all))
+taxa_all <- taxa_tbl %>% filter(Feature.ID %in% rownames(otu_table(otu_all))) %>% select(Feature.ID, Domain:Species) %>% column_to_rownames(var = "Feature.ID") %>% as.matrix() %>% tax_table()
+
+tree_all <- ape::keep.tip(tree$data, rownames(otu_table(otu_all)))
+
+# this object have the otu table, taxa table, metadata and the phylogenetic tree
+phylo_all <- merge_phyloseq(otu_all, taxa_all, sample_data(mt_all), tree_all)
 ```
 
+```{r}
+# pick samples
+sample_bl <- mt_all %>% filter(!is.na(Cat_control)) %>% rownames()
+set.seed(20)
+sample_mom <- mt_all %>% filter(mom_baby=="Mom" & date_sampling_category_days_continuous<=30 & date_sampling_category_days_continuous>=0) %>% rownames() %>% sample(., 60)
+sample_baby <- mt_all %>% filter(mom_baby=="Baby" & date_sampling_category_days_continuous<=30 & date_sampling_category_days_continuous>=7) %>% rownames() %>% sample(., 60)
+
+phylo_filtered <- prune_samples(c(sample_bl, sample_mom, sample_baby), phylo_all)
+
+dist_bray <- distance(phylo_filtered, method = "bray")
+ord_bray <- ordinate(phylo_filtered, "PCoA", distance = dist_bray)
+
+dist_jac <- distance(phylo_filtered, method = "jaccard", binary = T)
+ord_jac <- ordinate(phylo_filtered, "PCoA", distance = dist_jac)
+
+p <- plot_ordination(phylo_filtered, ord_jac)
+p_dat <- p$data %>% mutate(body_site_corrected = ifelse(!is.na(Cat_control), Cat_control, body_site_corrected), mom_baby = ifelse(!is.na(Cat_control), "Blanks", mom_baby))
+col <- c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf')
+names(col) <- c("Feces", "Field_BL", "Lib_BL", "Forearm", "Mouth", "Right_Areola", "Nose", "Vagina")
+ggplot(p_dat, aes(Axis.1, Axis.2, color = body_site_corrected, shape = mom_baby)) +
+    geom_point() +
+    scale_color_manual(values = col) +
+    stat_ellipse(aes(group = mom_baby, linetype = mom_baby)) +
+    scale_shape_manual(values = c(1, 17, 16)) + 
+    theme_bw() + theme(aspect.ratio = 1)
+
+ggplot(p_dat, aes(Axis.1, Axis.2, shape = mom_baby)) +
+    geom_point(aes(fill = seqcount), size = 1, color = "grey") +
+    scale_fill_gradientn(colours = c('#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#253494'), values = scales::rescale(c(0, 5000)), limits = c(0, 7000), na.value = '#253494', breaks = c(0, 2000, 5000)) +
+    stat_ellipse(aes(group = mom_baby, linetype = mom_baby)) +
+    scale_shape_manual(values = c(21, 24, 22)) +
+    theme_bw() + theme(aspect.ratio = 1)
+```
+
+
+## Recyled codes:
+```{r}
+# # taxonomy
+# taxa_qza <- read_qza("../data/processed-data/taxonomy.qza")
+# taxa_tbl <- taxa_qza$data %>% filter(Feature.ID %in% ft_bl$OTU_ID) %>% mutate(Taxon = gsub(pattern = "__", replacement = "_", Taxon)) %>% separate(Taxon, into = c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "; ", remove = F)
+# taxa_tbl$Domain[is.na(taxa_tbl$Domain)] <- "k_"
+# taxa_tbl$Phylum[is.na(taxa_tbl$Phylum)] <- "p_"
+# taxa_tbl$Class[is.na(taxa_tbl$Class)] <- "c_"
+# taxa_tbl$Order[is.na(taxa_tbl$Order)] <- "o_"
+# taxa_tbl$Family[is.na(taxa_tbl$Family)] <- "f_"
+# taxa_tbl$Genus[is.na(taxa_tbl$Genus)] <- "g_"
+# taxa_tbl$Species[is.na(taxa_tbl$Species)] <- "s_"
+# 
+# ft_w_taxa <- merge(taxa_tbl, ft_bl, by = 1)
+# ft_glom <- list()
+# for (tt in c("Genus", "Family", "Order", "Class", "Phylum", "Domain")){
+#     ft_glom[[tt]] <- ft_w_taxa %>% group_by_at(vars("Domain":tt)) %>% summarise(across(mt_ft_bl$sample_name, sum, na.rm = T)) %>% ungroup()
+# }
+# ft_glom_df <- data.table::rbindlist(ft_glom, use.names = T, fill = T, idcol = "taxa.glom")
+# #saveRDS(ft_glom_df, file = "tmp_ft_glom_df.Rds")
+```
 

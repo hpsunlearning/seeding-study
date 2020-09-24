@@ -38,7 +38,6 @@ taxa_tbl$Species[is.na(taxa_tbl$Species)] <- "s_"
 
 tree <- read_qza("../data/processed-data/tree.qza")
 ```
-
 ## Extracting blank control samples
 1. Metadata
 ```{r}
@@ -83,7 +82,8 @@ mt_ft_bl <- BL_new %>% filter(sample_name %in% colnames(ft_bl))
 write.table(BL_new, file = "../data/processed-data/Metadata_controls.txt", quote = F, sep = "\t", row.names = F)
 ```
 
-## Check the sequencing depth of control samples
+## Analysis of control samples alone
+1. Check the sequencing depth of control samples
 ```{r}
 ggplot(BL_new, aes(x = seqcount)) +
     geom_histogram() +
@@ -95,7 +95,7 @@ split(BL_new, BL_new$Cat_control) %>% lapply(., function(x){stem(x$seqcount, sca
 BL_new %>% mutate(ints = cut(seqcount, breaks = c(-1,1,seq(1000, 5000, by = 1000), 10000))) %>% group_by(Cat_control, ints) %>% summarise(N = n()) %>% mutate(Pct = N/sum(N)*100)
 ```
 
-## Check the ASV richness of control samples
+2. Check the ASV richness of control samples
 ```{r}
 asv_ct <- ft_bl %>% summarise(across(mt_ft_bl$sample_name, ~sum(.x>0))) %>% t()
 colnames(asv_ct) <- "ASV_ct"
@@ -113,7 +113,7 @@ ggplot(asv_dat, aes(x = Cat_control, y = ASV_ct)) +
 ggsave("../results/check_control_2.pdf", width = 3.5, useDingbats = F)
 ```
 
-## Check the sequence count per ASVs
+3. Check the sequence count per ASVs
 ```{r}
 ft_bl_l <- ft_bl %>% pivot_longer(-1, names_to = "sample_name", values_to = "seqcount") %>% filter(seqcount>0) %>% merge(., BL_new %>% select(sample_name, Cat_control), by = "sample_name", all.x = T) %>% group_by(OTU_ID) %>% mutate(Med_seq = median(seqcount)) %>% ungroup %>% arrange(Med_seq, OTU_ID)
 ft_bl_l$OTU_ID = factor(ft_bl_l$OTU_ID, levels = ft_bl_l$OTU_ID %>% unique)
@@ -154,8 +154,10 @@ mt_ss <- mf %>% filter(sample_name %in% (sapply(c(bb_qza, mm_qza), FUN = functio
 mt_ss$body_site_corrected[mt_ss$body_site_corrected=="Right_Forearm"] = "Forearm"
 ```
 
+
+
 ## Compare controls with Samples
-```{r}
+```{r, eval=FALSE}
 # Control feature table and metadata
 ft_bl
 mt_ft_bl
@@ -165,7 +167,7 @@ bb_qza
 mm_qza
 mt_ss
 ```
-
+1. Merge all things into a phyloseq object
 ```{r}
 otu_bl <- otu_table(ft_bl %>% column_to_rownames(var = "OTU_ID"), taxa_are_rows = T)
 otu_bbs <- parallel::mclapply(bb_qza, function(x){otu_table(x$data, taxa_are_rows = T)})
@@ -179,7 +181,7 @@ for (i in seq(length(otu_all_lst))){
     otu_all = merge_phyloseq(otu_all, otu_all_lst[[i]])
 }
 
-mt_all <- plyr::rbind.fill(mt_ft_bl, mt_ss) %>% column_to_rownames(var = "sample_name")# merge the blank metadata with the feature metadata. The samples have NA in colume Cat_control
+mt_all <- plyr::rbind.fill(mt_ft_bl, mt_ss) %>% mutate(body_site_corrected = ifelse(!is.na(Cat_control), Cat_control, body_site_corrected), mom_baby = ifelse(!is.na(Cat_control), "Blanks", mom_baby)) %>% column_to_rownames(var = "sample_name") # merge the blank metadata with the feature metadata. The samples have NA in colume Cat_control
 
 taxa_all <- taxa_tbl %>% filter(Feature.ID %in% rownames(otu_table(otu_all))) %>% select(Feature.ID, Domain:Species) %>% column_to_rownames(var = "Feature.ID") %>% as.matrix() %>% tax_table()
 
@@ -187,10 +189,13 @@ tree_all <- ape::keep.tip(tree$data, rownames(otu_table(otu_all)))
 
 # this object have the otu table, taxa table, metadata and the phylogenetic tree
 phylo_all <- merge_phyloseq(otu_all, taxa_all, sample_data(mt_all), tree_all)
+saveRDS(phylo_all, file = "tmp_phyloseq_all.rds")
 ```
+
 
 ```{r}
 # pick samples
+#mt_all <- sample_data(phylo_all)
 sample_bl <- mt_all %>% filter(!is.na(Cat_control)) %>% rownames()
 set.seed(20)
 sample_mom <- mt_all %>% filter(mom_baby=="Mom" & date_sampling_category_days_continuous<=30 & date_sampling_category_days_continuous>=0) %>% rownames() %>% sample(., 60)
@@ -198,29 +203,120 @@ sample_baby <- mt_all %>% filter(mom_baby=="Baby" & date_sampling_category_days_
 
 phylo_filtered <- prune_samples(c(sample_bl, sample_mom, sample_baby), phylo_all)
 
-dist_bray <- distance(phylo_filtered, method = "bray")
-ord_bray <- ordinate(phylo_filtered, "PCoA", distance = dist_bray)
+# dist_bray <- distance(phylo_filtered, method = "bray")
+# ord_bray <- ordinate(phylo_filtered, "PCoA", distance = dist_bray)
 
 dist_jac <- distance(phylo_filtered, method = "jaccard", binary = T)
 ord_jac <- ordinate(phylo_filtered, "PCoA", distance = dist_jac)
 
 p <- plot_ordination(phylo_filtered, ord_jac)
-p_dat <- p$data %>% mutate(body_site_corrected = ifelse(!is.na(Cat_control), Cat_control, body_site_corrected), mom_baby = ifelse(!is.na(Cat_control), "Blanks", mom_baby))
 col <- c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf')
 names(col) <- c("Feces", "Field_BL", "Lib_BL", "Forearm", "Mouth", "Right_Areola", "Nose", "Vagina")
-ggplot(p_dat, aes(Axis.1, Axis.2, color = body_site_corrected, shape = mom_baby)) +
+
+p1 <- ggplot(p$data, aes(Axis.1, Axis.2, color = body_site_corrected, shape = mom_baby)) +
     geom_point() +
     scale_color_manual(values = col) +
     stat_ellipse(aes(group = mom_baby, linetype = mom_baby)) +
     scale_shape_manual(values = c(1, 17, 16)) + 
-    theme_bw() + theme(aspect.ratio = 1)
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1) +
+    labs(x = paste0("Axis.1 [", round(ord_jac$values$Relative_eig[1]*100,1), "%]"), y =paste0("Axis.2 [", round(ord_jac$values$Relative_eig[2]*100,1), "%]"))
 
-ggplot(p_dat, aes(Axis.1, Axis.2, shape = mom_baby)) +
+p2 <- ggplot(p$data, aes(Axis.1, Axis.2, shape = mom_baby)) +
     geom_point(aes(fill = seqcount), size = 1, color = "grey") +
     scale_fill_gradientn(colours = c('#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#253494'), values = scales::rescale(c(0, 5000)), limits = c(0, 7000), na.value = '#253494', breaks = c(0, 2000, 5000)) +
     stat_ellipse(aes(group = mom_baby, linetype = mom_baby)) +
     scale_shape_manual(values = c(21, 24, 22)) +
-    theme_bw() + theme(aspect.ratio = 1)
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1) +
+    labs(x = paste0("Axis.1 [", round(ord_jac$values$Relative_eig[1]*100,1), "%]"), y =paste0("Axis.2 [", round(ord_jac$values$Relative_eig[2]*100,1), "%]")) +
+    guides(linetype = F, shape = F)
+
+p1 + p2 + plot_layout(guides = "collect") & theme(legend.position = 'bottom', legend.direction = "vertical")
+ggsave(filename = "../results/controlvsamples_1.pdf", width = 7, useDingbats = F)
+```
+
+```{r}
+mt_filterd_phylo <- sample_data(phylo_filtered) %>% as.matrix %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
+
+# dist of mother samples by site.
+mt_filtered_phylo_mm <- mt_filterd_phylo %>% filter(mom_baby=="Mom")
+dist_mm_by_site <- split(mt_filtered_phylo_mm, mt_filtered_phylo_mm$body_site_corrected) %>% lapply(., function(x){subset_dm_by_names(dist_jac, x$sample_name) %>% as.numeric})
+
+dist_tbl <- lapply(seq_along(dist_mm_by_site), function(x){data.frame(distance = dist_mm_by_site[[x]], cat1 = names(dist_mm_by_site)[[x]], cat2 = "SampleRef")}) %>% do.call("rbind", .)
+
+
+# dist of blanks within group 
+mt_filtered_phylo_bl <- mt_filterd_phylo %>% filter(mom_baby=="Blanks")
+dist_bl_by_site <- split(mt_filtered_phylo_bl, mt_filtered_phylo_bl$body_site_corrected) %>% lapply(., function(x){subset_dm_by_names(dist_jac, x$sample_name) %>% as.numeric})
+
+dist_tbl <- rbind(dist_tbl, lapply(seq_along(dist_bl_by_site), function(x){data.frame(distance = dist_bl_by_site[[x]], cat1 = names(dist_bl_by_site)[[x]], cat2 = "Blanks")}) %>% do.call("rbind", .))
+
+
+# dist of blanks vs samples
+dist_blvSS <- (dist_jac %>% as.matrix())[mt_filtered_phylo_bl$sample_name, mt_filterd_phylo %>% filter(mom_baby!="Blanks") %>% pull(sample_name)] %>% as.data.frame() %>% rownames_to_column(var = "sample_name_bl") %>% pivot_longer(-1, names_to = "sample_name_ss", values_to = "distance") %>% arrange(sample_name_bl, distance) 
+
+## select the 3 shortest distance for each sample
+dist_blvSS_low <- dist_blvSS %>% group_by(sample_name_bl) %>% filter(distance<=distance[3]) %>% merge(., mt_filtered_phylo_bl, by.x = 1, by.y = 1)
+dist_tbl_sub <- dist_blvSS_low %>% select(sample_name_bl, distance, body_site_corrected, seqcount, sample_name_ss) %>% merge(., mt_filterd_phylo %>% select(sample_name, mom_baby, body_site_corrected), by.x = "sample_name_ss", by.y = "sample_name", all.x = T) %>% rename(cat1 = body_site_corrected.x, ss_mom_baby = mom_baby, ss_body_site = body_site_corrected.y) %>% mutate(cat2 = "BlanksToSamples", seqcount = as.numeric(seqcount))
+dist_tbl_sub2 <- dist_blvSS_low %>% select(sample_name_bl, distance, body_site_corrected, seqcount, sample_name_ss) %>% merge(., mt_filterd_phylo %>% select(sample_name, mom_baby, body_site_corrected), by.x = "sample_name_ss", by.y = "sample_name", all.x = T) %>% rename(cat1 = body_site_corrected.x, ss_mom_baby = mom_baby, ss_body_site = body_site_corrected.y) %>% mutate(cat2 = "BlanksToSamples", seqcount = as.numeric(seqcount)) %>% group_by(cat2, cat1, seqcount, sample_name_bl) %>% summarise(distance = mean(distance)) %>% ungroup()
+
+#dist_tbl <- plyr::rbind.fill(dist_tbl, dist_tbl_sub %>% select(-c(1, 2))) %>% mutate(seqcount = as.numeric(seqcount))
+
+p1 <- ggplot(dist_tbl, aes(cat2, distance)) +
+    geom_point(position = position_jitter(), color = "grey50") +
+    geom_boxplot(color = "blue", fill = NA, outlier.shape = NA) +
+    theme_bw(base_size = 10) +theme(aspect.ratio = 1) + 
+    labs(x = "")
+
+p2 <- ggplot(dist_tbl_sub2, aes(seqcount, distance)) +
+    geom_point(aes(fill= seqcount), color = "grey", shape = 21) +
+    scale_fill_gradientn(colours = c('#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#253494'), values = scales::rescale(c(0, 5000)), limits = c(0, 7000), na.value = '#253494', breaks = c(0, 2000, 5000)) +
+    scale_x_continuous(trans = "log10") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 0.6)
+
+p1 + p2 & coord_cartesian(ylim = c(0.5, 1))
+scale_color_gradientn(colours = c('#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#253494'), values = scales::rescale(c(0, 5000)), limits = c(0, 7000), na.value = '#253494', breaks = c(0, 2000, 5000))
+ggsave(filename = "../results/controlvsamples_2.pdf", width = 9, useDingbats = F)
+
+```
+
+## Check taxa in controls
+```{r, eval=FALSE}
+# Control metadata
+# readRDS()
+#mt_all <- sample_data(phylo_all)
+
+mt_ft_bl <- mt_all %>% filter(!is.na(Cat_control)) %>% rownames()
+```
+```{r}
+phylo_bl <- prune_samples(mt_ft_bl$sample_name, phylo_all)
+
+p <- plot_bar(phylo_bl, x = "Sample", fill = "Phylum")
+p_dat <- p$data
+saveRDS(p_dat, file = "tmp_pdata.rds")
+```
+
+
+## functions
+```{r}
+subset_dm_by_names <- function(DM, Sname){
+    # Extract the distance matrix using the sample names of a subset of the samples
+    #
+    # Args:
+    #   DM: the distance matrix as a dist class
+    #   Sname: a vector of the sample names
+    #
+    # Returns:
+    #   The extracted distance matrix as a class dist object
+    DM_mat <- DM %>% as.matrix
+    DM_sname <- DM_mat %>% row.names()
+    tmp <- match(Sname, DM_sname)
+    Exist <- tmp[!is.na(tmp)]
+    NoExist <- Sname[which(is.na(tmp))]
+    print("Following samples do not exist in the distance matrix:")
+    print(NoExist)
+    DM <- DM_mat[Exist, Exist] %>% as.dist()
+    return(DM)
+}
 ```
 
 

@@ -79,7 +79,7 @@ BL_new$seqcount[match(names(seqcount), BL_new$sample_name)] <- seqcount
 
 ## Metadata only with samples that have sequences
 mt_ft_bl <- BL_new %>% filter(sample_name %in% colnames(ft_bl))
-write.table(BL_new, file = "../data/processed-data/Metadata_controls.txt", quote = F, sep = "\t", row.names = F)
+# write.table(BL_new, file = "../data/processed-data/Metadata_controls.txt", quote = F, sep = "\t", row.names = F)
 ```
 
 ## Analysis of control samples alone
@@ -177,8 +177,9 @@ names(otu_all_lst)[1] <- "BL"
 for (i in seq(length(otu_all_lst))){
     if (i==1){
         otu_all = otu_all_lst[[i]]
+    } else {
+        otu_all = merge_phyloseq(otu_all, otu_all_lst[[i]])
     }
-    otu_all = merge_phyloseq(otu_all, otu_all_lst[[i]])
 }
 
 mt_all <- plyr::rbind.fill(mt_ft_bl, mt_ss) %>% mutate(body_site_corrected = ifelse(!is.na(Cat_control), Cat_control, body_site_corrected), mom_baby = ifelse(!is.na(Cat_control), "Blanks", mom_baby)) %>% column_to_rownames(var = "sample_name") # merge the blank metadata with the feature metadata. The samples have NA in colume Cat_control
@@ -189,6 +190,7 @@ tree_all <- ape::keep.tip(tree$data, rownames(otu_table(otu_all)))
 
 # this object have the otu table, taxa table, metadata and the phylogenetic tree
 phylo_all <- merge_phyloseq(otu_all, taxa_all, sample_data(mt_all), tree_all)
+phylo_all <- filter_taxa(phylo_all, function(x) {sum(x)>0}, prune = T)
 saveRDS(phylo_all, file = "tmp_phyloseq_all.rds")
 ```
 
@@ -273,8 +275,7 @@ p2 <- ggplot(dist_tbl_sub2, aes(seqcount, distance)) +
     scale_x_continuous(trans = "log10") +
     theme_bw(base_size = 10) + theme(aspect.ratio = 0.6)
 
-p1 + p2 & coord_cartesian(ylim = c(0.5, 1))
-scale_color_gradientn(colours = c('#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#253494'), values = scales::rescale(c(0, 5000)), limits = c(0, 7000), na.value = '#253494', breaks = c(0, 2000, 5000))
+p1 + p2 & coord_cartesian(ylim = c(0.6, 1))
 ggsave(filename = "../results/controlvsamples_2.pdf", width = 9, useDingbats = F)
 
 ```
@@ -289,7 +290,38 @@ mt_ft_bl <- mt_all %>% as.matrix() %>% as.data.frame() %>% filter(!is.na(Cat_con
 ```
 ```{r}
 phylo_bl <- prune_samples(mt_ft_bl$sample_name, phylo_all)
+phylo_bl <- filter_taxa(phylo_bl, function(x) {sum(x)>0}, prune = T)
 
+p <- plot_bar(phylo_bl, x = "Sample", fill = "Phylum")
+#p + guides(fill = F) + facet_grid(.~Cat_control, scales = "free_x", space = "free_x") + scale_y_continuous(trans = "log10")
+
+p_dat <- p$data %>% filter(Abundance>0)
+```
+```{r}
+# ASV prevelance
+asv_prev <- p_dat %>% group_by(Domain, Phylum, Class, Order, Family, Genus, Species, OTU) %>% summarise(N = length(unique(Sample)), Cat_bl = paste(unique(Cat_control), collapse = "-")) %>% mutate(Cat_bl = ifelse(nchar(Cat_bl)>8, "Both", Cat_bl)) %>% ungroup
+
+ggplot(asv_prev %>% filter(N<=10), aes(x = N, y = 1)) +
+    geom_bar(stat = "identity", aes(fill = Cat_bl))
+
+ggplot(asv_prev %>% filter(N>10), aes(x = N, y = 1)) +
+    geom_bar(stat = "identity", aes(fill = Cat_bl))
+
+
+asv_prev_2 <-  p_dat %>% group_by(Domain, Phylum, Class, Order, Family, Genus, Species, OTU) %>% filter(length(unique(Sample))>20)
+
+ggplot(asv_prev_2, aes(x = OTU, y = 1)) +
+    geom_bar(stat = "identity", aes(fill = Cat_control)) +
+    theme_bw() + theme(axis.text.x = element_blank())
+
+otu_id <- data.frame(otu_seq = rownames(tax_table(phylo_bl))) %>% mutate(otu_no = paste0("ASV", seq(n())))
+
+ggplot(asv_prev_sum, aes(x = N, y = Count)) +
+    geom_line() +
+    geom_point(size = 1) +
+    geom_text(aes(label = Count), nudge_y = 2) +
+    theme_bw() +
+    coord_cartesian(ylim = c(0, 100))
 
 ```
 

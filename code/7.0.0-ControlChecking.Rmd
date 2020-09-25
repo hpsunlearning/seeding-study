@@ -282,17 +282,15 @@ ggsave(filename = "../results/controlvsamples_2.pdf", width = 9, useDingbats = F
 ## Check taxa in controls
 ```{r, eval=FALSE}
 # Control metadata
-# readRDS()
-#mt_all <- sample_data(phylo_all)
+# phylo_all <- readRDS(file = "tmp_phyloseq_all.rds")
+# mt_all <- sample_data(phylo_all)
 
-mt_ft_bl <- mt_all %>% filter(!is.na(Cat_control)) %>% rownames()
+mt_ft_bl <- mt_all %>% as.matrix() %>% as.data.frame() %>% filter(!is.na(Cat_control)) %>% rownames_to_column(var = "sample_name")
 ```
 ```{r}
 phylo_bl <- prune_samples(mt_ft_bl$sample_name, phylo_all)
 
-p <- plot_bar(phylo_bl, x = "Sample", fill = "Phylum")
-p_dat <- p$data
-saveRDS(p_dat, file = "tmp_pdata.rds")
+
 ```
 
 

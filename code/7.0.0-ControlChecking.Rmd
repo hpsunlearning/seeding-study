@@ -17,6 +17,7 @@ library(extrafont)
 # library(biomformat)
 library(qiime2R)
 library(phyloseq)
+library(patchwork)
 sessionInfo()
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 ```
@@ -168,7 +169,7 @@ mm_qza
 mt_ss
 ```
 1. Merge all things into a phyloseq object
-```{r}
+```{r, eval=FALSE}
 otu_bl <- otu_table(ft_bl %>% column_to_rownames(var = "OTU_ID"), taxa_are_rows = T)
 otu_bbs <- parallel::mclapply(bb_qza, function(x){otu_table(x$data, taxa_are_rows = T)})
 otu_mms <- parallel::mclapply(mm_qza, function(x){otu_table(x$data, taxa_are_rows = T)})
@@ -194,10 +195,12 @@ phylo_all <- filter_taxa(phylo_all, function(x) {sum(x)>0}, prune = T)
 saveRDS(phylo_all, file = "tmp_phyloseq_all.rds")
 ```
 
-
+2. Beta diversity comparison
 ```{r}
 # pick samples
-#mt_all <- sample_data(phylo_all)
+phylo_all <- readRDS(file = "tmp_phyloseq_all.rds")
+mt_all <- sample_data(phylo_all)
+
 sample_bl <- mt_all %>% filter(!is.na(Cat_control)) %>% rownames()
 set.seed(20)
 sample_mom <- mt_all %>% filter(mom_baby=="Mom" & date_sampling_category_days_continuous<=30 & date_sampling_category_days_continuous>=0) %>% rownames() %>% sample(., 60)
@@ -235,7 +238,7 @@ p2 <- ggplot(p$data, aes(Axis.1, Axis.2, shape = mom_baby)) +
 p1 + p2 + plot_layout(guides = "collect") & theme(legend.position = 'bottom', legend.direction = "vertical")
 ggsave(filename = "../results/controlvsamples_1.pdf", width = 7, useDingbats = F)
 ```
-
+3. Similarity/distance comparison
 ```{r}
 mt_filterd_phylo <- sample_data(phylo_filtered) %>% as.matrix %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
 
@@ -279,51 +282,69 @@ p1 + p2 & coord_cartesian(ylim = c(0.6, 1))
 ggsave(filename = "../results/controlvsamples_2.pdf", width = 9, useDingbats = F)
 
 ```
-
-## Check taxa in controls
-```{r, eval=FALSE}
-# Control metadata
-# phylo_all <- readRDS(file = "tmp_phyloseq_all.rds")
-# mt_all <- sample_data(phylo_all)
-
-mt_ft_bl <- mt_all %>% as.matrix() %>% as.data.frame() %>% filter(!is.na(Cat_control)) %>% rownames_to_column(var = "sample_name")
-```
+4. Taxa or ASV comparison
+4.1 ASV prevalence
 ```{r}
-phylo_bl <- prune_samples(mt_ft_bl$sample_name, phylo_all)
-phylo_bl <- filter_taxa(phylo_bl, function(x) {sum(x)>0}, prune = T)
+# phylo_all
+## creating a dictionary to map OTU id with an arbitrary index
+dict_otu = data.frame(otu_id = rownames(tax_table(phylo_all))) %>% mutate(otu_ind = paste0("ASV", seq(n())))
 
-p <- plot_bar(phylo_bl, x = "Sample", fill = "Phylum")
-#p + guides(fill = F) + facet_grid(.~Cat_control, scales = "free_x", space = "free_x") + scale_y_continuous(trans = "log10")
+mt_all = sample_data(phylo_all) %>% as.matrix() 
+ft_all = otu_table(phylo_all) %>% as.matrix() %>% as.data.frame()
+mt_ft_bl <- mt_all %>% as.data.frame() %>% filter(!is.na(Cat_control)) %>% rownames_to_column(var = "sample_name")
 
-p_dat <- p$data %>% filter(Abundance>0)
+## asv prevalence in controls
+ft_bl_l = ft_all[, mt_ft_bl$sample_name] %>% rownames_to_column("otu_id") %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% group_by(sample_name) %>% mutate(rela = count/sum(count)) %>% left_join(., mt_ft_bl, by = "sample_name")
+
+asv_prev_bl_sum = ft_bl_l %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Cat = ifelse(length(unique(Cat_control))>1, "Both", paste0(unique(Cat_control), "-Only")), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
+
+ggplot(asv_prev_bl_sum, aes(x = N, y = ..count..)) +
+    geom_bar(aes(fill = Cat)) +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1.5) +
+    scale_x_continuous(breaks = seq(0, 90, 10)) +
+    labs(x = "Prevalance", y = "N of ASVs", title = "Histogram of ASV prevalence in blank samples", fill = "Type of blanks")
+
+ggplot(asv_prev_bl_sum, aes(x = N, y = Med_ct)) + 
+    geom_point() +
+    scale_y_log10() + 
+    theme_bw(base_size = 10) + theme(aspect.ratio = 0.8) +
+    labs(x = "Prevalance", y = "Median count of a ASV across blank samples in which it appeared", title = "Median abundance of ASVs by their prevalance")
 ```
+
+
 ```{r}
-# ASV prevelance
-asv_prev <- p_dat %>% group_by(Domain, Phylum, Class, Order, Family, Genus, Species, OTU) %>% summarise(N = length(unique(Sample)), Cat_bl = paste(unique(Cat_control), collapse = "-")) %>% mutate(Cat_bl = ifelse(nchar(Cat_bl)>8, "Both", Cat_bl)) %>% ungroup
+mt_ft_bb <- mt_all %>% as.data.frame() %>% filter(mom_baby=="Baby") %>% rownames_to_column(var = "sample_name")
+## asv prevalence in controls
+ft_bb_l = ft_all[, mt_ft_bb$sample_name] %>% rownames_to_column("otu_id") %>% filter(rowSums(.[, -1])>0) %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% group_by(sample_name) %>% mutate(rela = count/sum(count)) %>% left_join(., mt_ft_ss, by = "sample_name")
 
-ggplot(asv_prev %>% filter(N<=10), aes(x = N, y = 1)) +
-    geom_bar(stat = "identity", aes(fill = Cat_bl))
+ft_bb_l_asv_in_bl <- ft_bb_l %>% filter(otu_id %in% ft_bl_l$otu_id)
 
-ggplot(asv_prev %>% filter(N>10), aes(x = N, y = 1)) +
-    geom_bar(stat = "identity", aes(fill = Cat_bl))
+asv_prev_bb_sum <- ft_bb_l_asv_in_bl %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
 
+asv_prev_sum <- right_join(asv_prev_bl_sum, asv_prev_bb_sum %>% select(-otu_ind), by = "otu_id", suffix = c(".bl", ".bb")) %>% arrange(N.bl)
+asv_prev_sum$otu_ind <- levels(asv_prev_sum$otu_ind, factor = asv_prev_sum$otu_ind)
 
-asv_prev_2 <-  p_dat %>% group_by(Domain, Phylum, Class, Order, Family, Genus, Species, OTU) %>% filter(length(unique(Sample))>20)
+ggplot(asv_prev_sum, aes(x = otu_ind, xend = otu_ind)) +
+    geom_segment(aes(y = 0, yend = N.bb), color = "blue") +
+    geom_segment(aes(y = 0, yend = N.bl*30), color = "red") +
+    scale_y_continuous(name = "Samples", sec.axis = sec_axis(~./30, name = "Blanks")) +
+    theme(axis.text.x = element_blank())
 
-ggplot(asv_prev_2, aes(x = OTU, y = 1)) +
-    geom_bar(stat = "identity", aes(fill = Cat_control)) +
-    theme_bw() + theme(axis.text.x = element_blank())
+Hmisc::rcorr(asv_prev_sum$N.bl, asv_prev_sum$N.bb, type = "spearman")
 
-otu_id <- data.frame(otu_seq = rownames(tax_table(phylo_bl))) %>% mutate(otu_no = paste0("ASV", seq(n())))
+ggplot(asv_prev_sum, aes(x = N.bl, y = N.bb)) +
+    geom_point() +
+    geom_smooth(method = "lm")
 
-ggplot(asv_prev_sum, aes(x = N, y = Count)) +
-    geom_line() +
-    geom_point(size = 1) +
-    geom_text(aes(label = Count), nudge_y = 2) +
-    theme_bw() +
-    coord_cartesian(ylim = c(0, 100))
+# filter appeared in more than 10% of each type, and had a med relative abundance in samples  >0.1%
+asv_prev_sum_cand <- asv_prev_sum %>% filter(N.bl>16, N.bb>321, Med_rela.bb>0.001)
 
+taxa_tbl <- tax_table(phylo_bl) %>% as.matrix %>% as.data.frame()
+
+asv_prev_sum_cand_taxa <- asv_prev_sum_cand %>% merge(., taxa_tbl, by.x = "otu_id", by.y = 0, all.x = T)
 ```
+
+There are 39817 ASVs identified in baby samples (3211 samples) and 1804 ASVs identified in blank samples (162 samples). 1134 ASVs appeared in both types of samples. The majority of those (1079 ASVs) appeared in less than 10 blank samples. 
 
 
 ## functions

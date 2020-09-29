@@ -189,13 +189,10 @@ ggsave("../results/check_control_3.pdf", width = 9, useDingbats = F)
 
 ```
 
-
-
-
 ## Compare controls with Samples
 ```{r}
 phylo_all <- readRDS(file = "tmp_phyloseq_all.rds")
-mt_all <- sample_data(phylo_all)
+mt_all <- sample_data(phylo_all) %>% as.matrix() 
 ```
 
 1. Beta diversity comparison
@@ -283,13 +280,11 @@ ggsave(filename = "../results/controlvsamples_2.pdf", width = 9, useDingbats = F
 
 ```
 3. Taxa or ASV comparison
-3.1 ASV prevalence
+3.1 ASV prevalence in control samples
 ```{r}
 # phylo_all
 ## creating a dictionary to map OTU id with an arbitrary index
-dict_otu = data.frame(otu_id = rownames(tax_table(phylo_all))) %>% mutate(otu_ind = paste0("ASV", seq(n())))
-
-mt_all = sample_data(phylo_all) %>% as.matrix() 
+dict_otu = tax_table(phylo_all) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "otu_id")  %>% mutate(otu_ind = paste0("ASV", seq(n())))
 ft_all = otu_table(phylo_all) %>% as.matrix() %>% as.data.frame()
 mt_ft_bl <- mt_all %>% as.data.frame() %>% filter(!is.na(Cat_control)) %>% rownames_to_column(var = "sample_name")
 
@@ -297,7 +292,9 @@ mt_ft_bl <- mt_all %>% as.data.frame() %>% filter(!is.na(Cat_control)) %>% rowna
 ft_bl_l = ft_all[, mt_ft_bl$sample_name] %>% rownames_to_column("otu_id") %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% group_by(sample_name) %>% mutate(rela = count/sum(count)) %>% left_join(., mt_ft_bl, by = "sample_name")
 
 asv_prev_bl_sum = ft_bl_l %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Cat = ifelse(length(unique(Cat_control))>1, "Both", paste0(unique(Cat_control), "-Only")), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
-
+```
+162 control samples, 1804 ASVs identified in total.
+```{r}
 ggplot(asv_prev_bl_sum, aes(x = N, y = ..count..)) +
     geom_bar(aes(fill = Cat)) +
     theme_bw(base_size = 10) + theme(aspect.ratio = 1.5) +
@@ -312,40 +309,159 @@ ggplot(asv_prev_bl_sum, aes(x = N, y = Med_ct)) +
 ```
 
 
+3.2 ASV appeared in control samples prevlance in baby samples
 ```{r}
 mt_ft_bb <- mt_all %>% as.data.frame() %>% filter(mom_baby=="Baby") %>% rownames_to_column(var = "sample_name")
 ## asv prevalence in controls
-ft_bb_l = ft_all[, mt_ft_bb$sample_name] %>% rownames_to_column("otu_id") %>% filter(rowSums(.[, -1])>0) %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% group_by(sample_name) %>% mutate(rela = count/sum(count)) %>% left_join(., mt_ft_ss, by = "sample_name")
+ft_bb_l = ft_all[, mt_ft_bb$sample_name] %>% rownames_to_column("otu_id") %>% filter(rowSums(.[, -1])>0) %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% group_by(sample_name) %>% mutate(rela = count/sum(count)) %>% left_join(., mt_ft_bb, by = "sample_name")
+# ft_bb_l$otu_id %>% unique %>% length
 
 ft_bb_l_asv_in_bl <- ft_bb_l %>% filter(otu_id %in% ft_bl_l$otu_id)
 
 asv_prev_bb_sum <- ft_bb_l_asv_in_bl %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
+```
+3211 baby samples, 39817 ASV in total, share 1134 ASV with control samples
 
+```{r}
+# merge the baby asv table with control asv table together
 asv_prev_sum <- right_join(asv_prev_bl_sum, asv_prev_bb_sum %>% select(-otu_ind), by = "otu_id", suffix = c(".bl", ".bb")) %>% arrange(N.bl)
-asv_prev_sum$otu_ind <- levels(asv_prev_sum$otu_ind, factor = asv_prev_sum$otu_ind)
+asv_prev_sum$otu_ind <- factor(asv_prev_sum$otu_ind, levels = asv_prev_sum$otu_ind)
 
-ggplot(asv_prev_sum, aes(x = otu_ind, xend = otu_ind)) +
-    geom_segment(aes(y = 0, yend = N.bb), color = "blue") +
-    geom_segment(aes(y = 0, yend = N.bl*30), color = "red") +
-    scale_y_continuous(name = "Samples", sec.axis = sec_axis(~./30, name = "Blanks")) +
-    theme(axis.text.x = element_blank())
+p1 <- ggplot(asv_prev_sum, aes(x = otu_ind)) +
+    geom_line(aes(y = N.bb, group = 1, color = "Baby Samples")) +
+    geom_line(aes(y = N.bl*30, group = 1, color = "Blank Samples")) +
+    scale_y_continuous(name = "Prevalence in baby samples", breaks = seq(0, 2500, 250), sec.axis = sec_axis(~./30, name = "Prevalence in blanks", breaks = seq(0, 80, 10))) +
+    scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +
+    labs(x = "Individual ASV ordered by prevalance in blank samples", color = "", title = "A.Prevalences of common ASVs in baby samples (blue) and blanks (red)")
 
+Hmisc::rcorr(asv_prev_sum$N.bl, asv_prev_sum$N.bb, type = "pearson")
 Hmisc::rcorr(asv_prev_sum$N.bl, asv_prev_sum$N.bb, type = "spearman")
 
-ggplot(asv_prev_sum, aes(x = N.bl, y = N.bb)) +
+
+p2 <- ggplot(asv_prev_sum, aes(x = N.bl, y = N.bb)) +
     geom_point() +
-    geom_smooth(method = "lm")
+    geom_smooth(method = "lm") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1, plot.title = element_text(hjust = 0, size = 8)) +
+    scale_y_continuous(breaks = seq(0, 2500, 250)) + scale_x_continuous(breaks = seq(0, 80, 10)) +
+    coord_cartesian(ylim = c(0, 2500)) +
+    annotate(geom = "label", x = 0, y = 2400, label = "Pearson rho = 0.76; Spearman rho = 0.64", hjust = 0, size = 8/.pt) +
+    labs(x = "Prevalence in blanks", y = "Prevalence in baby samples", title = "B. Correlation between prevalences in in baby samples and blanks")
+
+p1 + p2
+
+ggsave("../results/controlvsamples_3.pdf", width = 11, useDingbats = F)
+```
+1134 ASVs appeared in both types of samples.
+
+
+3.3 ASV appeared in control samples prevlance in baby oral and skin samples
+```{r}
+mt_ft_bb_os <- mt_ft_bb %>% filter(body_site_type != "Fecal" )
+## asv prevalence in controls
+ft_bb_os_l = ft_bb_l %>% filter(sample_name %in% mt_ft_bb_os$sample_name)
+# ft_bb_os_l$otu_id %>% unique %>% length
+
+ft_bb_os_l_asv_in_bl <- ft_bb_os_l %>% filter(otu_id %in% ft_bl_l$otu_id)
+# ft_bb_os_l_asv_in_bl$otu_id %>% unique %>% length
+
+asv_prev_bb_os_sum <- ft_bb_os_l_asv_in_bl %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
+```
+1820 baby samples, 31977 ASV in total, share 1088 ASV with control samples
+
+```{r}
+# merge the baby asv table with control asv table together
+asv_prev_sum_2 <- right_join(asv_prev_bl_sum, asv_prev_bb_os_sum %>% select(-otu_ind), by = "otu_id", suffix = c(".bl", ".bb")) %>% arrange(N.bl)
+asv_prev_sum_2$otu_ind <- factor(asv_prev_sum_2$otu_ind, levels = asv_prev_sum_2$otu_ind)
+
+p1 <- ggplot(asv_prev_sum_2, aes(x = otu_ind)) +
+    geom_line(aes(y = N.bb, group = 1, color = "Baby Samples")) +
+    geom_line(aes(y = N.bl*30, group = 1, color = "Blank Samples")) +
+    scale_y_continuous(name = "Prevalence in baby samples", breaks = seq(0, 2500, 250), sec.axis = sec_axis(~./30, name = "Prevalence in blanks", breaks = seq(0, 80, 10))) +
+    scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +
+    labs(x = "Individual ASV ordered by prevalance in blank samples", color = "", title = "A.Prevalences of common ASVs in baby oral and skin samples (blue) and blanks (red)")
+
+Hmisc::rcorr(asv_prev_sum_2$N.bl, asv_prev_sum_2$N.bb, type = "pearson")
+Hmisc::rcorr(asv_prev_sum_2$N.bl, asv_prev_sum_2$N.bb, type = "spearman")
+
+
+p2 <- ggplot(asv_prev_sum_2, aes(x = N.bl, y = N.bb)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1, plot.title = element_text(hjust = 0, size = 8)) +
+    scale_y_continuous(breaks = seq(0, 2500, 250)) + scale_x_continuous(breaks = seq(0, 80, 10)) +
+    coord_cartesian(ylim = c(0, 2500)) +
+    annotate(geom = "label", x = 0, y = 2400, label = "Pearson rho = 0.72; Spearman rho = 0.63", hjust = 0, size = 8/.pt) +
+    labs(x = "Prevalence in blanks", y = "Prevalence in baby samples", title = "B. Correlation between prevalences in in baby oral and skin samples and blanks")
+
+p1 + p2
+
+ggsave("../results/controlvsamples_4.pdf", width = 11, useDingbats = F)
+```
+1088 ASVs appeared in both types of samples.
+
+
+
+3.4 ASV appeared in control samples prevlance in baby fecal samples
+```{r}
+mt_ft_bb_f <- mt_ft_bb %>% filter(body_site_type == "Fecal" )
+## asv prevalence in controls
+ft_bb_f_l = ft_bb_l %>% filter(sample_name %in% mt_ft_bb_f$sample_name)
+# ft_bb_f_l$otu_id %>% unique %>% length
+
+ft_bb_f_l_asv_in_bl <- ft_bb_f_l %>% filter(otu_id %in% ft_bl_l$otu_id)
+# ft_bb_f_l_asv_in_bl$otu_id %>% unique %>% length
+
+asv_prev_bb_f_sum <- ft_bb_f_l_asv_in_bl %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
+```
+1391 baby samples, 11441 ASV in total, share 810 ASV with control samples
+
+```{r}
+# merge the baby asv table with control asv table together
+asv_prev_sum_3 <- right_join(asv_prev_bl_sum, asv_prev_bb_f_sum %>% select(-otu_ind), by = "otu_id", suffix = c(".bl", ".bb")) %>% arrange(N.bl)
+asv_prev_sum_3$otu_ind <- factor(asv_prev_sum_3$otu_ind, levels = asv_prev_sum_3$otu_ind)
+
+p1 <- ggplot(asv_prev_sum_3, aes(x = otu_ind)) +
+    geom_line(aes(y = N.bb, group = 1, color = "Baby Samples")) +
+    geom_line(aes(y = N.bl*30, group = 1, color = "Blank Samples")) +
+    scale_y_continuous(name = "Prevalence in baby samples", breaks = seq(0, 2500, 250), sec.axis = sec_axis(~./30, name = "Prevalence in blanks", breaks = seq(0, 80, 10))) +
+    scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +
+    labs(x = "Individual ASV ordered by prevalance in blank samples", color = "", title = "A.Prevalences of common ASVs in baby fecal samples (blue) and blanks (red)")
+
+Hmisc::rcorr(asv_prev_sum_3$N.bl, asv_prev_sum_3$N.bb, type = "pearson")
+Hmisc::rcorr(asv_prev_sum_3$N.bl, asv_prev_sum_3$N.bb, type = "spearman")
+
+
+p2 <- ggplot(asv_prev_sum_3, aes(x = N.bl, y = N.bb)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1, plot.title = element_text(hjust = 0, size = 8)) +
+    scale_y_continuous(breaks = seq(0, 2500, 250)) + scale_x_continuous(breaks = seq(0, 80, 10)) +
+    coord_cartesian(ylim = c(0, 2500)) +
+    annotate(geom = "label", x = 0, y = 2400, label = "Pearson rho = 0.72; Spearman rho = 0.63", hjust = 0, size = 8/.pt) +
+    labs(x = "Prevalence in blanks", y = "Prevalence in baby samples", title = "B. Correlation between prevalences in in baby fecal samples and blanks")
+
+p1 + p2
+
+ggsave("../results/controlvsamples_5.pdf", width = 11, useDingbats = F)
+```
+3.5 
+```{r}
 
 # filter appeared in more than 10% of each type, and had a med relative abundance in samples  >0.1%
-asv_prev_sum_cand <- asv_prev_sum %>% filter(N.bl>16, N.bb>321, Med_rela.bb>0.001)
+asv_prev_sum_2_cand <- asv_prev_sum_2 %>% filter(N.bl>16, N.bb>182, Med_rela.bb>0.001)
 
-taxa_tbl <- tax_table(phylo_bl) %>% as.matrix %>% as.data.frame()
+asv_prev_sum_3_cand <- asv_prev_sum_3 %>% filter(N.bl>16, N.bb>139, Med_rela.bb>0.001)
 
-asv_prev_sum_cand_taxa <- asv_prev_sum_cand %>% merge(., taxa_tbl, by.x = "otu_id", by.y = 0, all.x = T)
+colnames(asv_prev_sum_2_cand) <- c("otu_id", "N.bl", "Cat", "Avg_ct.bl", "Med_ct.bl", "Avg_rela.bl", "Med_rela.bl", "otu_ind", "N.bb1", "Avg_ct.bb1", "Med_ct.bb1", "Avg_rela.bb1", "Med_rela.bb1")
+colnames(asv_prev_sum_3_cand) <- c("otu_id", "N.bl", "Cat", "Avg_ct.bl", "Med_ct.bl", "Avg_rela.bl", "Med_rela.bl", "otu_ind", "N.bb2", "Avg_ct.bb2", "Med_ct.bb2", "Avg_rela.bb2", "Med_rela.bb2")
+
+asv_prev_sum_all <- full_join(asv_prev_sum_2_cand, asv_prev_sum_3_cand, by = c("otu_id", "N.bl", "Cat", "Avg_ct.bl", "Med_ct.bl", "Avg_rela.bl", "Med_rela.bl", "otu_ind")) %>% left_join(., dict_otu, by = c("otu_id", "otu_ind"))
+
+asv_prev_sum_2_cand %>% select(otu_ind.x, otu_id, N.bl, Avg_ct.bl, Med_ct.bl, Avg)
 ```
-
-There are 39817 ASVs identified in baby samples (3211 samples) and 1804 ASVs identified in blank samples (162 samples). 1134 ASVs appeared in both types of samples. The majority of those (1079 ASVs) appeared in less than 10 blank samples. 
-
 
 ## functions
 ```{r}

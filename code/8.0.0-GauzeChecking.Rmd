@@ -27,21 +27,19 @@ np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 # all samples
 phylo_all <- readRDS("tmp_phyloseq_all.rds")
 mt_all = sample_data(phylo_all) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name") %>% mutate(seqcount = as.numeric(seqcount))
-mt_ss_4_gauze = mt_all %>% filter((mom_baby=="Mom" & body_site_type %in% c("Fecal", "Vaginal"))|(mom_baby=="Baby" & body_site_type=="Fecal"),  as.numeric(date_sampling_category_days_continuous)<=7)
+mt_ss_4_gauze = mt_all %>% filter((mom_baby=="Mom" & body_site_type %in% c("Fecal", "Vaginal"))|(mom_baby=="Baby" & body_site_type=="Fecal"),  as.numeric(date_sampling_category_days_continuous)<=7, as.numeric(date_sampling_category_days_continuous)>=0)
 
 phylo_ss_4_gauze = prune_samples(mt_ss_4_gauze$sample_name, phylo_all)
 phylo_ss_4_gauze@phy_tree = NULL
-saveRDS(phylo_ss_4_gauze, "tmp_phylo_ss_4_gauze.RDS")
 ```
 
 1. import gauze seqs
 This section needs to be updated once seqs are uploaded into qiita
-```{r}
-mt_gauze <- read.table("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/0-Doc/Mapping_baby_seeding_gauze.txt", header = T, sep = "\t")
-rownames(mt_gauze) <- mt_gauze$sample_name
+```{r, eval=FALSE}
+mt_gauze <- read.table("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/0-Doc/Mapping_baby_seeding_gauze.txt", header = T, sep = "\t") %>% column_to_rownames(var = "sample_name")
 
 ft_qza_all <- read_qza("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/3-deblur/SA-P1-P3_deblur_no-mitochondria-no-chloroplast_table.qza")
-ft_tbl_gauze <- ft_qza_all$data[, mt_gauze$sample_name] %>% as.data.frame %>% filter(rowSums(.)>0)
+ft_tbl_gauze <- ft_qza_all$data[, rownames(mt_gauze)] %>% as.data.frame %>% filter(rowSums(.)>0)
 
 # tree_qza_gauze <- read_qza("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/3-deblur/sepp_tree/tree.qza")
 # tree_gauze <- ape::keep.tip(tree_qza_gauze$data, rownames(ft_tbl_gauze))
@@ -59,11 +57,132 @@ taxa_gauze_tbl <- taxa_gauze_tbl %>% select(Feature.ID, Domain:Species) %>% colu
 
 phylo_gauze <- merge_phyloseq(otu_table(ft_tbl_gauze, taxa_are_rows = T), taxa_gauze_tbl, sample_data(mt_gauze))
 
-phylo_gauze_dat <- merge_phyloseq(phylo_gauze, phylo_ss_4_gauze)
+phylo_gauze_dat <- merge_phyloseq(phylo_gauze, phylo_ss_4_gauze) %>% prune_taxa(taxa_sums(.)>0, .)
 saveRDS(phylo_gauze_dat, file = "phylo_gauze_dataset.rds")
 ```
 
 ```{r}
-sample_data(phylo_gauze_dat)
+phylo_gauze_dat <- readRDS("phylo_gauze_dataset.rds")
+mt_gauze_dat <- sample_data(phylo_gauze_dat) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
+mt_gauze_dat$seqcount <- sample_sums(phylo_gauze_dat)[mt_gauze_dat$sample_name]
 ```
+# Sequencing depth
+```{r}
+ggplot(mt_gauze_dat, aes(seqcount, color = body_site_type, fill = body_site_type)) +
+    geom_histogram(alpha = 0.1)+
+    facet_grid(body_site_type~., scales = "free_y") +
+    scale_x_continuous(trans = "log10")
+```
+
+# Alpha diversity
+```{r}
+# no rarefaction
+plot_richness(phylo_gauze_dat, x = "body_site_type", measures = c("Observed", "Shannon"))
+
+# mt_gauze_dat %>% group_by(body_site_type) %>% summarise(min(seqcount))
+# rarefaction at 6K
+phylo_gauze_dat_6k <- rarefy_even_depth(phylo_gauze_dat, sample.size = 6000, rngseed = 20, replace = F, trimOTUs = T)
+p <- plot_richness(phylo_gauze_dat_6k, x = "body_site_type", color = "mom_baby", measures = c("Observed", "Shannon"))
+p_dat <- p$dat
+ggplot(p_dat, aes(x = body_site_type, y = value, color = mom_baby)) +
+    geom_violin(draw_quantiles = 0.5, scale = "width") +
+    geom_point(position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.9), size = 1) +
+    facet_wrap(.~variable, scales = "free_y") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 2) +
+    labs(x = "", color = "", y = "Alpha diversity", title = "Comparison of alpha diversities", subtitle = "All samples from the 1st week")
+```
+
+```{r}
+mt_gauze_6k <- sample_data(phylo_gauze_dat_6k) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
+mt_gauze_6k_samefam <- mt_gauze_6k %>% filter(familyid_unique %in% .$familyid_unique[.$mom_baby=="Gauze"])
+phylo_gauze_dat_6k_samefam <- prune_samples(mt_gauze_6k_samefam$sample_name, phylo_gauze_dat_6k)
+
+p <- plot_richness(phylo_gauze_dat_6k_samefam, measures = c("Observed", "Shannon"))
+p_dat2 <- p$data
+ggplot(p_dat2, aes(x = body_site_type, y = value, color = mom_baby)) +
+    geom_violin(draw_quantiles = 0.5, scale = "width") +
+    geom_point(position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.9), size = 1) +
+    facet_wrap(.~variable, scales = "free_y") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 2) +
+    labs(x = "", color = "", y = "Alpha diversity", title = "Comparison of alpha diversities", subtitle = "Samples from the same families the 1st week")
+ggsave("../results/Gauze_alpha_samefamilies.pdf", width = 7, useDingbats = F)
+```
+
+# beta diversity
+```{r}
+phylo_gauze_dat_samefam <- prune_samples(mt_gauze_6k_samefam$sample_name, phylo_gauze_dat)
+
+dist_jac <- distance(phylo_gauze_dat_samefam, method = "jaccard", binary = T)
+ord_jac <- ordinate(phylo_gauze_dat_samefam, "PCoA", distance = dist_jac)
+
+p <- plot_ordination(phylo_gauze_dat_samefam, ord_jac, color = "body_site_type", shape = "mom_baby")
+p + scale_shape_manual(values = c(21, 17, 16)) +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1) +
+    labs(shape = "", color = "", title = "PCoA based on Jaccard ")
+
+ggsave(filename = "../results/Gauze_beta_samefam.pdf", width = 5)
+```
+
+# ASV
+```{r}
+ft_gauze_dat_samefam <- otu_table(phylo_gauze_dat_samefam) %>% as.matrix() %>% as.data.frame()
+mt_gauze_dat_samefam <- sample_data(phylo_gauze_dat_samefam) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
+
+mt_gauze <- mt_gauze_dat_samefam %>% filter(mom_baby=="Gauze")
+mt_mm_feces <- mt_gauze_dat_samefam %>% filter(mom_baby=="Mom", body_site_type=="Fecal")
+mt_mm_vagina <- mt_gauze_dat_samefam %>% filter(mom_baby=="Mom", body_site_type=="Vaginal")
+
+ft_gauze <- ft_gauze_dat_samefam[mt_gauze$sample_name] %>% rownames_to_column(var = "otu_id") %>% pivot_longer(names_to = "sample_name", values_to = "Count", -1) %>% filter(Count>0) %>% group_by(sample_name) %>% mutate(rela = Count/sum(Count))
+asv_mm_feces <- ft_gauze_dat_samefam[mt_mm_feces$sample_name] %>% rowSums()
+asv_mm_feces <- asv_mm_feces[asv_mm_feces>0]
+
+asv_mm_vagina <- ft_gauze_dat_samefam[mt_mm_vagina$sample_name] %>% rowSums()
+asv_mm_vagina <- asv_mm_vagina[asv_mm_vagina>0]
+
+ft_gauze2 <- ft_gauze %>% mutate(Group1 = otu_id %in% names(asv_mm_feces), Group2 = otu_id %in% names(asv_mm_vagina), Group3 = case_when(Group1&Group2 ~ "M_fv", Group1 ~ "M_f", Group2~"M_v", T~"Unique"))
+
+ft_gauze2_sum <- ft_gauze2 %>% group_by(sample_name, Group3) %>% summarise(rela = sum(rela)) %>% ungroup %>% complete(sample_name, Group3, fill = list(rela = 0))
+ft_gauze2_sum$sample_name = factor(ft_gauze2_sum$sample_name, levels = ft_gauze2_sum %>% filter(Group3=="Unique") %>% arrange(rela) %>% pull(sample_name))
+
+ggplot(ft_gauze2_sum, aes(x = sample_name, y = rela, fill = Group3)) +
+    geom_bar(stat = "identity") +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_text(angle = 90), aspect.ratio = 2) +
+    labs(x = "", y = "Relative abundance", fill = "", title = "Proportion of ASVs from maternal feces or vagina in gauze samples")
+
+```
+
+
+```{r}
+familyids <- mt_gauze$familyid_unique %>% unique
+dat_fam_spec <- list()
+for (ff in familyids){
+    mt_tmp <- mt_gauze_dat_samefam %>% filter(familyid_unique == ff)
+    mt_tmp_gauze <- mt_tmp %>% filter(mom_baby=="Gauze")
+    mt_tmp_mm_feces <- mt_tmp %>% filter(mom_baby=="Mom", body_site_type=="Fecal")
+    mt_tmp_mm_vagina <- mt_tmp %>% filter(mom_baby=="Mom", body_site_type=="Vaginal")
+    
+    ft_tmp <- ft_gauze_dat_samefam[mt_tmp_gauze$sample_name] %>% rownames_to_column(var = "otu_id") %>% pivot_longer(names_to = "sample_name", values_to = "Count", -1) %>% filter(Count>0) %>% group_by(sample_name) %>% mutate(rela = Count/sum(Count))
+    asv_tmp_mm_feces <- ft_gauze_dat_samefam[mt_tmp_mm_feces$sample_name] %>% rowSums()
+    asv_tmp_mm_feces <- asv_tmp_mm_feces[asv_tmp_mm_feces>0]
+    
+    asv_tmp_mm_vagina <- ft_gauze_dat_samefam[mt_tmp_mm_vagina$sample_name] %>% rowSums()
+    asv_tmp_mm_vagina <- asv_tmp_mm_vagina[asv_tmp_mm_vagina>0]
+    
+    ft_tmp2 <- ft_tmp %>% mutate(Group1 = otu_id %in% names(asv_tmp_mm_feces), Group2 = otu_id %in% names(asv_tmp_mm_vagina), Group3 = case_when(Group1&Group2 ~ "M_fv", Group1 ~ "M_f", Group2~"M_v", T~"Unique"))
+
+    ft_tmp2_sum <- ft_tmp2 %>% group_by(sample_name, Group3) %>% summarise(rela = sum(rela)) %>% ungroup %>% complete(sample_name, Group3, fill = list(rela = 0))
+    dat_fam_spec[[ff]] <- ft_tmp2_sum
+}
+
+dat_fam <- do.call("rbind", dat_fam_spec)
+dat_fam$sample_name = factor(dat_fam$sample_name, levels = dat_fam %>% filter(Group3=="Unique") %>% arrange(rela) %>% pull(sample_name))
+
+ggplot(dat_fam, aes(x = sample_name, y = rela, fill = Group3)) +
+    geom_bar(stat = "identity") +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_text(angle = 90), aspect.ratio = 2) +
+    labs(x = "", y = "Relative abundance", fill = "", title = "Proportion of ASVs from maternal feces or vagina in gauze samples", subtitle = "Summarized by each family")
+```
+
+
+
 

@@ -167,14 +167,24 @@ dat_depth$mom_baby <- factor(dat_depth$mom_baby, levels = c("Blanks", "Baby", "M
 
 dat_depth_label <- dat_depth %>% group_by(mom_baby, body_site_corrected) %>% summarise(label = paste0("N = ", n()))
 
-ggplot(dat_depth, aes(seqcount)) +
-    geom_histogram(fill = "white", color = "black") +
-    geom_text(data = dat_depth_label, aes(x = 2, y = Inf, label = label), hjust = -0.1, vjust = 1.5, size = 8/.pt) +
-    facet_grid(mom_baby + body_site_corrected~., scales = "free_y") +
-    scale_x_continuous(trans = "log10", breaks = c(10, 100, 1000, 10000, 50000)) +
-    theme_bw(base_size = 10) + theme(aspect.ratio = 0.2, plot.title = element_text(hjust = 0.4)) +
-    labs(x = "Sequencing depth in log scale", y = "Number of samples", title = "Comparing sequencing depth among samples with at least 1 read")
-ggsave("../results/controlvsamples_0.pdf", width = 5, useDingbats = F )
+dat_depth_ss <- dat_depth %>% filter(is.na(Cat_control))
+dat_depth_bl <- dat_depth %>% filter(!is.na(Cat_control))
+
+ggplot(dat_depth_ss, aes(seqcount)) +
+    geom_histogram(aes(fill = "Samples"), color = "black") +
+    #geom_text(data = dat_depth_label, aes(x = 2, y = Inf, label = label), hjust = -0.1, vjust = 1.5, size = 8/.pt) +
+    geom_histogram(data = dat_depth_bl %>% select(-c(mom_baby, body_site_corrected)) %>% filter(Group1=="Lib_BL"), aes(fill = "Reagent_Blanks"), color = "blue", alpha = 0.5) +
+    geom_histogram(data = dat_depth_bl %>% select(-c(mom_baby, body_site_corrected)) %>% filter(Group1=="Field_BL"), aes(fill = "Field_Blanks"), color = "green", alpha = 0.5) +
+    facet_grid(mom_baby ~ body_site_corrected, drop = T) +
+    geom_vline(xintercept = 5000, linetype = "dashed") +
+    scale_x_continuous(trans = "log10", breaks = c(10, 100, 1000, 10000)) +
+    scale_y_continuous(n.breaks = 6) +
+    coord_cartesian(ylim = c(1, 300)) +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 2.5, plot.title = element_text(hjust = 0.4)) +
+    scale_fill_manual(breaks = c("Samples", "Reagent_Blanks", "Field_Blanks"), values = c("white", "#377eb8", "#4daf4a")) +
+    labs(x = "Sequencing depth in log scale", y = "Number of samples", fill = "", title = "Distribution of number of reads per sample by different body sites") +
+    guides(fill = guide_legend(override.aes = list(color = c("black", "blue", "green"))))
+ggsave("../results/controlvsamples_0.pdf", width = 18, useDingbats = F )
 ```
 
 ### Check the ASV richness of control samples
@@ -324,8 +334,24 @@ ggplot(asv_prev_bl_sum, aes(x = N, y = Med_ct)) +
     labs(x = "Prevalance", y = "Median count of a ASV across blank samples in which it appeared", title = "Median abundance of ASVs by their prevalance")
 ```
 
+<!-- 2. -->
+<!-- ```{r} -->
+<!-- ft_bbbl_l = ft_all[, c("otu_id", mt_ft_bl$sample_name, mt_ft_bb$sample_name)] %>% filter(rowSums(.[, -1])>0) %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% group_by(sample_name) %>% mutate(rela = count/sum(count)) -->
+
+<!-- mt_bbbl = rbind(mt_ft_bl, mt_ft_bb) -->
+
+<!-- asv_bbbl_sum <- left_join(ft_bbbl_l, mt_bbbl, by = "sample_name") %>% mutate(Group1 = ifelse(is.na(body_site_type), "Control", body_site_type)) %>% group_by(otu_id, Group1) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela), Prev = case_when(Group1=="Oral" ~ N/926, Group1=="Fecal" ~ N/1391, Group1=="Skin"~N/894, T~N/162)) %>% ungroup %>% complete(otu_id, Group1, fill = list(Prev = 0)) -->
+
+<!-- asv_bbbl_sum$otu_id <- factor(asv_bbbl_sum$otu_id, levels = asv_bbbl_sum[asv_bbbl_sum$Group1=="Fecal", ] %>% arrange(Prev) %>% distinct(otu_id) %>% pull(otu_id)) -->
+
+<!-- ggplot(asv_bbbl_sum, aes(x = otu_id, y = Prev, color = Group1)) + -->
+<!--     geom_point(size = 0.5) + -->
+<!--     theme_bw() + theme(axis.text.x = element_blank()) + -->
+<!--     scale_y_continuous(trans = "log10") -->
+<!-- ``` -->
 
 2. ASV appeared in control samples prevalence in baby samples
+
 ```{r}
 mt_ft_bb <- mt_all %>% filter(mom_baby=="Baby")
 ## asv prevalence in controls
@@ -387,7 +413,7 @@ asv_prev_bb_os_sum <- ft_bb_os_l_asv_in_bl %>% group_by(otu_id) %>% summarise(N 
 
 ```{r}
 # merge the baby asv table with control asv table together
-asv_prev_sum_2 <- right_join(asv_prev_bl_sum, asv_prev_bb_os_sum %>% select(-c(Domain: otu_ind)), by = "otu_id", suffix = c(".bl", ".bb")) %>% mutate(Pct.N.bl = N.bl/162, Pct.N.bb = N.bb/1820) %>% arrange(N.bl)
+asv_prev_sum_2 <- right_join(asv_prev_bl_sum, asv_prev_bb_os_sum %>% select(-c(Domain: otu_ind)), by = "otu_id", suffix = c(".bl", ".bb")) %>% mutate(Pct.N.bl = N.bl/162, Pct.N.bb = N.bb/1820) %>% arrange(Pct.N.bb)
 asv_prev_sum_2$otu_ind <- factor(asv_prev_sum_2$otu_ind, levels = asv_prev_sum_2$otu_ind)
 
 p1 <- ggplot(asv_prev_sum_2, aes(x = otu_ind)) +
@@ -416,14 +442,25 @@ p1 + p2
 ggsave("../results/controlvsamples_5.pdf", width = 11, useDingbats = F)
 
 ggplot(asv_prev_sum_2, aes(x = otu_ind)) +
-    geom_line(aes(y = Pct.N.bb, group = 1, color = "Baby Samples")) +
-    geom_line(aes(y = Pct.N.bl, group = 1, color = "Blank Samples")) +
+    geom_point(aes(y = Pct.N.bb, color = "Baby Samples"), size = 0.5) +
+    geom_point(aes(y = Pct.N.bl, color = "Blank Samples"), size = 0.5) +
     scale_y_continuous(n.breaks = 10) +
     scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
     theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +
     labs(x = "Individual ASV ordered by prevalance in blank samples", y = "Prevalence of an ASV among blanks or baby samples", color = "", title = "Prevalences of common ASVs in baby oral and skin samples (blue) and blanks (red)")
 
+
+
+
 ggsave("../results/controlvsamples_5-1.pdf", width = 5, useDingbats = F)
+
+ggplot(asv_prev_sum_2, aes(x = otu_ind)) +
+    geom_point(aes(y = Med_ct.bb, color = "Baby Samples"), size = 0.5) +
+    geom_point(aes(y = Med_ct.bl, color = "Blank Samples"), size = 0.5) +
+    scale_y_continuous(n.breaks = 10) +
+    scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +
+    labs(x = "Individual ASV ordered by prevalance in blank samples", y = "Prevalence of an ASV among blanks or baby samples", color = "", title = "Prevalences of common ASVs in baby oral and skin samples (blue) and blanks (red)")
 
 ```
 1088 ASVs appeared in both types of samples.
@@ -445,7 +482,7 @@ asv_prev_bb_f_sum <- ft_bb_f_l_asv_in_bl %>% group_by(otu_id) %>% summarise(N = 
 
 ```{r}
 # merge the baby asv table with control asv table together
-asv_prev_sum_3 <- right_join(asv_prev_bl_sum, asv_prev_bb_f_sum %>% select(-c(Domain: otu_ind)), by = "otu_id", suffix = c(".bl", ".bb")) %>% mutate(Pct.N.bl = N.bl/162, Pct.N.bb = N.bb/1391) %>% arrange(N.bl)
+asv_prev_sum_3 <- right_join(asv_prev_bl_sum, asv_prev_bb_f_sum %>% select(-c(Domain: otu_ind)), by = "otu_id", suffix = c(".bl", ".bb")) %>% mutate(Pct.N.bl = N.bl/162, Pct.N.bb = N.bb/1391) %>% arrange(Pct.N.bb)
 asv_prev_sum_3$otu_ind <- factor(asv_prev_sum_3$otu_ind, levels = asv_prev_sum_3$otu_ind)
 
 p1 <- ggplot(asv_prev_sum_3, aes(x = otu_ind)) +
@@ -475,8 +512,8 @@ p1 + p2
 ggsave("../results/controlvsamples_6.pdf", width = 11, useDingbats = F)
 
 ggplot(asv_prev_sum_3, aes(x = otu_ind)) +
-    geom_line(aes(y = Pct.N.bb, group = 1, color = "Baby Samples")) +
-    geom_line(aes(y = Pct.N.bl, group = 1, color = "Blank Samples")) +
+    geom_point(aes(y = Pct.N.bb, color = "Baby Samples"), size = 0.5) +
+    geom_point(aes(y = Pct.N.bl, color = "Blank Samples"), size = 0.5) +
     scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1)) +
     scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
     theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +

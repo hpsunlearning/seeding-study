@@ -23,13 +23,14 @@ np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 ```
 
 
-```{r}
+```{r, eval=FALSE}
 # all samples
 phylo_all <- readRDS("tmp_phyloseq_all.rds")
 mt_all = sample_data(phylo_all) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name") %>% mutate(seqcount = as.numeric(seqcount))
 mt_ss_4_gauze = mt_all %>% filter((mom_baby=="Mom" & body_site_type %in% c("Fecal", "Vaginal"))|(mom_baby=="Baby" & body_site_type=="Fecal"),  as.numeric(date_sampling_category_days_continuous)<=7)
 
 phylo_ss_4_gauze = prune_samples(mt_ss_4_gauze$sample_name, phylo_all)
+phylo_ss_4_gauze@phy_tree = NULL
 saveRDS(phylo_ss_4_gauze, "tmp_phylo_ss_4_gauze.RDS")
 ```
 
@@ -42,8 +43,8 @@ rownames(mt_gauze) <- mt_gauze$sample_name
 ft_qza_all <- read_qza("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/3-deblur/SA-P1-P3_deblur_no-mitochondria-no-chloroplast_table.qza")
 ft_tbl_gauze <- ft_qza_all$data[, mt_gauze$sample_name] %>% as.data.frame %>% filter(rowSums(.)>0)
 
-tree_qza_gauze <- read_qza("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/3-deblur/sepp_tree/tree.qza")
-tree_gauze <- ape::keep.tip(tree_qza_gauze$data, rownames(ft_tbl_gauze))
+# tree_qza_gauze <- read_qza("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/3-deblur/sepp_tree/tree.qza")
+# tree_gauze <- ape::keep.tip(tree_qza_gauze$data, rownames(ft_tbl_gauze))
 
 taxa_qza_gauze <- read_qza("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/3-deblur/taxonomy_gg13_8.qza")
 taxa_gauze_tbl <- taxa_qza_gauze$data %>% filter(Feature.ID %in% rownames(ft_tbl_gauze)) %>% mutate(Taxon = gsub(pattern = "__", replacement = "_", Taxon)) %>% separate(Taxon, into = c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "; ", remove = T)
@@ -56,6 +57,13 @@ taxa_gauze_tbl$Genus[is.na(taxa_gauze_tbl$Genus)] <- "g_"
 taxa_gauze_tbl$Species[is.na(taxa_gauze_tbl$Species)] <- "s_"
 taxa_gauze_tbl <- taxa_gauze_tbl %>% select(Feature.ID, Domain:Species) %>% column_to_rownames(var = "Feature.ID") %>% as.matrix() %>% tax_table()
 
-#phylo_gauze <- merge_phyloseq(otu_table(ft_qza_gauze$data, taxa_are_rows = T), taxa_gauze_tbl, sample_data(mt_gauze), tree_qza_gauze$data)
+phylo_gauze <- merge_phyloseq(otu_table(ft_tbl_gauze, taxa_are_rows = T), taxa_gauze_tbl, sample_data(mt_gauze))
+
+phylo_gauze_dat <- merge_phyloseq(phylo_gauze, phylo_ss_4_gauze)
+saveRDS(phylo_gauze_dat, file = "phylo_gauze_dataset.rds")
+```
+
+```{r}
+sample_data(phylo_gauze_dat)
 ```
 

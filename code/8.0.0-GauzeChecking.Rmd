@@ -22,6 +22,40 @@ sessionInfo()
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 ```
 
+```{r}
+mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+
+# all body sites to use for now
+ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
+
+# baby qza address
+bb_qza_dirs <- paste0("../data/split-data/Baby-", ss[1])
+# mom qza address
+mm_qza_dirs <- paste0("../data/split-data/Mom-", ss)
+
+# import qza tables
+bb_qza <- parallel::mclapply(bb_qza_dirs, FUN = function(x){read_qza(paste0(x, "/table.qza"))}, mc.cores = np)
+names(bb_qza) <- paste0("Baby-", ss[1])
+#lapply(bb_qza, function(x){x$data %>% dim})
+
+mm_qza <- parallel::mclapply(mm_qza_dirs, FUN = function(x){read_qza(paste0(x, "/table.qza"))}, mc.cores = np )
+names(mm_qza) <- paste0("Mom-", ss)
+
+#lapply(mm_qza, function(x){x$data %>% dim})
+
+
+## extract metadata for to only include samples in 1st week
+mt_ss <- mf %>% filter(sample_name %in% (sapply(c(bb_qza, mm_qza), FUN = function(x)colnames(x$data)) %>% unlist())) %>% filter(as.numeric(date_sampling_category_days_continuous)<=7, as.numeric(date_sampling_category_days_continuous)>=0)
+mt_ss$body_site_corrected[mt_ss$body_site_corrected=="Right_Forearm"] = "Forearm"
+```
+
+```{r}
+otu_bbs <- parallel::mclapply(bb_qza, function(x){otu_table(x$data, taxa_are_rows = T)})
+otu_mms <- parallel::mclapply(mm_qza, function(x){otu_table(x$data, taxa_are_rows = T)})
+
+```
+
+
 
 ```{r, eval=FALSE}
 # all samples

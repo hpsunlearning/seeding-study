@@ -10,7 +10,7 @@ editor_options:
 ---
 
 ```{r setup, message=FALSE, warning=FALSE}
-knitr::opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE, cache = FALSE, warning = FALSE, message = FALSE)
 # Loading library here
 library(tidyverse)
 library(extrafont)
@@ -47,9 +47,14 @@ names(mm_qza) <- paste0("Mom-", ss)
 
 #lapply(mm_qza, function(x){x$data %>% dim})
 
+# metadata for gauze
+mt_gauze <- read.table("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/0-Doc/Mapping_baby_seeding_gauze.txt", header = T, sep = "\t") %>% column_to_rownames(var = "sample_name")
 
 ## extract metadata for to only include samples in 1st week
-mt_ss <- mf %>% filter(sample_name %in% (sapply(c(bb_qza, mm_qza), FUN = function(x)colnames(x$data)) %>% unlist())) %>% filter(as.numeric(date_sampling_category_days_continuous)<=7, as.numeric(date_sampling_category_days_continuous)>=0)
+mt_ss <- mf %>% 
+    filter(sample_name %in% (sapply(c(bb_qza, mm_qza), FUN = function(x)colnames(x$data)) %>% unlist())) %>% # only include samples with sequencing data
+    mutate(date_sampling_category_days_continuous = as.numeric(date_sampling_category_days_continuous)) %>% # house keeping
+    filter(familyid_unique %in% mt_gauze$familyid_unique, date_sampling_category_days_continuous>=0)# only inluce those from the same family
 mt_ss$body_site_corrected[mt_ss$body_site_corrected=="Right_Forearm"] = "Forearm"
 ```
 
@@ -78,7 +83,6 @@ ss_phylo <- merge_phyloseq(otu_ss_phylo, taxa_all, sample_data(mt_ss %>% column_
 ### Import gauze seq
 This section needs to be updated once seqs are uploaded into qiita
 ```{r, eval=FALSE}
-mt_gauze <- read.table("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/0-Doc/Mapping_baby_seeding_gauze.txt", header = T, sep = "\t") %>% column_to_rownames(var = "sample_name")
 
 ft_qza_all <- read_qza("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/3-deblur/SA-P1-P3_deblur_no-mitochondria-no-chloroplast_table.qza")
 ft_tbl_gauze <- ft_qza_all$data[, rownames(mt_gauze)] %>% as.data.frame %>% filter(rowSums(.)>0)
@@ -114,94 +118,103 @@ mt_gauze_dat$seqcount <- sample_sums(phylo_gauze_dat)[mt_gauze_dat$sample_name]
 ```{r}
 ggplot(mt_gauze_dat, aes(seqcount, color = body_site_corrected, fill = body_site_corrected)) +
     geom_histogram(alpha = 0.1)+
-    facet_grid(body_site_type~., scales = "free_y") +
+    facet_wrap(body_site_type~., scales = "free_y") +
     scale_x_continuous(trans = "log10", breaks = c(100, 1000, 10000)) +
     theme_bw(base_size = 10) + theme(legend.position = "none", aspect.ratio = 0.6) +
     labs(x = "Number of reads per sample", y = "Number of samples", title = "Comparison of sequencing depth in gauze sequencing and samples")
+
+mt_gauze_dat %>% split(., .$body_site_type) %>% lapply(., function(x){range(x$seqcount)})
 ```
 
-### Alpha diversity
+### filter dataset
 ```{r}
 # mt_gauze_dat %>% group_by(body_site_type) %>% summarise(min(seqcount))
-# rarefaction at 6K
-phylo_gauze_dat_6k <- rarefy_even_depth(phylo_gauze_dat, sample.size = 6000, rngseed = 20, replace = F, trimOTUs = T)
+# rarefaction at 3500
+phylo_gauze_dat_3k <- rarefy_even_depth(phylo_gauze_dat, sample.size = 3500, rngseed = 20, replace = F, trimOTUs = T)
+mt_gauze_3k <- sample_data(phylo_gauze_dat_3k) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
 
-mt_gauze_6k <- sample_data(phylo_gauze_dat_6k) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
-mt_gauze_6k_samefam <- mt_gauze_6k %>% filter(familyid_unique %in% .$familyid_unique[.$mom_baby=="Gauze"])
+mt_gauze_3k %>% select(familyid_unique, sample_name, mom_baby, body_site_corrected, date_sampling_category_days_continuous) %>%
+    mutate(date_sampling_category_days_continuous = as.numeric(date_sampling_category_days_continuous)) %>%
+    group_by(familyid_unique, body_site_corrected) %>%
+    summarise(date = paste0(substr(mom_baby, 1, 1), date_sampling_category_days_continuous) %>% paste(collapse = ",")) %>%
+    pivot_wider(names_from = body_site_corrected, values_from = date)
 
-phylo_gauze_dat_6k_samefam <- prune_samples(mt_gauze_6k_samefam$sample_name, phylo_gauze_dat_6k)
+mt_wk <- mt_gauze_3k %>% mutate(date_sampling_category_days_continuous = as.numeric(date_sampling_category_days_continuous)) %>%
+    filter(body_site_corrected!="Right_Areola") %>% # remove right_areola because most family does not have this site
+    split(., .$mom_baby)
+mt_wk$Baby <- mt_wk$Baby %>% filter(date_sampling_category_days_continuous<=7) # only include baby samples from the 1st week, and initial filter for mom samples (have to be postnatal)
+mt_wk$Mom <- mt_wk$Mom %>% filter(date_sampling_category_days_continuous>=0) %>% 
+    group_by(familyid_unique, body_site_corrected) %>%
+    slice_head(n = 2)
 
+mt_wk <- do.call("rbind", mt_wk)
+mt_wk %>% select(familyid_unique, sample_name, mom_baby, body_site_corrected, date_sampling_category_days_continuous) %>%
+    mutate(date_sampling_category_days_continuous = as.numeric(date_sampling_category_days_continuous)) %>%
+    group_by(familyid_unique, body_site_corrected) %>%
+    summarise(date = paste0(substr(mom_baby, 1, 1), date_sampling_category_days_continuous) %>% paste(collapse = ",")) %>%
+    pivot_wider(names_from = body_site_corrected, values_from = date)
+phylo_wk_3k <- prune_samples(mt_wk$sample_name, phylo_gauze_dat_3k) 
 ```
 
+### alpha diversity
 ```{r}
-phylo_gauze_6k_alpha <- estimate_richness(phylo_gauze_dat_6k, measures = c("Observed", "Shannon")) %>% rownames_to_column(var = "sample_name") %>% mutate(sample_name = gsub("^X", "", sample_name))
+## alpha diversity
+phylo_wk_3k_alpha <- estimate_richness(phylo_wk_3k, measures = c("Observed", "Shannon")) %>% rownames_to_column(var = "sample_name") %>% mutate(sample_name = gsub("^X", "", sample_name))
+### Create the dataset for plotting
+phylo_wk_3k_alpha_dat <- merge(phylo_wk_3k_alpha, sample_data(phylo_wk_3k) %>% as.matrix() %>% as.data.frame(), by.x = 1, by.y = 0, all.x = T) %>% pivot_longer(cols =c(Observed, Shannon), names_to = "variable", values_to = "value")
 
-phylo_gauze_6k_alpha_dat <- merge(phylo_gauze_6k_alpha, mt_gauze_dat, by = 1, all.x = T) %>% pivot_longer(cols =c(Observed, Shannon), names_to = "variable", values_to = "value")
-
-ggplot(phylo_gauze_6k_alpha_dat, aes(x = body_site_corrected, y = value, color = mom_baby)) +
+ggplot(phylo_wk_3k_alpha_dat, aes(x = body_site_corrected, y = value, color = mom_baby)) +
     geom_violin(draw_quantiles = 0.5, scale = "width") +
     geom_point(position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.9), size = 1) +
     facet_wrap(.~variable, scales = "free_y") +
     theme_bw(base_size = 10) + theme(aspect.ratio = 2) +
-    labs(x = "", color = "", y = "Alpha diversity", title = "Comparison of alpha diversities", subtitle = "All samples from the 1st week")
+    labs(x = "", color = "", y = "Alpha diversity", title = "Comparison of alpha diversities")
+ggsave("../results/Gauze_alpha.pdf", width = 7, useDingbats = F)
 ```
 
-
 ```{r}
-p <- plot_richness(phylo_gauze_dat_6k_samefam, measures = c("Observed", "Shannon"))
-p_dat2 <- p$data
-ggplot(p_dat2, aes(x = body_site_corrected, y = value, color = mom_baby)) +
-    geom_violin(draw_quantiles = 0.5, scale = "width") +
-    geom_point(position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.9), size = 1) +
-    facet_wrap(.~variable, scales = "free_y") +
-    theme_bw(base_size = 10) + theme(aspect.ratio = 2) +
-    labs(x = "", color = "", y = "Alpha diversity", title = "Comparison of alpha diversities", subtitle = "Samples from the same families the 1st week")
-ggsave("../results/Gauze_alpha_6k_samefam.pdf", width = 7, useDingbats = F)
-```
-```{r}
-p_dat2_stat <- p_dat2 %>% group_by(variable) %>% wilcox_test(value ~ body_site_corrected, paired = F, p.adjust.method = "fdr")
+alpha_stat <- phylo_wk_3k_alpha_dat %>% group_by(variable) %>% wilcox_test(value ~ body_site_corrected, paired = F, p.adjust.method = "fdr")
+alpha_stat %>% filter(group1=="Gauze" | group2=="Gauze")
 ```
 
 ### beta diversity
 ```{r}
-dist_jac <- distance(phylo_gauze_dat_6k_samefam, method = "jaccard", binary = T)
-ord_jac <- ordinate(phylo_gauze_dat_6k_samefam, "PCoA", distance = dist_jac)
+dist_jac <- distance(phylo_wk_3k, method = "jaccard", binary = T)
+ord_jac <- ordinate(phylo_wk_3k, "PCoA", distance = dist_jac)
 
-dist_bray <- distance(phylo_gauze_dat_6k_samefam, method = "bray")
-ord_bray <- ordinate(phylo_gauze_dat_6k_samefam, "PCoA", distance = dist_bray)
+dist_bray <- distance(phylo_wk_3k, method = "bray")
+ord_bray <- ordinate(phylo_wk_3k, "PCoA", distance = dist_bray)
 
-p <- plot_ordination(phylo_gauze_dat_6k_samefam, ord_jac, color = "body_site_corrected", shape = "mom_baby")
+p <- plot_ordination(phylo_wk_3k, ord_jac, color = "body_site_corrected", shape = "mom_baby")
 p + scale_shape_manual(values = c(21, 17, 16)) +
     theme_bw(base_size = 10) + theme(aspect.ratio = 1) +
     labs(shape = "", color = "", title = "PCoA based on Jaccard ")
-
-ggsave(filename = "../results/Gauze_beta_jac_6k_samefam.pdf", width = 5)
-
-p <- plot_ordination(phylo_gauze_dat_6k_samefam, ord_bray, color = "body_site_corrected", shape = "mom_baby")
-p + scale_shape_manual(values = c(21, 17, 16)) +
+ggsave(filename = "../results/Gauze_beta_jac.pdf", width = 5)
+p2 <- plot_ordination(phylo_wk_3k, ord_bray, color = "body_site_corrected", shape = "mom_baby")
+p2 + scale_shape_manual(values = c(21, 17, 16)) +
     theme_bw(base_size = 10) + theme(aspect.ratio = 1) +
     labs(shape = "", color = "", title = "PCoA based on Bray ")
-ggsave(filename = "../results/Gauze_beta_bray_6k_samefam.pdf", width = 5)
+ggsave(filename = "../results/Gauze_beta_bray.pdf", width = 5)
 
 ```
 
-# ASV
+### ASV
 ```{r}
-# extract samples from the same families as the gauze samples
-phylo_gauze_dat_samefam <- prune_samples(mt_gauze_6k_samefam$sample_name, phylo_gauze_dat)
-ft_gauze_dat_samefam <- otu_table(phylo_gauze_dat_samefam) %>% as.matrix() %>% as.data.frame()
-mt_gauze_dat_samefam <- sample_data(phylo_gauze_dat_samefam) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
+# These analysis will be performed on the unrarefied dataset
+phylo_wk <- prune_samples(mt_wk$sample_name, phylo_gauze_dat)
+ft_wk <- otu_table(phylo_wk) %>% as.matrix() %>% as.data.frame()
 
-mt_gauze <- mt_gauze_dat_samefam %>% filter(mom_baby=="Gauze")
-mt_mm_lst <- mt_gauze_dat_samefam %>% filter(mom_baby=="Mom") %>% split(., .$body_site_corrected)
+mt_phylo_wk <- sample_data(phylo_wk) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
+mt_phylo_wk_gauze <- mt_phylo_wk %>% filter(mom_baby=="Gauze")
+mt_mm_lst <- mt_phylo_wk %>% filter(mom_baby=="Mom") %>% split(., .$body_site_corrected)
+# lapply(mt_mm_lst, dim)
+ft_gauze_l <- ft_wk[mt_phylo_wk_gauze$sample_name] %>% rownames_to_column(var = "otu_id") %>% pivot_longer(names_to = "sample_name", values_to = "Count", -1) %>% filter(Count>0) %>% group_by(sample_name) %>% mutate(rela = Count/sum(Count)) %>% ungroup
 
-ft_gauze_l <- ft_gauze_dat_samefam[mt_gauze$sample_name] %>% rownames_to_column(var = "otu_id") %>% pivot_longer(names_to = "sample_name", values_to = "Count", -1) %>% filter(Count>0) %>% group_by(sample_name) %>% mutate(rela = Count/sum(Count)) %>% ungroup
-
-asv_mm_lst <- lapply(mt_mm_lst, function(x){rowSums(ft_gauze_dat_samefam[x$sample_name]>0)})
+asv_mm_lst <- lapply(mt_mm_lst, function(x){rowSums(ft_wk[x$sample_name]>0)})
 asv_mm_lst <- lapply(seq_along(asv_mm_lst), function(x){asv_mm_lst[[x]][asv_mm_lst[[x]]>0.1*nrow(mt_mm_lst[[x]])] %>% names()})
 names(asv_mm_lst) <- names(mt_mm_lst)
 
-ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
+ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Nose")
 for(ff in ss){
     ft_gauze_l[[ff]] <- ft_gauze_l$otu_id %in% asv_mm_lst[[ff]]
 }
@@ -210,22 +223,42 @@ ft_gauze_l <- ft_gauze_l %>% rowwise() %>% mutate(Gauze.only = !any(c_across(Fec
 
 ft_gauze_l_sum <- ft_gauze_l %>% mutate(across(Feces:Gauze.only, ~if_else(., rela, 0))) %>% group_by(sample_name) %>% summarise(across(Feces:Gauze.only, sum)) %>% ungroup %>% arrange(Gauze.only, Feces, Vagina) %>% mutate(sample_name = factor(sample_name, levels = unique(sample_name))) %>% pivot_longer(cols = Feces:Gauze.only, names_to = "bodysite", values_to = "rela")
 
-ggplot(ft_gauze_l_sum, aes(x = factor(bodysite, levels = c("Gauze.only", "Feces", "Vagina", "Forearm", "Mouth", "Nose", "Right_Areola")), y = rela, fill = bodysite)) +
+ggplot(ft_gauze_l_sum %>% filter(bodysite!="Gauze.only"), aes(x = bodysite, y = rela, fill = bodysite)) +
     geom_bar(position = "dodge", stat = "identity") +
     theme_bw(base_size = 10) + theme(axis.text.x = element_text(angle = 90, hjust = 1), aspect.ratio = 2, legend.position = "none") +
     facet_wrap(~sample_name, ncol = 5) +
-    labs(x = "", y = "Relative abundance", fill = "", title = "Proportion of ASVs in gauze samples that can be found in only gauze or other maternal body sites")
+    labs(x = "", y = "Relative abundance", fill = "", title = "Proportion of ASVs in gauze samples that can be found in gauze or other maternal body sites")
+ggsave("../results/Gauze_asv_rela.pdf", width = 7, useDingbats = F)
 ```
 
 ```{r}
-asv_gauze_lst <- lapply(list(mt_gauze), function(x){rowSums(ft_gauze_dat_samefam[x$sample_name]>0)})
-asv_gauze_lst <- lapply(seq_along(asv_gauze_lst), function(x){asv_gauze_lst[[x]][asv_gauze_lst[[x]]>0.1*nrow(mt_gauze)] %>% names()})
+asv_gauze_lst <- lapply(list(mt_phylo_wk_gauze), function(x){rowSums(ft_wk[x$sample_name]>0)})
+asv_gauze_lst <- lapply(seq_along(asv_gauze_lst), function(x){asv_gauze_lst[[x]][asv_gauze_lst[[x]]>0.1*nrow(mt_phylo_wk_gauze)] %>% names()})
 names(asv_gauze_lst) <- "Gauze"
 
 
-asv_lst <- c(lapply(asv_mm_lst, names), asv_gauze_lst)
+asv_lst <- c(asv_mm_lst, asv_gauze_lst)
 
-venn.diagram(asv_lst[c(1:3, 6, 7)], imagetype = "png", category.names = names(asv_lst)[c(1:3, 6,7)], filename = "../results/venn_mm.png", output = T)
+p <- venn.diagram(asv_lst[c(1:3, 5, 6)], 
+             category.names = names(asv_lst)[c(1:3, 5, 6)],
+             alpha = 0.5,
+             fill = c("white", "white", "white", "white", "blue"),
+             filename = NULL)
+
+grid.newpage()
+grid.draw(p)
+ggsave("../results/Gauze_venn_mm.pdf", plot = p, width = 7, height = 7,  useDingbats = F)
+
+
+p1 <- venn.diagram(asv_lst[c(1:5)], 
+             category.names = names(asv_lst)[c(1:5)],
+             alpha = 0.5,
+             fill = RColorBrewer::brewer.pal(5, "Pastel2"), 
+             filename = NULL)
+grid.newpage()
+grid.draw(p1)
+ggsave("../results/MM_venn.pdf", plot = p1, width = 7, height = 7,  useDingbats = F)
+
 ```
 
 

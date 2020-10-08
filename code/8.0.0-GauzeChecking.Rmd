@@ -250,10 +250,10 @@ grid.draw(p)
 ggsave("../results/Gauze_venn_mm.pdf", plot = p, width = 7, height = 7,  useDingbats = F)
 
 
-p1 <- venn.diagram(asv_lst[c(1:5)], 
-             category.names = names(asv_lst)[c(1:5)],
+p1 <- venn.diagram(asv_lst[c(1:3, 5)], 
+             category.names = names(asv_lst)[c(1:3, 5)],
              alpha = 0.5,
-             fill = RColorBrewer::brewer.pal(5, "Pastel2"), 
+             fill = RColorBrewer::brewer.pal(4, "Pastel2"), 
              filename = NULL)
 grid.newpage()
 grid.draw(p1)
@@ -262,4 +262,19 @@ ggsave("../results/MM_venn.pdf", plot = p1, width = 7, height = 7,  useDingbats 
 ```
 
 
+
+```{r}
+asv_mm <- do.call("c", asv_lst[c(1:3, 5)]) %>% as.data.frame()
+colnames(asv_mm) <- "ASV"
+asv_mm$bodysite <- gsub(pattern = "\\d*", replacement = "", rownames(asv_mm))
+
+asv_mm_unique <- asv_mm %>% group_by(ASV) %>% filter(n()==1)
+
+taxa_tbl <- tax_table(phylo_gauze_dat) %>% as.matrix() %>% as.data.frame()
+
+asv_mm_unique <- asv_mm_unique %>% merge(., taxa_tbl, by.x = 1, by.y = 0, all.x = T)
+
+seqs = asv_mm_unique$ASV
+
+```
 

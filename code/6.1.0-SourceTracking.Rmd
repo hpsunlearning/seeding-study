@@ -1,0 +1,222 @@
+---
+title: "Source Tracking Analysis"
+author: "Jincheng Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, message = FALSE)
+# Loading library here
+library(tidyverse)
+library(FEAST)
+library(extrafont)
+library(biomformat)
+library(ape)
+library(qiime2R)
+sessionInfo()
+# devtools::install_github("ETaSky/FEAST", ref = "removewritingfiles")
+np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
+```
+
+The source tracking analysis will be performed using FEAST (Shenhav et al. 2019), a newly developed algorithm using a similar logic and idea as the original source tracking by Dan Knight. Jincheng made some changes on the branch FEAST_beta (commit: `d7ddd8dcda6235c3f8efe8135bfce62863a28c99` from ETaSky/FEAST) is used for this analysis.
+
+## Import files
+### baby and maternal samples
+```{r}
+# all body sites to use for now
+ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
+
+# baby qza address
+bb_qza_dirs <- paste0("../data/split-data/Baby-", ss[1:3])
+# mom qza address
+mm_qza_dirs <- paste0("../data/split-data/Mom-", ss)
+
+# import qza tables
+bb_qza <- parallel::mclapply(bb_qza_dirs, FUN = function(x){read_qza(paste0(x, "/rarefy-table.qza"))}, mc.cores = np)
+names(bb_qza) <- paste0("Baby-", ss[1:3])
+#lapply(bb_qza, function(x){x$data %>% dim})
+
+mm_qza <- parallel::mclapply(mm_qza_dirs, FUN = function(x){read_qza(paste0(x, "/rarefy-table.qza"))}, mc.cores = np )
+names(mm_qza) <- paste0("Mom-", ss)
+
+#lapply(mm_qza, function(x){x$data %>% dim})
+
+
+# import metadata
+mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+## extract metadata for source tracking analysis
+mf_st <- mf %>% filter(sample_name %in% (sapply(c(bb_qza, mm_qza), FUN = function(x)colnames(x$data)) %>% unlist()))
+mf_st$body_site_corrected[mf_st$body_site_corrected=="Right_Forearm"] = "Forearm"
+```
+
+### Gauze samples (this needs to be udpated once uploading gauze sequences into qiita)
+```{r}
+ft_qza_all <- read_qza("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/3-deblur/SA-P1-P3_deblur_no-mitochondria-no-chloroplast_table.qza")
+mf_gauze <- read.table("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/0-Doc/Mapping_baby_seeding_gauze.txt", header = T, sep = "\t")
+
+ft_tbl_gauze <- ft_qza_all$data[, mf_gauze$sample_name] %>% as.data.frame %>% filter(rowSums(.)>0)
+```
+
+
+## FEAST analysis
+```{r}
+family_ids <- mf_st$familyid_unique %>% unique()
+Feast_outs <- list()
+for (i in seq(length(family_ids))){
+    # i = 5
+    ## do a check so that restart the code is possible
+    if(family_ids[[i]] %in% names(Feast_outs)){
+        next
+    }
+    mf_tmp <- mf_st %>% filter(familyid_unique==family_ids[i], (mom_baby=="Baby" | date_sampling_category_days_continuous<=30)) # select baby sample for this family as well as maternal samples that are within 30 days
+    
+    bb_sinks_no <- length(mf_tmp$body_site_type[mf_tmp$mom_baby=="Baby"])  # no of baby samples
+    mm_srcs_no <- length(unique(mf_tmp$body_site_type[mf_tmp$mom_baby=="Mom"]))  # no of available maternal sources
+    if(mm_srcs_no==0){
+        print(paste0("No maternal source ", family_ids[[i]]))
+        next
+    } 
+    if(bb_sinks_no==0){
+        print(paste0("No baby samples ", family_ids[[i]]))
+        next
+    }
+    
+    # construct feast count table
+    ct_tmp <- split(mf_tmp %>% pull(sample_name), list(mf_tmp$mom_baby, mf_tmp$body_site_corrected), sep = "-")
+    ct_tmp <- lapply(seq_along(ct_tmp), function(x){c(bb_qza, mm_qza)[[names(ct_tmp)[x]]]$data[, ct_tmp[[x]], drop = F] %>% as.data.frame() %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV")})
+    
+    # construct feast metadata
+    mf_feast_tmp <- mf_tmp %>% select(sample_name)
+    mf_feast_tmp$Env <- mf_tmp$body_site_corrected
+    mf_feast_tmp$SourceSink <- NA
+    mf_feast_tmp$SourceSink[which(mf_tmp$mom_baby=="Mom")] <- "Source"
+    mf_feast_tmp$SourceSink[which(mf_tmp$mom_baby=="Baby")] <- "Sink"
+    mf_feast_tmp$id <- NA
+    mf_feast_tmp$id[which(mf_feast_tmp$SourceSink=="Sink")] <- seq(sum(mf_feast_tmp$SourceSink=="Sink"))
+    
+    # add gauze samples to CSR babies
+    if(mf_tmp$birth_mode_ms[1]=="CSR"){
+        ## adding gauze sample, randomly select 3 out of 14.
+        mf_feast_tmp_gauze <- mf_gauze[sample.int(14, 3), ] %>% select(sample_name)
+        mf_feast_tmp_gauze$Env <- "Gauze"
+        mf_feast_tmp_gauze$SourceSink <- "Source"
+        mf_feast_tmp_gauze$id <- NA
+        mf_feast_tmp <- rbind(mf_feast_tmp, mf_feast_tmp_gauze)
+        
+        ct_tmp$gauze <- ft_tbl_gauze[, mf_feast_tmp_gauze$sample_name, drop = F] %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV")
+    }
+    
+    ct_tmp <- Reduce(function(x, y){full_join(x, y, by = "ASV")}, ct_tmp) %>% column_to_rownames(var = "ASV") %>% t()
+    ct_tmp[is.na(ct_tmp)] <- 0
+    
+    rownames(mf_feast_tmp) <- mf_feast_tmp$sample_name
+    
+    # perform feast
+    Feast_out_tmp <- FEAST(C = ct_tmp, metadata = mf_feast_tmp[, -1], EM_iterations = 1000, COVERAGE = 5000, different_sources_flag = 0)
+    Feast_outs[[family_ids[i]]] <- Feast_out_tmp
+    print(paste0("Finished ", family_ids[[i]]))
+}
+
+save(Feast_outs, file = "Feast_out.Rdata")
+
+```
+
+## Summarize
+```{r}
+#load("Feast_out.Rdata")
+length(Feast_outs) # 157 families were included in the final source tracking analysis
+
+
+tidy_feasts_out <- function(x){
+    x_ <- x %>% rownames_to_column(var = "BabySampleSite") %>% gather(key = "Mom_Samples", value = "Prop", -1) %>% separate(Mom_Samples, into = c("Mom_SampleID", "body_site_type"), sep = "_") %>% merge(., mf_st %>% select(sample_name, body_site_corrected), by.x = "Mom_SampleID", by.y = "sample_name", all.x = T) %>% mutate(mom_body_site_corrected = ifelse(Mom_SampleID=="Unknown", "Unknown", body_site_corrected), body_site_corrected = NULL) %>% group_by(BabySampleSite, mom_body_site_corrected) %>% summarise(body_site_ct = n(), body_site_prop = sum(Prop)) %>% ungroup()
+    return(x_)
+}
+
+Feast_outs_sum <- parallel::mclapply(Feast_outs, tidy_feasts_out, mc.cores = np)
+
+Feast_outs_sum_tbl <- do.call("rbind", Feast_outs_sum)
+
+Feast_outs_sum_tbl_ <- Feast_outs_sum_tbl %>% separate(BabySampleSite, into = c("BabySampleID"), sep = "_", remove = F) %>% merge(., mf_st, by.x = "BabySampleID", by.y = "sample_name", all.x = T) %>% filter(mom_body_site_corrected!="Unknown")
+write.csv(Feast_outs_sum_tbl_, file = "../data/Feast_output_complete_tables.csv", quote = F, row.names = F)
+
+Feast_outs_sum_tbl_check <- Feast_outs_sum_tbl_ %>% group_by(body_site_corrected, date_sampling_category_days_continuous, mom_body_site_corrected, birth_mode_ms) %>% summarise(N = n())
+ggplot(Feast_outs_sum_tbl_check %>% filter(date_sampling_category_days_continuous<=30), aes(x = date_sampling_category_days_continuous, y = N, color = birth_mode_ms)) +
+    geom_point() +
+    geom_line() +
+    facet_grid(body_site_corrected ~ mom_body_site_corrected, scales = "free_y")
+
+ss_clr <- c('#ff7f00','#ffff33','#377eb8','#4daf4a','#984ea3','#e41a1c')
+names(ss_clr) <- c("Mouth", "Nose", "Forearm", "Right_Areola","Vagina","Feces")
+
+# 1st month
+ggplot(Feast_outs_sum_tbl_ %>% filter(date_sampling_category_days_continuous<=30), aes(x = date_sampling_category_days_continuous, y = body_site_prop, color = mom_body_site_corrected)) +
+    stat_summary(geom="ribbon", aes(fill = mom_body_site_corrected), fun.data=mean_cl_boot, fun.args = list(conf.int=0.95), alpha = 0.3, color = NA)+
+    stat_summary(geom="line", fun.y=mean, size = 1)+
+    facet_grid(body_site_type~birth_mode_ms, scales = "free_y") +
+    theme_bw(base_size = 10) + theme(panel.grid = element_blank(), panel.background = element_rect(color = NA), aspect.ratio = 0.8) +
+    labs(x = "Age (day)", y = "Proportions of maternal Source", color = "Maternal Sources", fill = "Maternal Sources") +
+    scale_x_continuous(breaks = c(0, 1, 2, 7, 14, 21, 30)) +
+    scale_color_manual(values = ss_clr) +
+    scale_fill_manual(values =  ss_clr)
+ggsave("../results/FEAST_plot_1mon.pdf", width = 7, useDingbats = F)
+
+ggplot(Feast_outs_sum_tbl_ %>% filter(date_sampling_category_days_continuous<=30), aes(x = date_sampling_category_days_continuous, y = body_site_prop, color = birth_mode_ms)) +
+    stat_summary(geom="ribbon", aes(fill = birth_mode_ms), fun.data=mean_cl_boot, fun.args = list(conf.int=0.95), alpha = 0.3, color = NA)+
+    stat_summary(geom="line", fun.y=mean, size = 1)+
+    facet_grid(mom_body_site_corrected ~ body_site_type, scales = "free_y") +
+    theme_bw(base_size = 10) + theme(panel.grid = element_blank(), panel.background = element_rect(color = NA), aspect.ratio = 0.8) +
+    scale_color_manual(values = c("#D0352C", "#67AD57","#497AB4")) +
+    scale_fill_manual(values = c("#D0352C", "#67AD57","#497AB4")) +
+    labs(x = "Age (day)", y = "Proportions of maternal Source", color = "Birth Mode", fill = "Birth Mode") +
+    scale_x_continuous(breaks = c(0, 1, 2, 7, 14, 21, 30))
+ggsave("../results/FEAST_plot_1mon_v2.pdf", width = 7, useDingbats = F)
+
+Feast_outs_sum_tbl_2 <- Feast_outs_sum_tbl_ %>% filter(date_sampling_category_days_continuous<=30) %>% group_by(birth_mode_ms, body_site_type, mom_body_site_corrected, date_sampling_category_days_continuous) %>% summarise(Mean = mean(body_site_prop))
+
+ggplot(Feast_outs_sum_tbl_2, aes(x = date_sampling_category_days_continuous, y = Mean, fill = mom_body_site_corrected)) +
+    #stat_summary(geom="ribbon", aes(fill = mom_body_site_corrected), fun.data=mean_cl_boot, fun.args = list(conf.int=0.95), alpha = 0.3, color = NA)+
+    geom_area()+
+    facet_grid(body_site_type~birth_mode_ms, scales = "free_y") +
+    theme_bw(base_size = 10) + theme(panel.grid = element_blank(), panel.background = element_rect(color = NA), aspect.ratio = 0.8) +
+    labs(x = "Age (day)", y = "Proportions of maternal Source", color = "Maternal Sources", fill = "Maternal Sources") +
+    scale_x_continuous(breaks = c(0, 1, 2, 7, 14, 21, 30))
+
+ggplot(Feast_outs_sum_tbl_ %>% filter(date_sampling_category_days_continuous<=30, body_site_type=="Fecal", mom_body_site_corrected=="Vagina"), aes(x = date_sampling_category_days_continuous, y = body_site_prop, color = birth_mode_ms)) +
+    stat_summary(geom="ribbon", aes(fill = birth_mode_ms), fun.data=mean_cl_boot, fun.args = list(conf.int=0.95), alpha = 0.3, color = NA)+
+    stat_summary(geom="line", fun.y=mean, size = 1)+
+    theme_bw(base_size = 10) + theme(panel.grid = element_blank(), panel.background = element_rect(color = NA), aspect.ratio = 0.8) +
+    labs(x = "Age (day)", y = "Proportions of maternal Source") +
+    scale_x_continuous(breaks = c(0, 1, 2, 7, 14, 21, 30))
+
+# 1st year
+ggplot(Feast_outs_sum_tbl_ , aes(x = date_sampling_category_days_continuous, y = body_site_prop, color = mom_body_site_corrected)) +
+    stat_summary(geom="ribbon", aes(fill = mom_body_site_corrected), fun.data=mean_cl_boot, fun.args = list(conf.int=0.95), alpha = 0.3, color = NA)+
+    stat_summary(geom="line", fun.y=mean, size = 1)+
+    facet_grid(body_site_type~birth_mode_ms, scales = "free_y") +
+    theme_classic(base_size = 10) + theme(aspect.ratio = 0.8) +
+    labs(x = "Age (day)", y = "Proportions of maternal Source", color = "Maternal Sources", fill = "Maternal Sources")  +
+    scale_color_manual(values = ss_clr) +
+    scale_fill_manual(values =  ss_clr)
+ggsave("../results/FEAST_plot_1yr.pdf", width = 7, useDingbats = F)
+
+# day 7 and 30
+Feast_outs_sum_tbl_selected <- Feast_outs_sum_tbl_ %>% filter(date_sampling_category_days_continuous %in% c(7, 30))
+
+ggplot(Feast_outs_sum_tbl_selected, aes(x = factor(date_sampling_category_days_continuous), y = body_site_prop, color = birth_mode_ms)) +
+    geom_boxplot(outlier.color = NA) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.05), alpha = 0.5) +
+    facet_grid(body_site_type~mom_body_site_corrected, scales = "free", labeller = labeller(mom_body_site_corrected = function(x){paste0("Maternal: ", x)})) +
+    theme_classic(base_size = 10) + theme(aspect.ratio = 1.5) +
+    labs(x = "Age (day)", y = "Proportions of maternal Source", color = "Birth Mode")
+ggsave("../results/FEAST_plot_day7and30.pdf", width = 7, useDingbats = F)
+
+
+```
+
+
+

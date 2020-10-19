@@ -1,0 +1,84 @@
+---
+title: "Source Tracking Analysis"
+author: "Jincheng Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, message = FALSE)
+# Loading library here
+library(tidyverse)
+library(extrafont)
+library(biomformat)
+library(phyloseq)
+library(ape)
+library(qiime2R)
+sessionInfo()
+
+np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
+```
+
+
+## Import files
+### baby and maternal samples
+```{r}
+# all body sites to use for now
+ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
+
+# baby qza address
+bb_qza_dirs <- paste0("../data/split-data/Baby-", ss[1:3])
+# mom qza address
+mm_qza_dirs <- paste0("../data/split-data/Mom-", ss)
+
+# import qza tables
+bb_qza <- parallel::mclapply(bb_qza_dirs, FUN = function(x){read_qza(paste0(x, "/rarefy-table.qza"))}, mc.cores = np)
+names(bb_qza) <- paste0("Baby-", ss[1:3])
+#lapply(bb_qza, function(x){x$data %>% dim})
+
+mm_qza <- parallel::mclapply(mm_qza_dirs, FUN = function(x){read_qza(paste0(x, "/rarefy-table.qza"))}, mc.cores = np )
+names(mm_qza) <- paste0("Mom-", ss)
+
+#lapply(mm_qza, function(x){x$data %>% dim})
+
+
+# import metadata
+mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+## extract metadata for
+mf_ss <- mf %>% filter(sample_name %in% (sapply(c(bb_qza, mm_qza), FUN = function(x)colnames(x$data)) %>% unlist()))
+mf_ss$body_site_corrected[mf_ss$body_site_corrected=="Right_Forearm"] = "Forearm"
+```
+
+### Gauze samples (this needs to be udpated once uploading gauze sequences into qiita)
+```{r}
+ft_qza_all <- read_qza("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/3-deblur/SA-P1-P3_deblur_no-mitochondria-no-chloroplast_table.qza")
+mf_gauze <- read.table("~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/GauzeSeq/0-Doc/Mapping_baby_seeding_gauze.txt", header = T, sep = "\t")
+ft_tbl_gauze <- ft_qza_all$data[, mf_gauze$sample_name] %>% as.data.frame %>% filter(rowSums(.)>0)
+```
+
+## Create phyloseq object
+```{r}
+otu_ss <- parallel::mclapply(c(bb_qza, mm_qza), function(x){otu_table(x$data %>% as.data.frame %>% select(any_of(mf_ss$sample_name)) %>% filter(rowSums(.)>0), taxa_are_rows = T)}, mc.cores = np)
+
+## import the otu table into phyloseq
+otu_ss_phylo <- do.call("merge_phyloseq", otu_ss)
+
+taxa_qza <- read_qza("../data/processed-data/taxonomy.qza")
+taxa_tbl <- taxa_qza$data %>% mutate(Taxon = gsub(pattern = "__", replacement = "_", Taxon)) %>% separate(Taxon, into = c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "; ", remove = T)
+taxa_tbl$Domain[is.na(taxa_tbl$Domain)] <- "k_"
+taxa_tbl$Phylum[is.na(taxa_tbl$Phylum)] <- "p_"
+taxa_tbl$Class[is.na(taxa_tbl$Class)] <- "c_"
+taxa_tbl$Order[is.na(taxa_tbl$Order)] <- "o_"
+taxa_tbl$Family[is.na(taxa_tbl$Family)] <- "f_"
+taxa_tbl$Genus[is.na(taxa_tbl$Genus)] <- "g_"
+taxa_tbl$Species[is.na(taxa_tbl$Species)] <- "s_"
+
+taxa_all <- taxa_tbl %>% filter(Feature.ID %in% rownames(otu_table(otu_ss_phylo))) %>% select(Feature.ID, Domain:Species) %>% column_to_rownames(var = "Feature.ID") %>% as.matrix() %>% tax_table()
+
+ss_phylo <- merge_phyloseq(otu_ss_phylo, taxa_all, sample_data(mf_ss %>% column_to_rownames(var = "sample_name")))
+```
+

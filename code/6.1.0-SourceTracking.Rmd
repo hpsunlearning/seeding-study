@@ -138,19 +138,52 @@ tidy_feasts_out <- function(x){
 Feast_outs_sum <- parallel::mclapply(Feast_outs, tidy_feasts_out, mc.cores = np)
 
 Feast_outs_sum_tbl <- do.call("rbind", Feast_outs_sum)
+Feast_outs_sum_tbl2 <- Feast_outs_sum_tbl %>% filter(mom_body_site_corrected %in% c("Vagina", "Gauze")) %>% mutate(mom_body_site_corrected="Vaginal") %>%  group_by(BabySampleSite, mom_body_site_corrected) %>% summarise(across(body_site_ct:body_site_prop, sum)) %>% rbind(., Feast_outs_sum_tbl %>% filter(!mom_body_site_corrected %in% c("Vagina", "Gauze")) )
 
-Feast_outs_sum_tbl_ <- Feast_outs_sum_tbl %>% separate(BabySampleSite, into = c("BabySampleID"), sep = "_", remove = F) %>% merge(., mf_st, by.x = "BabySampleID", by.y = "sample_name", all.x = T) %>% 
+Feast_outs_sum_tbl_ <- Feast_outs_sum_tbl2 %>% separate(BabySampleSite, into = c("BabySampleID"), sep = "_", remove = F) %>% merge(., mf_st, by.x = "BabySampleID", by.y = "sample_name", all.x = T) %>% 
     filter(!(birth_mode_ms=="CS" & mom_body_site_corrected=="Gauze")) # remove the gauze attribution of 2 NY CSself families in skin samples
 write.csv(Feast_outs_sum_tbl_, file = "../data/Feast_output_complete_tables.csv", quote = F, row.names = F)
 
+Feast_outs_sum_tbl_stats <- Feast_outs_sum_tbl_ %>% mutate(Group_day = ifelse(date_sampling_category_days_continuous<=2, 1, date_sampling_category_days_continuous)) %>% group_by(mom_body_site_corrected, body_site_type, Group_day) %>% dunn_test(data = ., body_site_prop ~ birth_mode_ms, p.adjust.method = "none") %>% mutate(p.adj.signif = NULL)
+
+Feast_outs_sum_tbl_stats$p.adj = p.adjust(Feast_outs_sum_tbl_stats$p, method = "fdr")
+Feast_outs_sum_tbl_stats$equal = ifelse(Feast_outs_sum_tbl_stats$p.adj<=0.1, F, T)
+
+Feast_outs_sum_tbl_means <- Feast_outs_sum_tbl_ %>% mutate(Group_day = ifelse(date_sampling_category_days_continuous<=2, 1, date_sampling_category_days_continuous)) %>% group_by(mom_body_site_corrected, body_site_type, Group_day, birth_mode_ms) %>% summarise(mean = mean(body_site_prop)) %>% arrange(mom_body_site_corrected, body_site_type, Group_day, mean) %>% mutate(p.adj.l = letters[seq(n())])
+
+Tmp <- lapply(list(Feast_outs_sum_tbl_stats, Feast_outs_sum_tbl_means), function(x){split(x, list(x$mom_body_site_corrected, x$body_site_type, x$Group_day))})
+
+for (i in length(Tmp[[1]])){
+    tt = Tmp[[2]][[i]]$birth_mode_ms %>% combn(., 2) %>% apply(2, sort) %>% t() %>% as.data.frame() %>% left_join(., Tmp[[1]][[i]] %>% select(group1, group2, equal), by = c("V1"="group1", "V2"="group2"))
+    Tmp[[2]][[i]]$p.adj.l = 
+        if(tt[1, 3]){
+            if(tt[2, 3]){
+                rep("a", 3)
+            }else{
+                if(tt[3, 3]){
+                    c("a", "ab", "b")
+                }else{
+                    c("a", "a", "b")
+                }
+            }
+        }else{
+            if(tt[3, 3]){
+                c("a", "b", "b")
+            }else{
+                c("a", "b", "c")
+            }
+        }
+}
+
+Feast_outs_sum_tbl_ %>% mutate(Group_day = ifelse(date_sampling_category_days_continuous<=2, 1, date_sampling_category_days_continuous)) %>% group_by(mom_body_site_corrected, body_site_type, Group_day, birth_mode_ms) %>% summarise(mean = mean(body_site_prop)) %>% arrange(mom_body_site_corrected, body_site_type, Group_day, mean)
 # Feast_outs_sum_tbl_check <- Feast_outs_sum_tbl_ %>% group_by(body_site_corrected, date_sampling_category_days_continuous, mom_body_site_corrected, birth_mode_ms) %>% summarise(N = n())
 # ggplot(Feast_outs_sum_tbl_check %>% filter(date_sampling_category_days_continuous<=30), aes(x = date_sampling_category_days_continuous, y = N, color = birth_mode_ms)) +
 #     geom_point() +
 #     geom_line() +
 #     facet_grid(body_site_corrected ~ mom_body_site_corrected, scales = "free_y")
-
-ss_clr <- c('#ff7f00','#ffff33','#377eb8','#4daf4a','#984ea3','#e41a1c')
-names(ss_clr) <- c("Mouth", "Nose", "Forearm", "Right_Areola","Vagina","Feces")
+# 
+# ss_clr <- c('#ff7f00','#ffff33','#377eb8','#4daf4a','#984ea3','#e41a1c')
+# names(ss_clr) <- c("Mouth", "Nose", "Forearm", "Right_Areola","Vaginal","Feces")
 
 # 1st month
 ggplot(Feast_outs_sum_tbl_ %>% filter(date_sampling_category_days_continuous<=30), aes(x = date_sampling_category_days_continuous, y = body_site_prop, color = mom_body_site_corrected)) +

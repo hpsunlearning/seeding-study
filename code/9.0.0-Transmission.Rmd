@@ -101,21 +101,34 @@ saveRDS(phylo_wk, file = "tmp_phylo_wk_transmission.Rdata")
 ```
 
 ```{r}
+ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
+
 phylo_wk = readRDS("tmp_phylo_wk_transmission.Rdata")
 mf_wk <- sample_data(phylo_wk) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
 # # transform the counts to abundance
 # phylo_wk_ab <- transform_sample_counts(phylo_wk, function(OTU) OTU/sum(OTU))
 
 ## Maternal ASV within the first week
-mf_mm_wk1 <- mf_wk %>% filter(mom_baby=="Mom", date_sampling_category_days_continuous<=7, date_sampling_category_days_continuous>=0)
+mf_mm_day0 <- mf_wk %>% filter(mom_baby=="Mom", as.numeric(date_sampling_category_days_continuous)==0)
 
-otu_mm_wk1 <- prune_samples(mf_mm_wk1$sample_name, phylo_wk) %>% otu_table %>% as.matrix() %>% as.data.frame %>% filter(rowSums(.)>0)
+otu_mm_day0 <- prune_samples(mf_mm_day0$sample_name, phylo_wk) %>% otu_table %>% as.matrix() %>% as.data.frame %>% filter(rowSums(.>0)>0.1*ncol(.)) # only include otu existed in more than 10% of samples
+# otu_mm_wk1_l <- otu_mm_wk1 %>% rownames_to_column(var = "ASV") %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% merge(., mf_wk %>% select(sample_name, body_site_corrected), by = "sample_name", all.x = T) 
 
-otu_mm_wk1_l <- otu_mm_wk1 %>% rownames_to_column(var = "ASV") %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% merge(., mf_wk %>% select(sample_name, body_site_corrected), by = "sample_name", all.x = T) 
+## Baby ASVs
+mf_bb_lst <- mf_wk %>% filter(mom_baby=="Baby") %>% split(., list(.$body_site_corrected, .$birth_mode_ms))
+otu_baby_lst <- parallel::mclapply(mf_bb_lst, function(x){prune_samples(x$sample_name, phylo_wk) %>% otu_table %>% as.matrix() %>% as.data.frame %>% filter(rowSums(.>0)>0.1*ncol(.))}, mc.cores = np)
+# otu_baby_l <- parallel::mclapply(otu_baby_lst, function(x){x %>% rownames_to_column(var = "ASV") %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% merge(., mf_wk %>% select(sample_name, body_site_corrected, birth_mode_ms, date_sampling_category_days_continuous), by = "sample_name", all.x = T)}) %>% do.call("rbind", .)
 
-## filter 
-otu_mm_wk1_l_f <- otu_mm_wk1_l %>% filter(count>=5) %>% # filter out those less than the pre-defined criterion in each samples (0.1%, i.e. 5 reads per sample)
-    group_by(body_site_corrected, ASV)
+
+for (ss_m in ss){
+    for (ss_b in ss[1:3]){
+        mf_mm_tmp <- mf_mm_day0 %>% filter(body_site_corrected==ss_m)
+        otu_mm_tmp <- otu_mm_day0 %>% select(mf_mm_tmp$sample_name) %>% filter(rowSums(.)>0)
+        
+        mf_bb_tmp <- mf_wk %>% filter(mom_baby=="Baby", body_site_corrected==ss_b)
+        otu_bb_tmp <- otu_baby_lst[grepl(ss_b, names(otu_baby_lst))]
+    }
+}
 
 ```
 

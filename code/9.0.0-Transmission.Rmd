@@ -108,7 +108,7 @@ mf_wk <- sample_data(phylo_wk) %>% as.matrix() %>% as.data.frame() %>% rownames_
 # # transform the counts to abundance
 # phylo_wk_ab <- transform_sample_counts(phylo_wk, function(OTU) OTU/sum(OTU))
 
-## Maternal ASV within the first week
+## Maternal ASV paranatal
 mf_mm_day0 <- mf_wk %>% filter(mom_baby=="Mom", as.numeric(date_sampling_category_days_continuous)==0)
 
 otu_mm_day0 <- prune_samples(mf_mm_day0$sample_name, phylo_wk) %>% otu_table %>% as.matrix() %>% as.data.frame %>% filter(rowSums(.>0)>0.1*ncol(.)) # only include otu existed in more than 10% of samples
@@ -127,6 +127,81 @@ for (ss_m in ss){
         
         mf_bb_tmp <- mf_wk %>% filter(mom_baby=="Baby", body_site_corrected==ss_b)
         otu_bb_tmp <- otu_baby_lst[grepl(ss_b, names(otu_baby_lst))]
+        
+        otu_bb_all <- lapply(otu_bb_tmp, rownames) %>% do.call("c", .) %>% unique # all otu from babies, regardless birth mode
+        
+        otu_cc <- intersect(rownames(otu_mm_tmp), otu_bb_all) # common otu between maternal and baby samples
+        
+        mf_bb_tmp1 <- mf_bb_tmp %>% filter(sample_name %in% colnames(otu_bb_tmp[[1]])) %>% arrange(as.numeric(date_sampling_category_days_continuous))
+        
+        otu_mat1 <- otu_mm_tmp[otu_cc, ] %>% merge(., otu_bb_tmp[[1]][, mf_bb_tmp1$sample_name], by = 0, all.x = T) %>% column_to_rownames(var = "Row.names")
+        # otu_mat1[otu_mat1==0] = NA_real_
+        otu_mat1 = log10(otu_mat1/5000)
+        otu_mat1[otu_mat1==-Inf] = -5
+        otu_mat1[is.na(otu_mat1)] = -5
+        
+        meta_mat1 <- rbind(mf_mm_tmp, mf_bb_tmp1)
+        
+        mat_col_fun = circlize::colorRamp2(c(-5, -4, -3, -2, -1), c("grey", "#225ea8", "#41b6c4", "#a1dab4", "#ffffcc"))
+        col_ha1 = columnAnnotation(Days = meta_mat1$date_sampling_category_days_continuous)
+        p1 <- Heatmap(otu_mat1, 
+                
+                cluster_rows = row_dend(p3),
+                cluster_columns = F,
+                show_column_names = F,
+                show_row_names = F,
+                row_dend_reorder = F,
+                
+                col = mat_col_fun,
+                
+                top_annotation = col_ha1)
+        draw(p1)
+        
+        mf_bb_tmp2 <- mf_bb_tmp %>% filter(sample_name %in% colnames(otu_bb_tmp[[2]])) %>% arrange(as.numeric(date_sampling_category_days_continuous))
+        otu_mat2 <- otu_mm_tmp[otu_cc, ] %>% merge(., otu_bb_tmp[[2]][, mf_bb_tmp2$sample_name], by = 0, all.x = T) %>% column_to_rownames(var = "Row.names")
+        otu_mat2 = log10(otu_mat2/5000)
+        otu_mat2[otu_mat2==-Inf] = -5
+        otu_mat2[is.na(otu_mat2)] = -5
+        
+        meta_mat2 <- rbind(mf_mm_tmp, mf_bb_tmp2)
+        col_ha2 = columnAnnotation(Days = meta_mat2$date_sampling_category_days_continuous)
+        
+        p2 <- Heatmap(otu_mat2, 
+                
+                cluster_rows = row_dend(p3),
+                cluster_columns = F,
+                show_column_names = F,
+                show_row_names = F,
+                row_dend_reorder = F,
+                
+                col = mat_col_fun,
+                
+                top_annotation = col_ha2)
+        draw(p2)
+        
+        mf_bb_tmp3 <- mf_bb_tmp %>% filter(sample_name %in% colnames(otu_bb_tmp[[3]])) %>% arrange(as.numeric(date_sampling_category_days_continuous))
+        otu_mat3 <- otu_mm_tmp[otu_cc, ] %>% merge(., otu_bb_tmp[[3]][, mf_bb_tmp3$sample_name], by = 0, all.x = T) %>% column_to_rownames(var = "Row.names")
+        otu_mat3 = log10(otu_mat3/5000)
+        otu_mat3[otu_mat3==-Inf] = -5
+        otu_mat3[is.na(otu_mat3)] = -5
+        
+        meta_mat3 <- rbind(mf_mm_tmp, mf_bb_tmp3)
+        col_ha3 = columnAnnotation(Days = meta_mat3$date_sampling_category_days_continuous)
+        
+        p3 <- Heatmap(otu_mat3, 
+                
+                #cluster_rows = row_dend(p1),
+                cluster_columns = F,
+                show_column_names = F,
+                show_row_names = F,
+                row_dend_reorder = T,
+                
+                col = mat_col_fun,
+                
+                top_annotation = col_ha3)
+        draw(p3)
+        
+        p1 + p2 + p3
     }
 }
 

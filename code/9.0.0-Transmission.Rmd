@@ -14,10 +14,11 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, message = FALS
 # Loading library here
 library(tidyverse)
 library(extrafont)
-library(biomformat)
+# library(biomformat)
+# library(ape)
+# library(qiime2R)
 library(phyloseq)
-library(ape)
-library(qiime2R)
+library(ComplexHeatmap)
 sessionInfo()
 
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
@@ -99,32 +100,34 @@ phylo_gauze_5k <- rarefy_even_depth(phylo_gauze, sample.size = 5000, rngseed = 2
 phylo_wk <- merge_phyloseq(ss_phylo, phylo_gauze_5k) %>% prune_taxa(taxa_sums(.)>0, .)
 saveRDS(phylo_wk, file = "tmp_phylo_wk_transmission.Rdata")
 ```
-
+## Analysis
 ```{r}
 ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
 
 phylo_wk = readRDS("tmp_phylo_wk_transmission.Rdata")
 mf_wk <- sample_data(phylo_wk) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
-# # transform the counts to abundance
-# phylo_wk_ab <- transform_sample_counts(phylo_wk, function(OTU) OTU/sum(OTU))
+
 
 ## Maternal ASV paranatal
 mf_mm_day0 <- mf_wk %>% filter(mom_baby=="Mom", as.numeric(date_sampling_category_days_continuous)==0)
 
 otu_mm_day0 <- prune_samples(mf_mm_day0$sample_name, phylo_wk) %>% otu_table %>% as.matrix() %>% as.data.frame %>% filter(rowSums(.>0)>0.1*ncol(.)) # only include otu existed in more than 10% of samples
-# otu_mm_wk1_l <- otu_mm_wk1 %>% rownames_to_column(var = "ASV") %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% merge(., mf_wk %>% select(sample_name, body_site_corrected), by = "sample_name", all.x = T) 
 
 ## Baby ASVs
 mf_bb_lst <- mf_wk %>% filter(mom_baby=="Baby") %>% split(., list(.$body_site_corrected, .$birth_mode_ms))
 otu_baby_lst <- parallel::mclapply(mf_bb_lst, function(x){prune_samples(x$sample_name, phylo_wk) %>% otu_table %>% as.matrix() %>% as.data.frame %>% filter(rowSums(.>0)>0.1*ncol(.))}, mc.cores = np)
-# otu_baby_l <- parallel::mclapply(otu_baby_lst, function(x){x %>% rownames_to_column(var = "ASV") %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% merge(., mf_wk %>% select(sample_name, body_site_corrected, birth_mode_ms, date_sampling_category_days_continuous), by = "sample_name", all.x = T)}) %>% do.call("rbind", .)
+
 
 
 for (ss_m in ss){
+    #ss_m = ss[1]
     for (ss_b in ss[1:3]){
+        #ss_b = ss[1]
+        # select mother samples
         mf_mm_tmp <- mf_mm_day0 %>% filter(body_site_corrected==ss_m)
         otu_mm_tmp <- otu_mm_day0 %>% select(mf_mm_tmp$sample_name) %>% filter(rowSums(.)>0)
         
+        # select baby samples
         mf_bb_tmp <- mf_wk %>% filter(mom_baby=="Baby", body_site_corrected==ss_b)
         otu_bb_tmp <- otu_baby_lst[grepl(ss_b, names(otu_baby_lst))]
         
@@ -132,76 +135,85 @@ for (ss_m in ss){
         
         otu_cc <- intersect(rownames(otu_mm_tmp), otu_bb_all) # common otu between maternal and baby samples
         
-        mf_bb_tmp1 <- mf_bb_tmp %>% filter(sample_name %in% colnames(otu_bb_tmp[[1]])) %>% arrange(as.numeric(date_sampling_category_days_continuous))
+        # Vag babies
+        function(birthmode, ){
+            bm = birthmode # the string of birth mode, ["CS", "Vag", "CSseed"]
+            mf_bb_tmp1 <- mf_bb_tmp %>% filter(sample_name %in% colnames(otu_bb_tmp[[paste(ss_b, bm, sep = ".")]])) %>% arrange(as.numeric(date_sampling_category_days_continuous))
         
-        otu_mat1 <- otu_mm_tmp[otu_cc, ] %>% merge(., otu_bb_tmp[[1]][, mf_bb_tmp1$sample_name], by = 0, all.x = T) %>% column_to_rownames(var = "Row.names")
-        # otu_mat1[otu_mat1==0] = NA_real_
+        ## create the matrix for heatmap
+        otu_mat1 <- otu_mm_tmp[otu_cc, ] %>% merge(., otu_bb_tmp[[paste(ss_b, bm, sep = ".")]][, mf_bb_tmp1$sample_name], by = 0, all.x = T) %>% column_to_rownames(var = "Row.names")
+        ### convert to log scale
         otu_mat1 = log10(otu_mat1/5000)
+        ### convert na or Inf to be -5, a value that is beyond the actual data range
         otu_mat1[otu_mat1==-Inf] = -5
         otu_mat1[is.na(otu_mat1)] = -5
         
+        ## create the cluster for dendrogram of ASV based on baby samples only if it is Vag
+        if (bm=="Vag"){
+            asv_cluster <- hclust(dist(otu_mat1[,  mf_bb_tmp1$sample_name]))
+            row_cluster <- asv_cluster
+        } else {
+            
+        }
+        
+        
+        ## metadata for the heatmap
         meta_mat1 <- rbind(mf_mm_tmp, mf_bb_tmp1)
+        ## data table for column annotation
+        df_col <- meta_mat1 %>% ungroup %>% select(mom_baby, date_sampling_category_days_continuous) %>% 
+            mutate(mom_baby = factor(mom_baby, levels = c("Mom", "Baby")),
+                   date_sampling_category_days_continuous = as.numeric(date_sampling_category_days_continuous),
+                   Days = case_when(date_sampling_category_days_continuous<=7 ~ "0-7",
+                                    date_sampling_category_days_continuous<=30 ~ "14-30",
+                                    date_sampling_category_days_continuous>=240 ~ ">=240",
+                                    T ~ as.character(date_sampling_category_days_continuous)),
+                   Days =  factor(Days, levels = c("0-7","14-30","60","90","120","150","180","210",">=240")),
+                   date_sampling_category_days_continuous = NULL)
         
-        mat_col_fun = circlize::colorRamp2(c(-5, -4, -3, -2, -1), c("grey", "#225ea8", "#41b6c4", "#a1dab4", "#ffffcc"))
-        col_ha1 = columnAnnotation(Days = meta_mat1$date_sampling_category_days_continuous)
+        ## color scheme for the heatmap cells
+        mat_col_fun = circlize::colorRamp2(c(-5, -4, -3.3, -2.6, -1.9, -1.2, -0.5), c("grey60","#253494", "#2c7fb8", "#41b6c4", "#7fcdbb", "#c7e9b4", "#ffffcc"))
+       
+        Days_col = c('#fff7f3','#fde0dd','#fcc5c0','#fa9fb5','#f768a1','#dd3497','#ae017e','#7a0177','#49006a')
+        names(Days_col) <- df_col$Days %>% unique
+        
+        col_ha1 = columnAnnotation(mom_baby = df_col$mom_baby, col = list(mom_baby=c("Mom" = '#fdcdac', "Baby" = '#b3e2cd')), show_annotation_name = F,
+                                   Days = anno_block(gp = gpar(fill = Days_col), labels = names(Days_col), labels_gp = gpar(col = "black", fontsize = 6)),
+                                   annotation_name_gp = gpar(fontsize = 7), 
+                                   annotation_legend_param = list(mom_baby = list(labels_gp = gpar(fontsize = 7), title_gp = gpar(fontsize = 7, fontface = "bold"))))
         p1 <- Heatmap(otu_mat1, 
-                
-                cluster_rows = row_dend(p3),
-                cluster_columns = F,
-                show_column_names = F,
-                show_row_names = F,
-                row_dend_reorder = F,
-                
-                col = mat_col_fun,
-                
-                top_annotation = col_ha1)
+                      
+                      name = "Relative abundance",
+                      heatmap_legend_param = list(at = c(-4, -3.3, -2.6, -1.9, -1.2, -0.5), labels = c("0.01%", "0.05%", "0.25%", "1.25%", "6.25%", "31.25%"),
+                                                  labels_gp = gpar(fontsize = 6), title_gp = gpar(fontsize = 7, fontface = "bold")),
+                      
+                      column_title = paste0("Mom.", ss_m, " vs VagBabies.", ss_b),
+                      
+                      cluster_rows = asv_cluster,
+                      cluster_columns = F,
+                      show_column_names = F,
+                      show_row_names = F,
+                      row_dend_reorder = T,
+                      
+                      col = mat_col_fun,
+                      
+                      top_annotation = col_ha1,
+                      
+                      row_dend_width = unit(15, "mm"),
+                      
+                      column_split = df_col$Days,
+                      #column_title = NULL,
+                      column_gap = unit(rep(0, 8), "mm"),
+                      cluster_column_slices = F,
+                      
+                      height = unit(7/.pt, "mm")*dim(otu_mat1)[1],
+                      width = unit(0.7/.pt, "mm")*dim(otu_mat1)[2])
         draw(p1)
+        }
         
-        mf_bb_tmp2 <- mf_bb_tmp %>% filter(sample_name %in% colnames(otu_bb_tmp[[2]])) %>% arrange(as.numeric(date_sampling_category_days_continuous))
-        otu_mat2 <- otu_mm_tmp[otu_cc, ] %>% merge(., otu_bb_tmp[[2]][, mf_bb_tmp2$sample_name], by = 0, all.x = T) %>% column_to_rownames(var = "Row.names")
-        otu_mat2 = log10(otu_mat2/5000)
-        otu_mat2[otu_mat2==-Inf] = -5
-        otu_mat2[is.na(otu_mat2)] = -5
         
-        meta_mat2 <- rbind(mf_mm_tmp, mf_bb_tmp2)
-        col_ha2 = columnAnnotation(Days = meta_mat2$date_sampling_category_days_continuous)
         
-        p2 <- Heatmap(otu_mat2, 
-                
-                cluster_rows = row_dend(p3),
-                cluster_columns = F,
-                show_column_names = F,
-                show_row_names = F,
-                row_dend_reorder = F,
-                
-                col = mat_col_fun,
-                
-                top_annotation = col_ha2)
-        draw(p2)
+        # CSseed babies
         
-        mf_bb_tmp3 <- mf_bb_tmp %>% filter(sample_name %in% colnames(otu_bb_tmp[[3]])) %>% arrange(as.numeric(date_sampling_category_days_continuous))
-        otu_mat3 <- otu_mm_tmp[otu_cc, ] %>% merge(., otu_bb_tmp[[3]][, mf_bb_tmp3$sample_name], by = 0, all.x = T) %>% column_to_rownames(var = "Row.names")
-        otu_mat3 = log10(otu_mat3/5000)
-        otu_mat3[otu_mat3==-Inf] = -5
-        otu_mat3[is.na(otu_mat3)] = -5
-        
-        meta_mat3 <- rbind(mf_mm_tmp, mf_bb_tmp3)
-        col_ha3 = columnAnnotation(Days = meta_mat3$date_sampling_category_days_continuous)
-        
-        p3 <- Heatmap(otu_mat3, 
-                
-                #cluster_rows = row_dend(p1),
-                cluster_columns = F,
-                show_column_names = F,
-                show_row_names = F,
-                row_dend_reorder = T,
-                
-                col = mat_col_fun,
-                
-                top_annotation = col_ha3)
-        draw(p3)
-        
-        p1 + p2 + p3
     }
 }
 

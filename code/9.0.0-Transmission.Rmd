@@ -19,6 +19,7 @@ library(extrafont)
 # library(qiime2R)
 library(phyloseq)
 library(ComplexHeatmap)
+library(igraph)
 sessionInfo()
 
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
@@ -348,19 +349,130 @@ for (ss_m in ss){
 }
 ```
 
-### Plot average of baby samples by birth mode and timepoint and species on heatmap
+<!-- ### Plot average of baby samples by birth mode and timepoint and species on heatmap -->
 
+<!-- ```{r} -->
+<!-- phylo_wk = readRDS("tmp_phylo_wk_transmission.Rdata") -->
+
+<!-- ## Maternal ASV paranatal -->
+<!-- mf_mm_day0 <- mf_wk %>% filter(mom_baby=="Mom", as.numeric(date_sampling_category_days_continuous)==0) -->
+<!-- mf_mm_day0_lst <- mf_mm_day0 %>% split(., list(.$body_site_corrected)) -->
+
+<!-- otu_mm_day0_lst <- parallel::mclapply(mf_mm_day0_lst, function(x){prune_samples(x$sample_name, phylo_wk) %>% otu_table %>% as.matrix() %>% as.data.frame %>% filter(rowSums(.>0)>0.1*ncol(.))}, mc.cores = np) # only include otu existed in more than 10% of samples -->
+
+<!-- ## Baby ASVs -->
+<!-- mf_bb_lst <- mf_wk %>% filter(mom_baby=="Baby") %>% split(., list(.$body_site_corrected, .$birth_mode_ms)) -->
+<!-- otu_baby_lst <- parallel::mclapply(mf_bb_lst, function(x){prune_samples(x$sample_name, phylo_wk) %>% otu_table %>% as.matrix() %>% as.data.frame %>% filter(rowSums(.>0)>0.1*ncol(.))}, mc.cores = np) -->
+<!-- ``` -->
+
+
+### Network
+#### Maternal vagina
 ```{r}
-phylo_wk = readRDS("tmp_phylo_wk_transmission.Rdata")
+ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
 
-## Maternal ASV paranatal
-mf_mm_day0 <- mf_wk %>% filter(mom_baby=="Mom", as.numeric(date_sampling_category_days_continuous)==0)
-mf_mm_day0_lst <- mf_mm_day0 %>% split(., list(.$body_site_corrected))
+fun1 <- function(x, y){
+    return(c(paste0(x, "-", y), x))
+}
+fun2 <- function(x, y){
+    return(c(paste0(x, "T"), paste0(x, "F")))
+}
+tt <- "Vagina"
+tt2 <- ""
+for (ss_m in ss[-4]){
+    tt <- fun1(tt, ss_m)
+    tt2 <- fun2(tt2, ss_m)
+}
+Grp_tbl <- data.frame(Index = tt2, Grp = tt)
 
-otu_mm_day0_lst <- parallel::mclapply(mf_mm_day0_lst, function(x){prune_samples(x$sample_name, phylo_wk) %>% otu_table %>% as.matrix() %>% as.data.frame %>% filter(rowSums(.>0)>0.1*ncol(.))}, mc.cores = np) # only include otu existed in more than 10% of samples
+mm_day0_asv_v = rownames(otu_mm_day0_lst$Vagina)
+df_src <- data.frame(ASV = mm_day0_asv_v)
+for (ss_m in ss[-4]){
+    df_src[[ss_m]] = df_src$ASV %in% rownames(otu_mm_day0_lst[[ss_m]])
+}
+df_src <- df_src %>% mutate(across(Feces:Nose, ~ifelse(.x, "T", "F"))) %>% unite(mm.grp, Feces:Nose, sep = "", remove = F) %>% merge(., Grp_tbl, by.x = "mm.grp", by.y = "Index", all.x = T)
+df_src$Grp[df_src$Grp=="Vagina"]="VaginaOnly"
 
-## Baby ASVs
-mf_bb_lst <- mf_wk %>% filter(mom_baby=="Baby") %>% split(., list(.$body_site_corrected, .$birth_mode_ms))
-otu_baby_lst <- parallel::mclapply(mf_bb_lst, function(x){prune_samples(x$sample_name, phylo_wk) %>% otu_table %>% as.matrix() %>% as.data.frame %>% filter(rowSums(.>0)>0.1*ncol(.))}, mc.cores = np)
+mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% c("Day_30", "Day_90", "Day_240"))
+
+
+asv_bb_tmp <- list()
+for (dd in c("Day_30", "Day_90", "Day_240")){
+    mf_tmp_lst <- mf_bb_wk %>% filter(date_sampling_category_days==dd) %>% split(., list(.$body_site_corrected, .$birth_mode_ms))
+    asv_bb_tmp[[dd]] <- lapply(names(mf_tmp_lst), function(x){otu_baby_lst[[x]][, mf_tmp_lst[[x]]$sample_name] %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% mutate(sample = paste(x, dd, sep = '.'))}) %>% do.call("rbind", .)
+        
+}
+asv_bb_tmp <- do.call("rbind", asv_bb_tmp)
+
+p_list <- list()
+for (bm in c("Vag", "CSseed", "CS")){
+    tmp_tb1 <- asv_bb_tmp %>% filter(grepl(bm, sample)) %>% merge(df_src %>% select(ASV, Grp), by = "ASV", all.x = T) %>% mutate(date = str_extract(sample, "Day_\\d+"), bodysite = str_split(sample, pattern = "\\.", simplify = T)[, 1], xx = case_when(date=="Day_30" ~ 2, date=="Day_90" ~ 3, T ~ 4)) %>% arrange(date, sample, Grp, ASV) %>% group_by(date) %>% mutate(yy = seq(n()))
+
+tmp_tb2 <- df_src %>% select(ASV, Grp) %>% mutate(sample = "Vagina", bodysite = "Vagina", date = "Day_0") %>% arrange(sample, Grp, ASV) %>% mutate(xx = 1, yy = seq(n()) + (max(tmp_tb1$yy)-nrow(df_src))/2, date = factor(date, levels = c("Day_0", "Day_30", "Day_90", "Day_240"))) %>% rbind(., tmp_tb1)
+
+p_list[[bm]] <- ggplot(tmp_tb2, aes(x = date, y = yy)) +
+    geom_line(aes(group = ASV, color = Grp), size = 0.2) +
+    geom_point(aes(fill = bodysite), colour = "transparent", shape = 22, size = 3) +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 0.4, panel.grid = element_blank(), axis.line.y = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) +
+    labs(x = "Days", y = "", fill = "Body Site", title = bm)
+print(p_list[[bm]])
+}
+
+wrap_plots(p_list, ncol = 1) + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.box = "vertical")
+ggsave("tmp_figs/asv_shared_mm_vagina.pdf", width = 11, useDingbats = F)
 ```
 
+
+#### Maternal feces
+```{r}
+ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
+
+fun1 <- function(x, y){
+    return(c(paste0(x, "-", y), x))
+}
+fun2 <- function(x, y){
+    return(c(paste0(x, "T"), paste0(x, "F")))
+}
+tt <- "Feces"
+tt2 <- ""
+for (ss_m in ss[-1]){
+    tt <- fun1(tt, ss_m)
+    tt2 <- fun2(tt2, ss_m)
+}
+Grp_tbl <- data.frame(Index = tt2, Grp = tt)
+
+mm_day0_asv_v = rownames(otu_mm_day0_lst$Feces)
+df_src <- data.frame(ASV = mm_day0_asv_v)
+for (ss_m in ss[-1]){
+    df_src[[ss_m]] = df_src$ASV %in% rownames(otu_mm_day0_lst[[ss_m]])
+}
+df_src <- df_src %>% mutate(across(Mouth:Nose, ~ifelse(.x, "T", "F"))) %>% unite(mm.grp, Mouth:Nose, sep = "", remove = F) %>% merge(., Grp_tbl, by.x = "mm.grp", by.y = "Index", all.x = T)
+df_src$Grp[df_src$Grp=="Feces"]="FecesOnly"
+
+mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% c("Day_30", "Day_90", "Day_240"))
+
+asv_bb_tmp <- list()
+for (dd in c("Day_30", "Day_90", "Day_240")){
+    mf_tmp_lst <- mf_bb_wk %>% filter(date_sampling_category_days==dd) %>% split(., list(.$body_site_corrected, .$birth_mode_ms))
+    asv_bb_tmp[[dd]] <- lapply(names(mf_tmp_lst), function(x){otu_baby_lst[[x]][, mf_tmp_lst[[x]]$sample_name] %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% mutate(sample = paste(x, dd, sep = '.'))}) %>% do.call("rbind", .)
+        
+}
+asv_bb_tmp <- do.call("rbind", asv_bb_tmp)
+
+p_list <- list()
+for (bm in c("Vag", "CSseed", "CS")){
+    tmp_tb1 <- asv_bb_tmp %>% filter(grepl(bm, sample)) %>% merge(df_src %>% select(ASV, Grp), by = "ASV", all.x = T) %>% mutate(date = str_extract(sample, "Day_\\d+"), bodysite = str_split(sample, pattern = "\\.", simplify = T)[, 1], xx = case_when(date=="Day_30" ~ 2, date=="Day_90" ~ 3, T ~ 4)) %>% arrange(date, sample, Grp, ASV) %>% group_by(date) %>% mutate(yy = seq(n()))
+
+tmp_tb2 <- df_src %>% select(ASV, Grp) %>% mutate(sample = "Feces", bodysite = "Feces", date = "Day_0") %>% arrange(sample, Grp, ASV) %>% mutate(xx = 1, yy = seq(n()) + (max(tmp_tb1$yy)-nrow(df_src))/2, date = factor(date, levels = c("Day_0", "Day_30", "Day_90", "Day_240"))) %>% rbind(., tmp_tb1)
+
+p_list[[bm]] <- ggplot(tmp_tb2, aes(x = date, y = yy)) +
+    geom_line(aes(group = ASV, color = Grp), size = 0.2) +
+    geom_point(aes(fill = bodysite), colour = "transparent", shape = 22, size = 3) +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 0.4, panel.grid = element_blank(), axis.line.y = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) +
+    labs(x = "Days", y = "", fill = "Body Site", title = bm)
+print(p_list[[bm]])
+}
+
+wrap_plots(p_list, ncol = 1) + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.box = "vertical")
+ggsave("tmp_figs/asv_shared_mm_feces.pdf", width = 11, useDingbats = F)
+```

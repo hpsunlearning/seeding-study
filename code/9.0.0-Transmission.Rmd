@@ -516,7 +516,7 @@ for (bm in c("Vag", "CSseed", "CS")){
     bb_col <- c("#F8766D","#00BA38","#619CFF")
     names(bb_col) <- c("Feces", "Forearm", "Mouth")
     
-    mm_col <- c('#F8766D', 'black', 'purple', 'orange', '#00BA38', "#619CFF", 'grey')
+    mm_col <- c('#F8766D', 'black', 'purple', '#00BA38','orange',  "#619CFF", 'grey')
     names(mm_col) <- c("Feces.Only", "Vagina.Feces", "Vagina.Feces.Others", "Feces.Forearm", "Feces.Forearm.Others", "Feces.Mouth", "Feces.Others")
     p_list[[bm]] <- ggplot(data = tmp_tb1, aes(x = xx, y = yy)) +
         geom_segment(data = tmp_tb3, aes(x = xx.mm, xend = xx.bb, y = yy.mm, yend = yy.bb, color = Grp2), size = 0.3) +

@@ -1,0 +1,173 @@
+---
+title: "Sample Size Count"
+author: "Jincheng Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, message = FALSE)
+# Loading library here
+library(conflicted)
+library(tidyverse)
+library(extrafont)
+options(stringsAsFactors = F)
+conflict_prefer("filter", "dplyr")
+
+sessionInfo()
+```
+
+## import metadata
+```{r}
+mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+
+# all body sites to use for now
+ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
+mf$body_site_corrected[mf$body_site_corrected=="Right_Forearm"] = "Forearm"
+```
+
+## Total recruited
+```{r}
+subject_check <- mf %>% group_by(country, birth_mode, familyid_unique, subjectid_unique) %>% summarise(N = n())
+
+## the below data include samples even without any sequencing data
+MT02 <- MT0 %>% filter((body_site_corrected %in% c("Feces", "Mouth", "Right_Forearm") & mom_baby=="Baby")|(body_site_corrected %in% c("Feces", "Mouth", "Right_Forearm", "Right_Areola", "Nose", "Vagina") & mom_baby=="Mom"), as.numeric(date_sampling_category_days_continuous) <= 360)
+
+# check family pair
+FP <- MT02 %>%  mutate(birth_mode2 = ifelse(birth_mode == "CSself", "CSseed", birth_mode)) %>% group_by(birth_mode2) %>% distinct(mom_baby, familyid_unique, subjectid_unique) 
+
+## family data long format
+FP_l <- FP %>% group_by(familyid_unique, mom_baby) %>% mutate(mom_baby2 = paste0(mom_baby, seq(n()))) %>% ungroup() %>% select(-mom_baby) %>% spread(key = mom_baby2, value = subjectid_unique)
+# number of families
+nrow(FP_l)
+
+## number of total infants, all families + those with 2nd child
+nrow(FP_l) + length(which(!is.na(FP_l$Baby2)))
+FP_l %>% group_by(birth_mode2) %>% summarise_at(c("Baby1", "Baby2"), list(~length(.), ~ sum(!is.na(.)))) ## the number of babies is the sum of Baby1_length and Baby2_sum columns
+```
+
+samples available for analysis
+```{r}
+# remove the families with no baby sample
+FP_l_avail <- FP_l %>% filter(!is.na(Baby1))
+# 2 family lost due to no baby data
+
+# final metadata with available samples
+MT0_f <- MT02 %>% filter(familyid_unique %in% FP_l_avail$familyid_unique)
+
+# number of families infants
+nrow(FP_l_avail) + length(which(!is.na(FP_l_avail$Baby2)))
+FP_l_avail %>% group_by(birth_mode2) %>% summarise_at(c("Baby1", "Baby2"), list(~length(.), ~ sum(!is.na(.)))) ## the number of families is the Baby1_length column, the number of babies is the sum of Baby1_length and Baby2_sum columns
+
+
+```
+
+### final baby metadata
+```{r}
+MT0_f %>% filter(manuscript_use %in% c("No-LaneRunError")) %>% nrow()
+MT0_f %>% filter(manuscript_use == "No-NoSeq") %>% nrow()
+MT03 <- MT0_f %>% filter(!manuscript_use %in% c("No-LaneRunError", "No-NoSeq"))
+
+## this below data automatically filtered out those without any sequencing data
+MT2 <- MT %>% filter((body_site_corrected %in% c("Feces", "Mouth", "Right_Forearm") & mom_baby=="Baby")|(body_site_corrected %in% c("Feces", "Mouth", "Right_Forearm", "Right_Areola", "Nose", "Vagina") & mom_baby=="Mom"), as.numeric(date_sampling_category_days_continuous) <= 360)
+
+
+Tmp <- MT2 %>% filter(!X.SampleID %in% MT03$sample_name)
+Tmp2 <- MT03 %>% filter(!sample_name %in% MT2$X.SampleID)
+Tmp3 <- intersect(MT2$X.SampleID, MT03$sample_name)
+
+## From MT03, there are 65 samples not in MT2 (all from No-Misc); from MT2, there are 169 not in MT03 (seems to have wrong metadata)
+
+
+## following samples are an intersect of MT2 and MT03
+MT_i <- MT2 %>% filter(X.SampleID %in% Tmp3)
+MT_i %>% filter(manuscript_use=="No-Replicates") %>% nrow()
+MT_i %>% filter(manuscript_use=="No-LowDepth") %>% nrow()
+
+MT_f <- MT_i %>% filter(!manuscript_use %in% c("No-Replicates", "No-LowDepth")) %>% mutate(birth_mode2 = ifelse(birth_mode == "CSself", "CSseed", birth_mode))
+
+MT_f_baby <- MT_f %>% filter(mom_baby=="Baby") 
+
+# number of families
+MT_f_baby %>% group_by(birth_mode2) %>% distinct(mom_baby, familyid_unique, subjectid_unique) %>% group_by(familyid_unique, mom_baby) %>% mutate(mom_baby2 = paste0(mom_baby, seq(n()))) %>% ungroup() %>% select(-mom_baby) %>% spread(key = mom_baby2, value = subjectid_unique) %>% nrow()
+
+MT_f_baby %>% group_by(birth_mode2) %>% distinct(familyid_unique) %>% summarise(N=n())
+
+# number of babies
+n_MT_f_baby <- MT_f_baby %>% group_by(body_site_type, country, birth_mode2) %>% distinct(familyid_unique, subjectid_unique) %>% summarise(N_sub=n())
+
+MT_f_baby %>% group_by(birth_mode2) %>% distinct(subjectid_unique) %>% summarise(N = n())
+
+
+pct_n_MT_f_baby <- MT_f_baby %>% group_by(body_site_type, country, birth_mode2, date_sampling_category_days_continuous) %>% summarise(N=n()) %>% merge(., n_MT_f_baby) %>% mutate(pct_subj = N/N_sub)
+
+ggplot(pct_n_MT_f_baby, aes(x = date_sampling_category_days_continuous, y = pct_subj, color = birth_mode2)) +
+    stat_summary(geom = "errorbar", fun.data = "mean_se") +
+    stat_summary(geom = "line", aes(linetype = birth_mode2), fun.y = "mean", show.legend = F) +
+    stat_summary(geom = "point", fun.y = "mean", size = 1) +
+    
+    facet_grid(.~body_site_type) +
+    theme_bw(base_size = 10, base_family = "Arial") + theme(panel.grid = element_blank(), panel.background = element_rect(color = NA), aspect.ratio = 0.8) + scale_linetype_manual(values = c("dotted", "solid", "dashed")) +
+    labs(y = "Percentage of existing samples", x = "Age (day)" , color = "Birth Mode", linetype = "Birth Mode") 
+
+ggsave(file = "~/Dropbox/41-JCHWANG-NYU/Projects/05-BabyProject2017RobKnight/Analysis_2020_jw/results/folowup.pdf", useDingbats = FALSE, width = 7)
+
+```
+
+```{r}
+# sex
+MT_f_baby %>% group_by(birth_mode2) %>% distinct(subjectid_unique, baby_sex) %>% group_by(birth_mode2, baby_sex) %>% summarise(N = n())
+
+# baby followup
+MT_f_baby %>% distinct(birth_mode2, subjectid_unique, date_sampling_category_days_continuous) %>% group_by(birth_mode2, subjectid_unique) %>% filter(date_sampling_category_days_continuous==max(date_sampling_category_days_continuous)) %>% mutate(max_mon = date_sampling_category_days_continuous/30) %>% group_by(birth_mode2) %>% summarise(Mean = mean(max_mon), SD = sd(max_mon))
+
+# antibiotic use
+# the number of timepoints are presented
+MT_f_baby %>% filter(date_sampling_category_days_continuous>7, current_abx=="Yes") %>% group_by(birth_mode2) %>% distinct(subjectid_unique, date_sampling_category_days_continuous) %>% group_by(birth_mode2, subjectid_unique) %>% summarise(N = n()) %>% select(1, 3) %>% table
+
+# breastfeeding within first 3 months
+baby_feeding <- MT_f_baby %>% distinct(birth_mode2, subjectid_unique, date_sampling_category_days_continuous, exclusive_breastfeed)
+
+baby_feeding %>% filter(date_sampling_category_days_continuous<=120) %>% mutate(feeding = ifelse(exclusive_breastfeed=="", "unknown", ifelse(exclusive_breastfeed %in% c("Yes", "eb", "fd"), "bd", "No"))) %>% group_by(birth_mode2, subjectid_unique, feeding) %>% summarise(Pct = n()/sum(n())) %>% spread(key = feeding, value = Pct) %>% group_by(birth_mode2) %>% summarise_at(c("bd", "No", "unknown"), list(~sum(!is.na(.))))
+
+# mother gbs
+MT_f_mom <- MT_f %>% filter(mom_baby=="Mom")
+
+mom_abx <- MT_f %>% distinct(birth_mode2, familyid_unique, mother_prenatal_gbs, mother_abx_perinatal, mother_abx_1st_trimester, mother_abx_2nd_trimester, mother_abx_3rd_trimester)
+mom_abx[mom_abx=="unknown"] <- ""
+mom_abx <- mom_abx %>% group_by(birth_mode2, familyid_unique) %>% mutate_at(vars(-group_cols()), .funs = list(~fix_mt(.))) %>% ungroup() %>% distinct(birth_mode2, familyid_unique, mother_prenatal_gbs, mother_abx_perinatal, mother_abx_1st_trimester, mother_abx_2nd_trimester, mother_abx_3rd_trimester)
+
+mom_abx_ambiguous <- mom_abx %>% group_by(familyid_unique) %>% filter(n()>1)
+mom_abx <- mom_abx %>% group_by(familyid_unique) %>% filter(n()==1)
+
+fix_mt <- function(x){
+    if (any(x=="")){
+        uni_v <- unique(x)
+        if (length(uni_v)==2){
+            x[x==""] <- unique(x[x!=""])
+        } else {
+            x[x==""] <- "unknown"
+        }
+    }
+    return(x)
+}
+
+colnames(mom_abx)
+mom_abx[,c(1, 3)] %>% table
+mom_abx[,c(1, 4)] %>% table
+
+mom_abx_2 <- mom_abx[, -c(3, 4)] %>% ungroup
+mom_abx_2[mom_abx_2=="Yes"|mom_abx_2=="Maybe"] <- 1
+mom_abx_2[mom_abx_2=="No"|mom_abx_2=="unknown"] <- 0
+
+mom_abx_2$mother_abx_1st_trimester <- as.numeric(mom_abx_2$mother_abx_1st_trimester)
+mom_abx_2$mother_abx_2nd_trimester <- as.numeric(mom_abx_2$mother_abx_2nd_trimester)
+mom_abx_2$mother_abx_3rd_trimester <- as.numeric(mom_abx_2$mother_abx_3rd_trimester)
+mom_abx_2$abx <- mom_abx_2$mother_abx_1st_trimester + mom_abx_2$mother_abx_2nd_trimester + mom_abx_2$mother_abx_3rd_trimester
+mom_abx_2[, c(1,6)] %>% table
+
+```
+
+

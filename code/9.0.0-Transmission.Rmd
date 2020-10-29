@@ -12,6 +12,7 @@ editor_options:
 ```{r setup, message=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, message = FALSE)
 # Loading library here
+library(conflicted)
 library(tidyverse)
 library(extrafont)
 # library(biomformat)
@@ -19,8 +20,10 @@ library(extrafont)
 # library(qiime2R)
 library(phyloseq)
 library(ComplexHeatmap)
-library(igraph)
+library(patchwork)
+library(ggrepel)
 sessionInfo()
+conflict_prefer("filter", "dplyr")
 
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 ```
@@ -368,7 +371,7 @@ for (ss_m in ss){
 
 
 ### Network
-#### Maternal vagina
+
 ```{r}
 ss <- c("Vagina", "Feces", "Mouth", "Forearm", "Right_Areola", "Nose")
 
@@ -387,7 +390,7 @@ asv_mm_day0_all <- lapply(seq_along(otu_mm_day0_lst), function(x){data.frame(ASV
 asv_mm_day0_filt <- asv_mm_day0_all %>% mutate(Bodysite = factor(Bodysite, levels = ss)) %>% arrange(Bodysite, ASV) %>% group_by(ASV) %>%
     summarise(Grp = paste(Bodysite, collapse = "."), N_site = n())
 ```
-
+#### Maternal vagina
 ```{r}
 asv_mm_day0_filt_v <- asv_mm_day0_filt %>% filter(grepl("Vagina", Grp)) %>% 
     mutate(Grp2 = case_when(Grp=="Vagina" ~ "Vagina.Only",
@@ -399,8 +402,9 @@ asv_mm_day0_filt_v <- asv_mm_day0_filt %>% filter(grepl("Vagina", Grp)) %>%
     ungroup %>% arrange(Grp2, ASV)
 nrow(asv_mm_day0_filt_v)
 asv_mm_day0_filt_v$Grp2 %>% table(useNA = "ifany")
-
-
+```
+##### Plot baby source at day 30, 90, 240
+```{r}
 mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% c("Day_30", "Day_90", "Day_240"))
 asv_bb_tmp <- list()
 for (dd in c("Day_30", "Day_90", "Day_240")){
@@ -461,6 +465,29 @@ for (bm in c("Vag", "CSseed", "CS")){
 wrap_plots(p_list) + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.box = "vertical")
 ggsave("tmp_figs/asv_shared_mm_vagina.pdf", width = 21, useDingbats = F)
 ```
+##### Summarize baby source
+```{r}
+mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby")
+
+
+asv_bb_tmp <- parallel::mclapply(mf_bb_wk %>% split(., list(.$date_sampling_category_days_continuous, .$body_site_corrected, .$birth_mode_ms)), function(x){ otu_baby_lst[[paste(x$body_site_corrected[1], x$birth_mode_ms[1], sep = ".")]] %>% as.data.frame %>% select(x$sample_name) %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T)}, mc.cores = np) %>% 
+    do.call("rbind", .) %>% rownames_to_column(var = "sample") %>% separate(sample, into = c("date", "bodysite", "birthmode"), sep = "\\.", remove = F)
+
+head(asv_bb_tmp)
+asv_bb_tmp_sum <- asv_bb_tmp  %>% group_by(birthmode, date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = as.numeric(date)) %>% ungroup
+
+mm_col <- c('purple','black','#F8766D', 'orange', '#00BA38', 'grey')
+names(mm_col) <- c("Vagina.Only", "Vagina.Feces", "Vagina.Feces.Others", "Vagina.Forearm", "Vagina.Forearm.Others", "Vagina.Others")
+ggplot(asv_bb_tmp_sum %>% filter(!is.na(Grp2)), aes(date, Pct, color = Grp2)) +
+    geom_point() +
+    geom_line() +
+    facet_grid(bodysite ~ birthmode, scales = "free_y") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 0.8) +
+    scale_color_manual(values = mm_col) +
+    labs(x = "Days", y = "Percentage", color = "Maternal Vaginal Sources", title = "Percentage of ASVs in different baby body sites \nthat could be traced back to certain vaginal sources")
+ggsave("tmp_figs/asv_shared_mm_vagina_yr1.pdf", width = 9, useDingbats = F)
+
+```
 
 
 #### Maternal feces
@@ -476,7 +503,9 @@ asv_mm_day0_filt_v <- asv_mm_day0_filt %>% filter(grepl("Feces", Grp)) %>%
     ungroup %>% arrange(Grp2, ASV)
 nrow(asv_mm_day0_filt_v)
 asv_mm_day0_filt_v$Grp2 %>% table(useNA = "ifany")
-
+```
+##### Plot baby source
+```{r}
 
 mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% c("Day_30", "Day_90", "Day_240"))
 
@@ -538,4 +567,28 @@ for (bm in c("Vag", "CSseed", "CS")){
 
 wrap_plots(p_list) + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.box = "vertical")
 ggsave("tmp_figs/asv_shared_mm_feces.pdf", width = 21, useDingbats = F)
+```
+
+##### Summarize baby source
+```{r}
+mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby")
+
+
+asv_bb_tmp <- parallel::mclapply(mf_bb_wk %>% split(., list(.$date_sampling_category_days_continuous, .$body_site_corrected, .$birth_mode_ms)), function(x){ otu_baby_lst[[paste(x$body_site_corrected[1], x$birth_mode_ms[1], sep = ".")]] %>% as.data.frame %>% select(x$sample_name) %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T)}, mc.cores = np) %>% 
+    do.call("rbind", .) %>% rownames_to_column(var = "sample") %>% separate(sample, into = c("date", "bodysite", "birthmode"), sep = "\\.", remove = F)
+
+head(asv_bb_tmp)
+asv_bb_tmp_sum <- asv_bb_tmp  %>% group_by(birthmode, date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = as.numeric(date)) %>% ungroup
+
+mm_col <- c('#F8766D', 'black', 'purple', '#00BA38','orange',  "#619CFF", 'grey')
+names(mm_col) <- c("Feces.Only", "Vagina.Feces", "Vagina.Feces.Others", "Feces.Forearm", "Feces.Forearm.Others", "Feces.Mouth", "Feces.Others")
+ggplot(asv_bb_tmp_sum %>% filter(!is.na(Grp2)), aes(date, Pct, color = Grp2)) +
+    geom_point() +
+    geom_line() +
+    facet_grid(bodysite ~ birthmode, scales = "free_y") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 0.8) +
+    scale_color_manual(values = mm_col) +
+    labs(x = "Days", y = "Percentage", color = "Maternal Fecal Sources", title = "Percentage of ASVs in different baby body sites \nthat could be traced back to certain fecal sources")
+ggsave("tmp_figs/asv_shared_mm_feces_yr1.pdf", width = 9, useDingbats = F)
+
 ```

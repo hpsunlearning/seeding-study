@@ -26,6 +26,8 @@ sessionInfo()
 conflict_prefer("filter", "dplyr")
 
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
+
+fig_path = "tmp_figs/"
 ```
 
 
@@ -218,7 +220,7 @@ for (ss_m in ss){
         p_csr <- get_heatmap("CSseed", row_cluster = row_dend(p_vag))
         p_cs <- get_heatmap("CS", row_cluster = row_dend(p_vag))
         
-        pdf(paste0("tmp_figs/compare_asv_individual_m-", ss_m, "_b-", ss_b, ".pdf"), width = ((nrow(mf_bb_tmp)+3*nrow(mf_mm_tmp))*0.7/.pt+60)/25.4, height = length(otu_cc)*7/.pt*1.2/25.4, useDingbats = F)
+        pdf(paste0(fig_path, "compare_asv_individual_m-", ss_m, "_b-", ss_b, ".pdf"), width = ((nrow(mf_bb_tmp)+3*nrow(mf_mm_tmp))*0.7/.pt+60)/25.4, height = length(otu_cc)*7/.pt*1.2/25.4, useDingbats = F)
         draw(p_vag + p_csr + p_cs, column_title = paste0("Mom.", ss_m, " vs Baby.", ss_b))
         dev.off()
         
@@ -344,7 +346,7 @@ for (ss_m in ss){
         p_cs <- get_heatmap2("CS", row_cluster = row_dend(p_vag))
         
         
-        pdf(paste0("tmp_figs/compare_asv_avg_m-", ss_m, "_b-", ss_b, ".pdf"), width = (57*10/.pt)*2.5/25.4, height = length(otu_cc)*7/.pt*1.4/25.4, useDingbats = F)
+        pdf(paste0(fig_path, "compare_asv_avg_m-", ss_m, "_b-", ss_b, ".pdf"), width = (57*10/.pt)*2.5/25.4, height = length(otu_cc)*7/.pt*1.4/25.4, useDingbats = F)
         draw(p_vag + p_csr + p_cs, column_title = paste0("Mom.", ss_m, " vs Baby.", ss_b), merge_legend = TRUE, heatmap_legend_side = "bottom", 
     annotation_legend_side = "bottom")
         dev.off()
@@ -402,12 +404,19 @@ asv_mm_day0_filt_v <- asv_mm_day0_filt %>% filter(grepl("Vagina", Grp)) %>%
     ungroup %>% arrange(Grp2, ASV)
 nrow(asv_mm_day0_filt_v)
 asv_mm_day0_filt_v$Grp2 %>% table(useNA = "ifany")
+
+bb_col <- c("#F8766D","#00BA38","#619CFF")
+    names(bb_col) <- c("Feces", "Forearm", "Mouth")
+    
+    mm_col <- c('purple','black','#F8766D', 'orange', '#00BA38', 'grey')
+    names(mm_col) <- c("Vagina.Only", "Vagina.Feces", "Vagina.Feces.Others", "Vagina.Forearm", "Vagina.Forearm.Others", "Vagina.Others")
 ```
 ##### Plot baby source at day 30, 90, 240
 ```{r}
-mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% c("Day_30", "Day_90", "Day_240"))
+dds = c("Day_30", "Day_90", "Day_240")
+mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% dds)
 asv_bb_tmp <- list()
-for (dd in c("Day_30", "Day_90", "Day_240")){
+for (dd in dds){
     mf_tmp_lst <- mf_bb_wk %>% filter(date_sampling_category_days==dd) %>% split(., list(.$body_site_corrected, .$birth_mode_ms))
     asv_bb_tmp[[dd]] <- lapply(names(mf_tmp_lst), function(x){otu_baby_lst[[x]][, mf_tmp_lst[[x]]$sample_name] %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% mutate(sample = paste(x, dd, sep = '.'))}) %>% do.call("rbind", .)
         
@@ -418,24 +427,24 @@ n_max <- asv_bb_tmp %>% separate(sample, into = paste0("V", seq(3)), sep = "\\."
 p_list <- list()
 for (bm in c("Vag", "CSseed", "CS")){
     #break
-    tmp_tb1 <- asv_bb_tmp %>% filter(grepl(paste0("\\<", bm, "\\>"), sample)) %>% merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T) %>% mutate(date = str_extract(sample, "Day_\\d+"), bodysite = str_split(sample, pattern = "\\.", simplify = T)[, 1]) %>% arrange(date, bodysite, Grp2, ASV)
+    tmp_tb1 <- asv_bb_tmp %>% filter(grepl(paste0("\\<", bm, "\\>"), sample)) %>% merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T) %>% mutate(date = str_split(sample, pattern = "\\.", simplify = T)[, 3], bodysite = str_split(sample, pattern = "\\.", simplify = T)[, 1]) %>% arrange(date, bodysite, Grp2, ASV)
 
-    tmp_tb1$xx[tmp_tb1$date=="Day_30"] <- 0
-    tmp_tb1$yy[tmp_tb1$date=="Day_30"] <- seq(sum(tmp_tb1$date=="Day_30")) + (n_max - sum(tmp_tb1$date=="Day_30"))/2
+    tmp_tb1$xx[tmp_tb1$date==dds[1]] <- 0
+    tmp_tb1$yy[tmp_tb1$date==dds[1]] <- seq(sum(tmp_tb1$date==dds[1])) + (n_max - sum(tmp_tb1$date==dds[1]))/2
     
-    tmp_tb1$xx[tmp_tb1$date=="Day_90"] <- seq(sum(tmp_tb1$date=="Day_90")) + (n_max-sum(tmp_tb1$date=="Day_90"))/2
-    tmp_tb1$yy[tmp_tb1$date=="Day_90"] <- n_max*1.2
+    tmp_tb1$xx[tmp_tb1$date==dds[2]] <- seq(sum(tmp_tb1$date==dds[2])) + (n_max-sum(tmp_tb1$date==dds[2]))/2
+    tmp_tb1$yy[tmp_tb1$date==dds[2]] <- n_max*1.2
     
-    tmp_tb1$xx[tmp_tb1$date=="Day_240"] <- n_max*1.2
-    tmp_tb1$yy[tmp_tb1$date=="Day_240"] <- seq(sum(tmp_tb1$date=="Day_240")) + (n_max - sum(tmp_tb1$date=="Day_240"))/2
+    tmp_tb1$xx[tmp_tb1$date==dds[3]] <- n_max*1.2
+    tmp_tb1$yy[tmp_tb1$date==dds[3]] <- seq(sum(tmp_tb1$date==dds[3])) + (n_max - sum(tmp_tb1$date==dds[3]))/2
     
-    tmp_tb1_sum <- tmp_tb1 %>% group_by(date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = factor(date, levels = c("Day_30", "Day_90", "Day_240")))  %>% filter(!is.na(Grp2))
+    tmp_tb1_sum <- tmp_tb1 %>% group_by(date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = factor(date, levels = dds))  %>% filter(!is.na(Grp2))
     
     bb_text <- tmp_tb1 %>% group_by(date, bodysite) %>% summarise(N = n(), xx = range(xx) %>% mean, yy = range(yy) %>% mean)
     
     tmp_tb2 <- asv_mm_day0_filt_v %>% mutate(xx = seq(n()) + (n_max-n())/2, yy = -5)
     tmp_tb2$Grp2 %>% table
-    mm_text <- tmp_tb2 %>% group_by(Grp2) %>% summarise(N = n(), xx = range(xx) %>% mean, yy = -5) %>% mutate(Pct = round(N/sum(N)*100,1), Label = paste0(N, "(", Pct, "%)"))
+    mm_text <- tmp_tb2 %>% group_by(Grp2) %>% summarise(N = n(), xx = range(xx) %>% mean, yy = -5) %>% mutate(Pct = round(N/sum(N)*100,1), Label = paste0(gsub("Vagina.", "", Grp2), ": ", N, "ASV (", Pct, "%)"))
     
     tmp_tb3 <- merge(tmp_tb1, tmp_tb2, by = c("ASV", "Grp2"), suffixes = c(".bb", ".mm"))
     
@@ -448,12 +457,16 @@ for (bm in c("Vag", "CSseed", "CS")){
         geom_segment(data = tmp_tb3, aes(x = xx.mm, xend = xx.bb, y = yy.mm, yend = yy.bb, color = Grp2), size = 0.3) +
         geom_point(aes(fill = bodysite), colour = "transparent", shape = 22, size = 3) +
         geom_point(data = tmp_tb2, aes(x = xx, y = yy, color = Grp2), shape = 15, size = 3) +
-        geom_label(data = bb_text, aes(label = N), size = 7/.pt) +
-        geom_label_repel(data = mm_text, aes(label = Label), size = 7/.pt, ) +
+        #geom_label(data = bb_text, aes(label = N), size = 14/.pt) +
+        #geom_label_repel(data = mm_text, aes(label = Label), size = 7/.pt, ) +
+        annotate("text", x = -n_max*0.05, y = n_max/2, label = paste0("Baby sites at ", dds[1]), angle = 90, size = 14/.pt ) +
+        annotate("text", x = n_max/2, y = n_max*1.25, label = paste0("Baby sites at ", dds[2]), size = 14/.pt ) +
+        annotate("text", x = n_max*1.25, y = n_max/2, label = paste0("Baby sites at ", dds[3]), angle = 270, size = 14/.pt ) +
+        annotate("text", x = n_max/2, y = -n_max*0.05, label = paste0("Maternal Vaginal Source"), size = 14/.pt ) +
         scale_fill_manual(values = bb_col) +
-        scale_color_manual(values= mm_col) +
+        scale_color_manual(values= mm_col, labels = function(x){mm_text$Label[match(x, mm_text$Grp2)]}) +
         theme_bw(base_size = 15) + theme(aspect.ratio = 1, panel.grid = element_blank(), axis.line = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
-        labs(x = "", y = "", fill = "Baby Body Site", color = "", title = bm)
+        labs(x = "", y = "", fill = "Baby Body Site", color = "Maternal Vaginal Source", title = bm)
         
     print(p_list[[bm]])
     
@@ -463,18 +476,173 @@ for (bm in c("Vag", "CSseed", "CS")){
 }
 
 wrap_plots(p_list) + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.box = "vertical")
-ggsave("tmp_figs/asv_shared_mm_vagina.pdf", width = 21, useDingbats = F)
+ggsave(paste0(fig_path, "asv_shared_mm_vagina_tp0.pdf"), width = 21, useDingbats = F)
 ```
+
+##### Plot baby source at day 0, 2, 7
+```{r}
+dds = c("Day_0", "Day_2-3", "Day_7")
+mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% dds)
+asv_bb_tmp <- list()
+for (dd in dds){
+    mf_tmp_lst <- mf_bb_wk %>% filter(date_sampling_category_days==dd) %>% split(., list(.$body_site_corrected, .$birth_mode_ms))
+    asv_bb_tmp[[dd]] <- lapply(names(mf_tmp_lst), function(x){otu_baby_lst[[x]][, mf_tmp_lst[[x]]$sample_name] %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% mutate(sample = paste(x, dd, sep = '.'))}) %>% do.call("rbind", .)
+        
+}
+asv_bb_tmp <- do.call("rbind", asv_bb_tmp)
+
+n_max <- asv_bb_tmp %>% separate(sample, into = paste0("V", seq(3)), sep = "\\.") %>% group_by(V2, V3) %>% summarise(N=n()) %>% pull(N) %>% max(c(., nrow(asv_mm_day0_filt_v)))
+p_list <- list()
+for (bm in c("Vag", "CSseed", "CS")){
+    #break
+    tmp_tb1 <- asv_bb_tmp %>% filter(grepl(paste0("\\<", bm, "\\>"), sample)) %>% merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T) %>% mutate(date = str_split(sample, pattern = "\\.", simplify = T)[, 3], bodysite = str_split(sample, pattern = "\\.", simplify = T)[, 1]) %>% arrange(date, bodysite, Grp2, ASV)
+
+    tmp_tb1$xx[tmp_tb1$date==dds[1]] <- 0
+    tmp_tb1$yy[tmp_tb1$date==dds[1]] <- seq(sum(tmp_tb1$date==dds[1])) + (n_max - sum(tmp_tb1$date==dds[1]))/2
+    
+    tmp_tb1$xx[tmp_tb1$date==dds[2]] <- seq(sum(tmp_tb1$date==dds[2])) + (n_max-sum(tmp_tb1$date==dds[2]))/2
+    tmp_tb1$yy[tmp_tb1$date==dds[2]] <- n_max*1.2
+    
+    tmp_tb1$xx[tmp_tb1$date==dds[3]] <- n_max*1.2
+    tmp_tb1$yy[tmp_tb1$date==dds[3]] <- seq(sum(tmp_tb1$date==dds[3])) + (n_max - sum(tmp_tb1$date==dds[3]))/2
+    
+    tmp_tb1_sum <- tmp_tb1 %>% group_by(date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = factor(date, levels = dds))  %>% filter(!is.na(Grp2))
+    
+    bb_text <- tmp_tb1 %>% group_by(date, bodysite) %>% summarise(N = n(), xx = range(xx) %>% mean, yy = range(yy) %>% mean)
+    
+    tmp_tb2 <- asv_mm_day0_filt_v %>% mutate(xx = seq(n()) + (n_max-n())/2, yy = -5)
+    tmp_tb2$Grp2 %>% table
+    mm_text <- tmp_tb2 %>% group_by(Grp2) %>% summarise(N = n(), xx = range(xx) %>% mean, yy = -5) %>% mutate(Pct = round(N/sum(N)*100,1), Label = paste0(gsub("Vagina.", "", Grp2), ": ", N, "ASV (", Pct, "%)"))
+    
+    tmp_tb3 <- merge(tmp_tb1, tmp_tb2, by = c("ASV", "Grp2"), suffixes = c(".bb", ".mm"))
+    
+    
+    p_list[[bm]] <- ggplot(data = tmp_tb1, aes(x = xx, y = yy)) +
+        geom_segment(data = tmp_tb3, aes(x = xx.mm, xend = xx.bb, y = yy.mm, yend = yy.bb, color = Grp2), size = 0.3) +
+        geom_point(aes(fill = bodysite), colour = "transparent", shape = 22, size = 3) +
+        geom_point(data = tmp_tb2, aes(x = xx, y = yy, color = Grp2), shape = 15, size = 3) +
+        #geom_label(data = bb_text, aes(label = N), size = 14/.pt) +
+        #geom_label_repel(data = mm_text, aes(label = Label), size = 7/.pt, ) +
+        annotate("text", x = -n_max*0.05, y = n_max/2, label = paste0("Baby sites at ", dds[1]), angle = 90, size = 14/.pt ) +
+        annotate("text", x = n_max/2, y = n_max*1.25, label = paste0("Baby sites at ", dds[2]), size = 14/.pt ) +
+        annotate("text", x = n_max*1.25, y = n_max/2, label = paste0("Baby sites at ", dds[3]), angle = 270, size = 14/.pt ) +
+        annotate("text", x = n_max/2, y = -n_max*0.05, label = paste0("Maternal Vaginal Source"), size = 14/.pt ) +
+        scale_fill_manual(values = bb_col) +
+        scale_color_manual(values= mm_col, labels = function(x){mm_text$Label[match(x, mm_text$Grp2)]}) +
+        theme_bw(base_size = 15) + theme(aspect.ratio = 1, panel.grid = element_blank(), axis.line = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
+        labs(x = "", y = "", fill = "Baby Body Site", color = "Maternal Vaginal Source", title = bm)
+        
+    print(p_list[[bm]])
+    
+    # ggplot(tmp_tb1_sum, aes(date, Pct, color = Grp2)) +
+    #     geom_line(aes(group = Grp2)) +
+    #     facet_grid(.~bodysite)
+}
+
+wrap_plots(p_list) + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.box = "vertical")
+ggsave(paste0(fig_path, "asv_shared_mm_vagina_tp1.pdf"), width = 21, useDingbats = F)
+```
+```{r}
+dds = c("Day_0", "Day_2-3", "Day_7")
+mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% dds)
+asv_bb_tmp <- list()
+for (dd in dds){
+    mf_tmp_lst <- mf_bb_wk %>% filter(date_sampling_category_days==dd) %>% split(., list(.$body_site_corrected, .$birth_mode_ms))
+    asv_bb_tmp[[dd]] <- lapply(names(mf_tmp_lst), function(x){otu_baby_lst[[x]][, mf_tmp_lst[[x]]$sample_name] %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% mutate(sample = paste(x, dd, sep = '.'))}) %>% do.call("rbind", .)
+        
+}
+asv_bb_tmp <- do.call("rbind", asv_bb_tmp)
+
+p_list <- list()
+for (bm in c("Vag", "CSseed", "CS")){
+    #break
+    tmp_tb1 <- asv_bb_tmp %>% filter(grepl(paste0("\\<", bm, "\\>"), sample)) %>% 
+        merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T) %>%
+        mutate(date = str_split(sample, pattern = "\\.", simplify = T)[, 3] %>% factor(levels = c("Perinatal", dds)), 
+               bodysite = str_split(sample, pattern = "\\.", simplify = T)[, 1],  
+               xx = case_when(date==dds[1] ~ 2, date==dds[2] ~ 3, T ~ 4)) %>% 
+        arrange(date, sample, Grp2, ASV) %>% 
+        group_by(date) %>% mutate(yy = seq(n()))
+
+    tmp_tb2 <- asv_mm_day0_filt_v %>% 
+        arrange(Grp2, ASV) %>% 
+        mutate(xx = 1, 
+               yy = seq(n()) + (max(tmp_tb1$yy)-nrow(asv_mm_day0_filt_v))/2, 
+               date = factor("Perinatal", levels = c("Perinatal", dds)))
+    tmp_tb3 <- merge(tmp_tb2, tmp_tb1 %>% filter(date==dds[1], !is.na(Grp2)), by = c("ASV", "Grp2"), suffixes = c(".1", ".2")) %>% select(starts_with("xx"), starts_with("yy"), Grp2)
+    
+    tmp_tb4 <- merge(tmp_tb1 %>% filter(date==dds[1], !is.na(Grp2)), tmp_tb1 %>% filter(date==dds[2], !is.na(Grp2)), by = c("ASV", "Grp2"), suffixes = c(".1", ".2")) %>% select(starts_with("xx"), starts_with("yy"), Grp2)
+    tmp_tb5 <- merge(tmp_tb1 %>% filter(date==dds[2], !is.na(Grp2)), tmp_tb1 %>% filter(date==dds[3], !is.na(Grp2)), by = c("ASV", "Grp2"), suffixes = c(".1", ".2")) %>% select(starts_with("xx"), starts_with("yy"), Grp2)
+    
+    
+    
+    tmp_tb6 = rbind(tmp_tb3, tmp_tb4, tmp_tb5)
+    
+    p_list[[bm]] <- ggplot() +
+        geom_segment(data = tmp_tb6, aes(x = xx.1, xend = xx.2, y = yy.1, yend = yy.2, color = Grp2), size = 0.3) +
+        geom_point(data = tmp_tb1, aes(x = xx, y = yy, fill = bodysite), colour = "transparent", shape = 22, size = 3) +
+        geom_point(data = tmp_tb2, aes(x = xx, y = yy, color = Grp2), shape = 16, size = 3) +
+        theme_bw(base_size = 10) + theme(aspect.ratio = 0.4, panel.grid = element_blank(), axis.line.y = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) +
+        labs(x = "", y = "", fill = "Baby Body Site", color = "Maternal Vaginal Source", title = bm) +
+        scale_fill_manual(values = bb_col) +
+        scale_color_manual(values = mm_col) +
+        scale_x_continuous(labels = c("Moms", paste0("Baby Site at ", dds)))
+        
+    print(p_list[[bm]])
+    
+    # ggplot(tmp_tb1_sum, aes(date, Pct, color = Grp2)) +
+    #     geom_line(aes(group = Grp2)) +
+    #     facet_grid(.~bodysite)
+}
+
+wrap_plots(p_list, ncol = 1) + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.box = "vertical")
+ggsave(paste0(fig_path, "asv_shared_mm_vagina_tp1_long.pdf"), width = 9, useDingbats = F)
+```
+
+```{r}
+dd = "Day_0"
+asv_bb_tmp_2 <- asv_bb_tmp %>% filter(grepl(dd, sample)) %>% separate(sample, into = c("bodysite", "birthmode", "date"), sep = "\\.") %>%
+    merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T) %>% 
+    mutate(birthmode = factor(birthmode, levels =  c("Vag", "CSseed", "CS"))) 
+
+bodysite = names(bb_col)
+p_list <- list()
+for (bb in bodysite){
+    dat_tmp <- asv_bb_tmp_2 %>% filter(bodysite==bb) %>% arrange(birthmode, Grp2, ASV) %>%
+        ungroup %>% mutate(xx = 1, yy = seq(n()), yy = ifelse(birthmode=="CSseed", yy+50, ifelse(birthmode=="CS", yy+100, yy))) 
+    dat_tmp2 <- asv_mm_day0_filt_v %>% arrange(Grp2, ASV) %>% ungroup() %>%
+        mutate(xx = 0, yy = seq(n()) + max(dat_tmp$yy)/2)
+    dat_tmp3 <- merge(dat_tmp, dat_tmp2, by = c("ASV", "Grp2"), suffixes = c(".bb", ".mm"))
+    
+    p_list[[bb]] <- ggplot() +
+        geom_segment(data = dat_tmp3, aes(x = xx.mm, xend = xx.bb, y = yy.mm, yend = yy.bb, color = Grp2), size = 0.3) +
+        geom_point(data = dat_tmp, aes(x =xx, y = yy, fill = birthmode), shape = 22, color = "transparent") +
+        geom_point(data = dat_tmp2, aes(x =xx, y = yy, color = Grp2), shape = 15) +
+        scale_color_manual(values = mm_col) +
+        scale_fill_manual(values = c("Vag"="blue", "CSseed" = "green", "CS" = "red"), label = c("vaginal", "cesarean-seeded", "cesarean")) +
+        theme_bw(base_size = 12) + theme(aspect.ratio = 1.5, panel.grid = element_blank(), axis.line = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
+        labs(x = "", y = "", fill = "Baby Birth Mode", color = "Maternal Vaginal Source", title = bb)
+        
+    print(p_list[[bb]])
+}
+
+wrap_plots(p_list) + plot_layout(guides = "collect") + plot_annotation(title = dd)& theme(legend.position = "bottom", legend.box = "vertical")
+
+ggsave("tmp_figs/asv_shared_mm_vagina_day0_by_site.pdf", width = 9, useDingbats = F)
+
+
+
+```
+
 ##### Summarize baby source
 ```{r}
 mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby")
-
 
 asv_bb_tmp <- parallel::mclapply(mf_bb_wk %>% split(., list(.$date_sampling_category_days_continuous, .$body_site_corrected, .$birth_mode_ms)), function(x){ otu_baby_lst[[paste(x$body_site_corrected[1], x$birth_mode_ms[1], sep = ".")]] %>% as.data.frame %>% select(x$sample_name) %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T)}, mc.cores = np) %>% 
     do.call("rbind", .) %>% rownames_to_column(var = "sample") %>% separate(sample, into = c("date", "bodysite", "birthmode"), sep = "\\.", remove = F)
 
 head(asv_bb_tmp)
-asv_bb_tmp_sum <- asv_bb_tmp  %>% group_by(birthmode, date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = as.numeric(date)) %>% ungroup
+asv_bb_tmp_sum <- asv_bb_tmp  %>% group_by(birthmode, date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = as.numeric(date), birthmode = factor(birthmode, levels = c("Vag", "CSseed", "CS"))) %>% ungroup
 
 mm_col <- c('purple','black','#F8766D', 'orange', '#00BA38', 'grey')
 names(mm_col) <- c("Vagina.Only", "Vagina.Feces", "Vagina.Feces.Others", "Vagina.Forearm", "Vagina.Forearm.Others", "Vagina.Others")
@@ -485,10 +653,18 @@ ggplot(asv_bb_tmp_sum %>% filter(!is.na(Grp2)), aes(date, Pct, color = Grp2)) +
     theme_bw(base_size = 10) + theme(aspect.ratio = 0.8) +
     scale_color_manual(values = mm_col) +
     labs(x = "Days", y = "Percentage", color = "Maternal Vaginal Sources", title = "Percentage of ASVs in different baby body sites \nthat could be traced back to certain vaginal sources")
-ggsave("tmp_figs/asv_shared_mm_vagina_yr1.pdf", width = 9, useDingbats = F)
+ggsave(paste0(fig_path, "asv_shared_mm_vagina_yr1.pdf"), width = 9, useDingbats = F)
+
+ggplot(asv_bb_tmp_sum %>% filter(!is.na(Grp2), date<=7), aes(date, Pct, color = Grp2)) +
+    geom_point() +
+    geom_line() +
+    facet_grid(bodysite ~ birthmode, scales = "free_y") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 0.8) +
+    scale_color_manual(values = mm_col) +
+    labs(x = "Days", y = "Percentage", color = "Maternal Vaginal Sources", title = "Percentage of ASVs in different baby body sites \nthat could be traced back to certain vaginal sources")
+ggsave(paste0(fig_path, "asv_shared_mm_vagina_wk1.pdf"), width = 9, useDingbats = F)
 
 ```
-
 
 #### Maternal feces
 ```{r}
@@ -503,14 +679,20 @@ asv_mm_day0_filt_v <- asv_mm_day0_filt %>% filter(grepl("Feces", Grp)) %>%
     ungroup %>% arrange(Grp2, ASV)
 nrow(asv_mm_day0_filt_v)
 asv_mm_day0_filt_v$Grp2 %>% table(useNA = "ifany")
+
+bb_col <- c("#F8766D","#00BA38","#619CFF")
+names(bb_col) <- c("Feces", "Forearm", "Mouth")
+
+mm_col <- c('#F8766D', 'black', 'purple', '#00BA38','orange',  "#619CFF", 'grey')
+names(mm_col) <- c("Feces.Only", "Vagina.Feces", "Vagina.Feces.Others", "Feces.Forearm", "Feces.Forearm.Others", "Feces.Mouth", "Feces.Others")
 ```
 ##### Plot baby source
 ```{r}
 
-mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% c("Day_30", "Day_90", "Day_240"))
-
+dds = c("Day_30", "Day_90", "Day_240")
+mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% dds)
 asv_bb_tmp <- list()
-for (dd in c("Day_30", "Day_90", "Day_240")){
+for (dd in dds){
     mf_tmp_lst <- mf_bb_wk %>% filter(date_sampling_category_days==dd) %>% split(., list(.$body_site_corrected, .$birth_mode_ms))
     asv_bb_tmp[[dd]] <- lapply(names(mf_tmp_lst), function(x){otu_baby_lst[[x]][, mf_tmp_lst[[x]]$sample_name] %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% mutate(sample = paste(x, dd, sep = '.'))}) %>% do.call("rbind", .)
         
@@ -521,42 +703,42 @@ n_max <- asv_bb_tmp %>% separate(sample, into = paste0("V", seq(3)), sep = "\\."
 p_list <- list()
 for (bm in c("Vag", "CSseed", "CS")){
     #break
-    tmp_tb1 <- asv_bb_tmp %>% filter(grepl(paste0("\\<", bm, "\\>"), sample)) %>% merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T) %>% mutate(date = str_extract(sample, "Day_\\d+"), bodysite = str_split(sample, pattern = "\\.", simplify = T)[, 1]) %>% arrange(date, bodysite, Grp2, ASV)
+    tmp_tb1 <- asv_bb_tmp %>% filter(grepl(paste0("\\<", bm, "\\>"), sample)) %>% merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T) %>% mutate(date = str_split(sample, pattern = "\\.", simplify = T)[, 3], bodysite = str_split(sample, pattern = "\\.", simplify = T)[, 1]) %>% arrange(date, bodysite, Grp2, ASV)
 
-    tmp_tb1$xx[tmp_tb1$date=="Day_30"] <- 0
-    tmp_tb1$yy[tmp_tb1$date=="Day_30"] <- seq(sum(tmp_tb1$date=="Day_30")) + (n_max - sum(tmp_tb1$date=="Day_30"))/2
+    tmp_tb1$xx[tmp_tb1$date==dds[1]] <- 0
+    tmp_tb1$yy[tmp_tb1$date==dds[1]] <- seq(sum(tmp_tb1$date==dds[1])) + (n_max - sum(tmp_tb1$date==dds[1]))/2
     
-    tmp_tb1$xx[tmp_tb1$date=="Day_90"] <- seq(sum(tmp_tb1$date=="Day_90")) + (n_max-sum(tmp_tb1$date=="Day_90"))/2
-    tmp_tb1$yy[tmp_tb1$date=="Day_90"] <- n_max*1.2
+    tmp_tb1$xx[tmp_tb1$date==dds[2]] <- seq(sum(tmp_tb1$date==dds[2])) + (n_max-sum(tmp_tb1$date==dds[2]))/2
+    tmp_tb1$yy[tmp_tb1$date==dds[2]] <- n_max*1.2
     
-    tmp_tb1$xx[tmp_tb1$date=="Day_240"] <- n_max*1.2
-    tmp_tb1$yy[tmp_tb1$date=="Day_240"] <- seq(sum(tmp_tb1$date=="Day_240")) + (n_max - sum(tmp_tb1$date=="Day_240"))/2
+    tmp_tb1$xx[tmp_tb1$date==dds[3]] <- n_max*1.2
+    tmp_tb1$yy[tmp_tb1$date==dds[3]] <- seq(sum(tmp_tb1$date==dds[3])) + (n_max - sum(tmp_tb1$date==dds[3]))/2
     
-    tmp_tb1_sum <- tmp_tb1 %>% group_by(date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = factor(date, levels = c("Day_30", "Day_90", "Day_240")))  %>% filter(!is.na(Grp2))
+    tmp_tb1_sum <- tmp_tb1 %>% group_by(date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = factor(date, levels = dds))  %>% filter(!is.na(Grp2))
     
     bb_text <- tmp_tb1 %>% group_by(date, bodysite) %>% summarise(N = n(), xx = range(xx) %>% mean, yy = range(yy) %>% mean)
     
     tmp_tb2 <- asv_mm_day0_filt_v %>% mutate(xx = seq(n()) + (n_max-n())/2, yy = -5)
     tmp_tb2$Grp2 %>% table
-    mm_text <- tmp_tb2 %>% group_by(Grp2) %>% summarise(N = n(), xx = range(xx) %>% mean, yy = -5) %>% mutate(Pct = round(N/sum(N)*100,1), Label = paste0(N, "(", Pct, "%)"))
+    mm_text <- tmp_tb2 %>% group_by(Grp2) %>% summarise(N = n(), xx = range(xx) %>% mean, yy = -5) %>% mutate(Pct = round(N/sum(N)*100,1), Label = paste0(gsub("Feces.|Feces", "", Grp2), ": ", N, "ASV (", Pct, "%)"))
     
     tmp_tb3 <- merge(tmp_tb1, tmp_tb2, by = c("ASV", "Grp2"), suffixes = c(".bb", ".mm"))
     
-    bb_col <- c("#F8766D","#00BA38","#619CFF")
-    names(bb_col) <- c("Feces", "Forearm", "Mouth")
     
-    mm_col <- c('#F8766D', 'black', 'purple', '#00BA38','orange',  "#619CFF", 'grey')
-    names(mm_col) <- c("Feces.Only", "Vagina.Feces", "Vagina.Feces.Others", "Feces.Forearm", "Feces.Forearm.Others", "Feces.Mouth", "Feces.Others")
     p_list[[bm]] <- ggplot(data = tmp_tb1, aes(x = xx, y = yy)) +
         geom_segment(data = tmp_tb3, aes(x = xx.mm, xend = xx.bb, y = yy.mm, yend = yy.bb, color = Grp2), size = 0.3) +
         geom_point(aes(fill = bodysite), colour = "transparent", shape = 22, size = 3) +
         geom_point(data = tmp_tb2, aes(x = xx, y = yy, color = Grp2), shape = 15, size = 3) +
-        geom_label(data = bb_text, aes(label = N), size = 7/.pt) +
-        geom_label_repel(data = mm_text, aes(label = Label), size = 7/.pt, ) +
+        #geom_label(data = bb_text, aes(label = N), size = 14/.pt) +
+        #geom_label_repel(data = mm_text, aes(label = Label), size = 7/.pt, ) +
+        annotate("text", x = -n_max*0.05, y = n_max/2, label = paste0("Baby sites at ", dds[1]), angle = 90, size = 14/.pt ) +
+        annotate("text", x = n_max/2, y = n_max*1.25, label = paste0("Baby sites at ", dds[2]), size = 14/.pt ) +
+        annotate("text", x = n_max*1.25, y = n_max/2, label = paste0("Baby sites at ", dds[3]), angle = 270, size = 14/.pt ) +
+        annotate("text", x = n_max/2, y = -n_max*0.05, label = paste0("Maternal Fecal Source"), size = 14/.pt ) +
         scale_fill_manual(values = bb_col) +
-        scale_color_manual(values= mm_col) +
+        scale_color_manual(values= mm_col, labels = function(x){mm_text$Label[match(x, mm_text$Grp2)]}) +
         theme_bw(base_size = 15) + theme(aspect.ratio = 1, panel.grid = element_blank(), axis.line = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
-        labs(x = "", y = "", fill = "Baby Body Site", color = "", title = bm)
+        labs(x = "", y = "", fill = "Baby Body Site", color = "Maternal Fecal Source", title = bm)
         
     print(p_list[[bm]])
     
@@ -566,22 +748,177 @@ for (bm in c("Vag", "CSseed", "CS")){
 }
 
 wrap_plots(p_list) + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.box = "vertical")
-ggsave("tmp_figs/asv_shared_mm_feces.pdf", width = 21, useDingbats = F)
+ggsave(paste0(fig_path, "asv_shared_mm_feces_tp0.pdf"), width = 21, useDingbats = F)
+
+```
+##### Plot baby source day 0, 2, 7
+```{r}
+
+dds = c("Day_0", "Day_2-3", "Day_7")
+mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% dds)
+asv_bb_tmp <- list()
+for (dd in dds){
+    mf_tmp_lst <- mf_bb_wk %>% filter(date_sampling_category_days==dd) %>% split(., list(.$body_site_corrected, .$birth_mode_ms))
+    asv_bb_tmp[[dd]] <- lapply(names(mf_tmp_lst), function(x){otu_baby_lst[[x]][, mf_tmp_lst[[x]]$sample_name] %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% mutate(sample = paste(x, dd, sep = '.'))}) %>% do.call("rbind", .)
+        
+}
+asv_bb_tmp <- do.call("rbind", asv_bb_tmp)
+
+n_max <- asv_bb_tmp %>% separate(sample, into = paste0("V", seq(3)), sep = "\\.") %>% group_by(V2, V3) %>% summarise(N=n()) %>% pull(N) %>% max(c(., nrow(asv_mm_day0_filt_v)))
+p_list <- list()
+for (bm in c("Vag", "CSseed", "CS")){
+    #break
+    tmp_tb1 <- asv_bb_tmp %>% filter(grepl(paste0("\\<", bm, "\\>"), sample)) %>% merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T) %>% mutate(date = str_split(sample, pattern = "\\.", simplify = T)[, 3], bodysite = str_split(sample, pattern = "\\.", simplify = T)[, 1]) %>% arrange(date, bodysite, Grp2, ASV)
+
+    tmp_tb1$xx[tmp_tb1$date==dds[1]] <- 0
+    tmp_tb1$yy[tmp_tb1$date==dds[1]] <- seq(sum(tmp_tb1$date==dds[1])) + (n_max - sum(tmp_tb1$date==dds[1]))/2
+    
+    tmp_tb1$xx[tmp_tb1$date==dds[2]] <- seq(sum(tmp_tb1$date==dds[2])) + (n_max-sum(tmp_tb1$date==dds[2]))/2
+    tmp_tb1$yy[tmp_tb1$date==dds[2]] <- n_max*1.2
+    
+    tmp_tb1$xx[tmp_tb1$date==dds[3]] <- n_max*1.2
+    tmp_tb1$yy[tmp_tb1$date==dds[3]] <- seq(sum(tmp_tb1$date==dds[3])) + (n_max - sum(tmp_tb1$date==dds[3]))/2
+    
+    tmp_tb1_sum <- tmp_tb1 %>% group_by(date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = factor(date, levels = dds))  %>% filter(!is.na(Grp2))
+    
+    bb_text <- tmp_tb1 %>% group_by(date, bodysite) %>% summarise(N = n(), xx = range(xx) %>% mean, yy = range(yy) %>% mean)
+    
+    tmp_tb2 <- asv_mm_day0_filt_v %>% mutate(xx = seq(n()) + (n_max-n())/2, yy = -5)
+    tmp_tb2$Grp2 %>% table
+    mm_text <- tmp_tb2 %>% group_by(Grp2) %>% summarise(N = n(), xx = range(xx) %>% mean, yy = -5) %>% mutate(Pct = round(N/sum(N)*100,1), Label = paste0(gsub("Feces.|Feces", "", Grp2), ": ", N, "ASV (", Pct, "%)"))
+    
+    tmp_tb3 <- merge(tmp_tb1, tmp_tb2, by = c("ASV", "Grp2"), suffixes = c(".bb", ".mm"))
+    
+    
+    p_list[[bm]] <- ggplot(data = tmp_tb1, aes(x = xx, y = yy)) +
+        geom_segment(data = tmp_tb3, aes(x = xx.mm, xend = xx.bb, y = yy.mm, yend = yy.bb, color = Grp2), size = 0.3) +
+        geom_point(aes(fill = bodysite), colour = "transparent", shape = 22, size = 3) +
+        geom_point(data = tmp_tb2, aes(x = xx, y = yy, color = Grp2), shape = 15, size = 3) +
+        #geom_label(data = bb_text, aes(label = N), size = 14/.pt) +
+        #geom_label_repel(data = mm_text, aes(label = Label), size = 7/.pt, ) +
+        annotate("text", x = -n_max*0.05, y = n_max/2, label = paste0("Baby sites at ", dds[1]), angle = 90, size = 14/.pt ) +
+        annotate("text", x = n_max/2, y = n_max*1.25, label = paste0("Baby sites at ", dds[2]), size = 14/.pt ) +
+        annotate("text", x = n_max*1.25, y = n_max/2, label = paste0("Baby sites at ", dds[3]), angle = 270, size = 14/.pt ) +
+        annotate("text", x = n_max/2, y = -n_max*0.05, label = paste0("Maternal Fecal Source"), size = 14/.pt ) +
+        scale_fill_manual(values = bb_col) +
+        scale_color_manual(values= mm_col, labels = function(x){mm_text$Label[match(x, mm_text$Grp2)]}) +
+        theme_bw(base_size = 15) + theme(aspect.ratio = 1, panel.grid = element_blank(), axis.line = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
+        labs(x = "", y = "", fill = "Baby Body Site", color = "Maternal Fecal Source", title = bm)
+        
+    print(p_list[[bm]])
+    
+    # ggplot(tmp_tb1_sum, aes(date, Pct, color = Grp2)) +
+    #     geom_line(aes(group = Grp2)) +
+    #     facet_grid(.~bodysite)
+}
+
+wrap_plots(p_list) + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.box = "vertical")
+ggsave(paste0(fig_path, "asv_shared_mm_feces_tp1.pdf"), width = 21, useDingbats = F)
+
+```
+```{r}
+dds = c("Day_0", "Day_2-3", "Day_7")
+mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby", date_sampling_category_days %in% dds)
+asv_bb_tmp <- list()
+for (dd in dds){
+    mf_tmp_lst <- mf_bb_wk %>% filter(date_sampling_category_days==dd) %>% split(., list(.$body_site_corrected, .$birth_mode_ms))
+    asv_bb_tmp[[dd]] <- lapply(names(mf_tmp_lst), function(x){otu_baby_lst[[x]][, mf_tmp_lst[[x]]$sample_name] %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% mutate(sample = paste(x, dd, sep = '.'))}) %>% do.call("rbind", .)
+        
+}
+asv_bb_tmp <- do.call("rbind", asv_bb_tmp)
+
+p_list <- list()
+for (bm in c("Vag", "CSseed", "CS")){
+    #break
+    tmp_tb1 <- asv_bb_tmp %>% filter(grepl(paste0("\\<", bm, "\\>"), sample)) %>% 
+        merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T) %>%
+        mutate(date = str_split(sample, pattern = "\\.", simplify = T)[, 3] %>% factor(levels = c("Perinatal", dds)), 
+               bodysite = str_split(sample, pattern = "\\.", simplify = T)[, 1],  
+               xx = case_when(date==dds[1] ~ 2, date==dds[2] ~ 3, T ~ 4)) %>% 
+        arrange(date, sample, Grp2, ASV) %>% 
+        group_by(date) %>% mutate(yy = seq(n()))
+
+    tmp_tb2 <- asv_mm_day0_filt_v %>% 
+        arrange(Grp2, ASV) %>% 
+        mutate(xx = 1, 
+               yy = seq(n()) + (max(tmp_tb1$yy)-nrow(asv_mm_day0_filt_v))/2, 
+               date = factor("Perinatal", levels = c("Perinatal", dds)))
+    tmp_tb3 <- merge(tmp_tb2, tmp_tb1 %>% filter(date==dds[1], !is.na(Grp2)), by = c("ASV", "Grp2"), suffixes = c(".1", ".2")) %>% select(starts_with("xx"), starts_with("yy"), Grp2)
+    
+    tmp_tb4 <- merge(tmp_tb1 %>% filter(date==dds[1], !is.na(Grp2)), tmp_tb1 %>% filter(date==dds[2], !is.na(Grp2)), by = c("ASV", "Grp2"), suffixes = c(".1", ".2")) %>% select(starts_with("xx"), starts_with("yy"), Grp2)
+    tmp_tb5 <- merge(tmp_tb1 %>% filter(date==dds[2], !is.na(Grp2)), tmp_tb1 %>% filter(date==dds[3], !is.na(Grp2)), by = c("ASV", "Grp2"), suffixes = c(".1", ".2")) %>% select(starts_with("xx"), starts_with("yy"), Grp2)
+    
+    
+    
+    tmp_tb6 = rbind(tmp_tb3, tmp_tb4, tmp_tb5)
+    
+    p_list[[bm]] <- ggplot() +
+        geom_segment(data = tmp_tb6, aes(x = xx.1, xend = xx.2, y = yy.1, yend = yy.2, color = Grp2), size = 0.3) +
+        geom_point(data = tmp_tb1, aes(x = xx, y = yy, fill = bodysite), colour = "transparent", shape = 22, size = 3) +
+        geom_point(data = tmp_tb2, aes(x = xx, y = yy, color = Grp2), shape = 16, size = 3) +
+        theme_bw(base_size = 10) + theme(aspect.ratio = 0.4, panel.grid = element_blank(), axis.line.y = element_blank(), axis.text.y = element_blank(), axis.ticks = element_blank()) +
+        labs(x = "", y = "", fill = "Baby Body Site", color = "Maternal Fecal Source", title = bm) +
+        scale_fill_manual(values = bb_col) +
+        scale_color_manual(values = mm_col) +
+        scale_x_continuous(labels = c("Moms", paste0("Baby Site at ", dds)))
+        
+    print(p_list[[bm]])
+    
+    # ggplot(tmp_tb1_sum, aes(date, Pct, color = Grp2)) +
+    #     geom_line(aes(group = Grp2)) +
+    #     facet_grid(.~bodysite)
+}
+
+wrap_plots(p_list, ncol = 1) + plot_layout(guides = "collect") & theme(legend.position = "bottom", legend.box = "vertical")
+ggsave(paste0(fig_path, "asv_shared_mm_feces_tp1_long.pdf"), width = 9, useDingbats = F)
+```
+
+```{r}
+dd = "Day_0"
+asv_bb_tmp_2 <- asv_bb_tmp %>% filter(grepl(dd, sample)) %>% separate(sample, into = c("bodysite", "birthmode", "date"), sep = "\\.") %>%
+    merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T) %>% 
+    mutate(birthmode = factor(birthmode, levels =  c("Vag", "CSseed", "CS"))) 
+
+bodysite = names(bb_col)
+p_list <- list()
+for (bb in bodysite){
+    dat_tmp <- asv_bb_tmp_2 %>% filter(bodysite==bb) %>% arrange(birthmode, Grp2, ASV) %>%
+        ungroup %>% mutate(xx = 1, yy = seq(n()), yy = ifelse(birthmode=="CSseed", yy+50, ifelse(birthmode=="CS", yy+100, yy))) 
+    dat_tmp2 <- asv_mm_day0_filt_v %>% arrange(Grp2, ASV) %>% ungroup() %>%
+        mutate(xx = 0, yy = seq(n()) + max(dat_tmp$yy)/2)
+    dat_tmp3 <- merge(dat_tmp, dat_tmp2, by = c("ASV", "Grp2"), suffixes = c(".bb", ".mm"))
+    
+    p_list[[bb]] <- ggplot() +
+        geom_segment(data = dat_tmp3, aes(x = xx.mm, xend = xx.bb, y = yy.mm, yend = yy.bb, color = Grp2), size = 0.3) +
+        geom_point(data = dat_tmp, aes(x =xx, y = yy, fill = birthmode), shape = 22, color = "transparent") +
+        geom_point(data = dat_tmp2, aes(x =xx, y = yy, color = Grp2), shape = 15) +
+        scale_color_manual(values = mm_col) +
+        scale_fill_manual(values = c("Vag"="blue", "CSseed" = "green", "CS" = "red"), label = c("vaginal", "cesarean-seeded", "cesarean")) +
+        theme_bw(base_size = 12) + theme(aspect.ratio = 1.5, panel.grid = element_blank(), axis.line = element_blank(), axis.text = element_blank(), axis.ticks = element_blank()) +
+        labs(x = "", y = "", fill = "Baby Birth Mode", color = "Maternal Fecal Source", title = bb)
+        
+    print(p_list[[bb]])
+}
+
+wrap_plots(p_list) + plot_layout(guides = "collect") + plot_annotation(title = dd)& theme(legend.position = "bottom", legend.box = "vertical")
+
+ggsave("tmp_figs/asv_shared_mm_feces_day0_by_site.pdf", width = 9, useDingbats = F)
+
+
+
 ```
 
 ##### Summarize baby source
 ```{r}
 mf_bb_wk <- mf_wk %>% filter(mom_baby=="Baby")
 
-
 asv_bb_tmp <- parallel::mclapply(mf_bb_wk %>% split(., list(.$date_sampling_category_days_continuous, .$body_site_corrected, .$birth_mode_ms)), function(x){ otu_baby_lst[[paste(x$body_site_corrected[1], x$birth_mode_ms[1], sep = ".")]] %>% as.data.frame %>% select(x$sample_name) %>% filter(rowSums(.)>0) %>% rownames_to_column(var = "ASV") %>% select(ASV) %>% merge(., asv_mm_day0_filt_v, by = "ASV", all.x = T)}, mc.cores = np) %>% 
     do.call("rbind", .) %>% rownames_to_column(var = "sample") %>% separate(sample, into = c("date", "bodysite", "birthmode"), sep = "\\.", remove = F)
 
 head(asv_bb_tmp)
-asv_bb_tmp_sum <- asv_bb_tmp  %>% group_by(birthmode, date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = as.numeric(date)) %>% ungroup
+asv_bb_tmp_sum <- asv_bb_tmp  %>% group_by(birthmode, date, bodysite, Grp2) %>% summarise(N = n()) %>% mutate(Pct = round(N/sum(N), 3), date = as.numeric(date), birthmode = factor(birthmode, levels = c("Vag", "CSseed", "CS"))) %>% ungroup
 
-mm_col <- c('#F8766D', 'black', 'purple', '#00BA38','orange',  "#619CFF", 'grey')
-names(mm_col) <- c("Feces.Only", "Vagina.Feces", "Vagina.Feces.Others", "Feces.Forearm", "Feces.Forearm.Others", "Feces.Mouth", "Feces.Others")
+
 ggplot(asv_bb_tmp_sum %>% filter(!is.na(Grp2)), aes(date, Pct, color = Grp2)) +
     geom_point() +
     geom_line() +
@@ -589,6 +926,15 @@ ggplot(asv_bb_tmp_sum %>% filter(!is.na(Grp2)), aes(date, Pct, color = Grp2)) +
     theme_bw(base_size = 10) + theme(aspect.ratio = 0.8) +
     scale_color_manual(values = mm_col) +
     labs(x = "Days", y = "Percentage", color = "Maternal Fecal Sources", title = "Percentage of ASVs in different baby body sites \nthat could be traced back to certain fecal sources")
-ggsave("tmp_figs/asv_shared_mm_feces_yr1.pdf", width = 9, useDingbats = F)
+ggsave(paste0(fig_path,  "asv_shared_mm_feces_yr1.pdf"), width = 9, useDingbats = F)
+
+ggplot(asv_bb_tmp_sum %>% filter(!is.na(Grp2), date<=7), aes(date, Pct, color = Grp2)) +
+    geom_point() +
+    geom_line() +
+    facet_grid(bodysite ~ birthmode, scales = "free_y") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 0.8) +
+    scale_color_manual(values = mm_col) +
+    labs(x = "Days", y = "Percentage", color = "Maternal Fecal Sources", title = "Percentage of ASVs in different baby body sites \nthat could be traced back to certain fecal sources")
+ggsave(paste0(fig_path,  "asv_shared_mm_feces_wk1.pdf"), width = 9, useDingbats = F)
 
 ```

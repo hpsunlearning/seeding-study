@@ -229,7 +229,7 @@ for (ss_m in ss){
 
 ```
 
-### Plot average of baby samples by birth mode and timepoitn and ASVs on heatmap
+### Plot average of baby samples by birth mode and timepoint and ASVs on heatmap
 ```{r}
 mm_day0_asv_all <- lapply(otu_mm_day0_lst, rownames) %>% do.call("c", .) %>% unique
 df_row0 <- data.frame(ASV = mm_day0_asv_all)
@@ -938,3 +938,48 @@ ggplot(asv_bb_tmp_sum %>% filter(!is.na(Grp2), date<=7), aes(date, Pct, color = 
 ggsave(paste0(fig_path,  "asv_shared_mm_feces_wk1.pdf"), width = 9, useDingbats = F)
 
 ```
+
+### Individual babies
+The idea is instead of view the samples 
+```{r}
+ss <- c("Vagina", "Feces", "Mouth", "Forearm", "Right_Areola", "Nose")
+
+fun1 <- function(x, y){
+    return(c(paste0(x, "-", y), x))
+}
+tt <- ""
+for (ss_m in ss[-6]){
+    tt <- fun1(tt, ss_m)
+}
+tt <- sub("^-", "", tt)
+tt <- tt[!tt==""]
+
+asv_mm_day0_all <- lapply(seq_along(otu_mm_day0_lst), function(x){data.frame(ASV = rownames(otu_mm_day0_lst[[x]]), Bodysite = names(otu_mm_day0_lst)[[x]])}) %>% do.call("rbind",.)
+
+asv_mm_day0_filt <- asv_mm_day0_all %>% mutate(Bodysite = factor(Bodysite, levels = ss)) %>% arrange(Bodysite, ASV) %>% group_by(ASV) %>%
+    summarise(Grp = paste(Bodysite, collapse = "."), N_site = n())
+```
+#### Maternal vagina
+```{r}
+asv_mm_day0_filt_v <- asv_mm_day0_filt %>% filter(grepl("Vagina", Grp)) %>% 
+    mutate(Grp2 = case_when(Grp=="Vagina" ~ "Vagina.Only",
+                            N_site <=2 ~ Grp,
+                            grepl("Vagina.Feces.", Grp) ~ "Vagina.Feces.Others",
+                            grepl("Vagina.Forearm.", Grp) ~ "Vagina.Forearm.Others",
+                            T ~ "Vagina.Others")) %>%
+    mutate(Grp2 = factor(Grp2, levels = c("Vagina.Only", "Vagina.Feces", "Vagina.Feces.Others", "Vagina.Forearm", "Vagina.Forearm.Others", "Vagina.Others"))) %>%
+    ungroup %>% arrange(Grp2, ASV)
+nrow(asv_mm_day0_filt_v)
+asv_mm_day0_filt_v$Grp2 %>% table(useNA = "ifany")
+
+bb_col <- c("#F8766D","#00BA38","#619CFF")
+    names(bb_col) <- c("Feces", "Forearm", "Mouth")
+    
+    mm_col <- c('purple','black','#F8766D', 'orange', '#00BA38', 'grey')
+    names(mm_col) <- c("Vagina.Only", "Vagina.Feces", "Vagina.Feces.Others", "Vagina.Forearm", "Vagina.Forearm.Others", "Vagina.Others")
+```
+
+```{r}
+asv_bb_tmp <- parallel::mclapply(otu_baby_lst, function(x){x %>% rownames_to_column(var = "ASV") %>% pivot_longer(-1, names_to = "sample_name", values_to = "count") %>% filter(count>0) %>% merge(., asv_mm_day0_filt_v %>% select(ASV, Grp2), by = "ASV", all.x = T)}, mc.cores = np) %>% 
+```
+

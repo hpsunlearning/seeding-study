@@ -1018,8 +1018,44 @@ ggplot(asv_bb_tmp_2_sum %>% filter(!is.na(Grp2)) %>% mutate(birth_mode_ms = fact
     theme_bw(base_size = 10) + theme(aspect.ratio = 0.8) +
     labs(x = "Days", y = "Relative Abundance", color = "Maternal Vaginal Source", fill = "Maternal Vaginal Source", title = "The abundance of ASVs in baby samples of different birth modes \nthat can be attributed to different maternal vaginal source")
 
+## Generate statistical results
+asv_bb_tmp_2_sum_stat <- asv_bb_tmp_2_sum %>% group_by(body_site_corrected, Grp2, date_sampling_category_days_continuous) %>% filter(!is.na(Grp2), length(unique(birth_mode_ms))>=2) %>% dunn_test(data = ., Rel_a ~ birth_mode_ms, p.adjust.method = "none", detailed = T) %>% mutate(p.adj.signif = NULL) %>% ungroup
+asv_bb_tmp_2_sum_stat$p.adj = p.adjust(asv_bb_tmp_2_sum_stat$p, method = "fdr")
+asv_bb_tmp_2_sum_stat$equal = ifelse(asv_bb_tmp_2_sum_stat$p.adj<=0.1, F, T) 
 
-asv_bb_tmp_2_sum_stat <- asv_bb_tmp_2_sum %>% group_by(body_site_corrected, Grp2) %>% filter(!is.na(Grp2), length(unique(birth_mode_ms))>=2) %>% dunn_test(data = ., Rel_a ~ birth_mode_ms, p.adjust.method = "none") %>% mutate(p.adj.signif = NULL)
+## Generate group means, etc.
+asv_bb_tmp_2_sum_means <- asv_bb_tmp_2_sum %>% filter(!is.na(Grp2)) %>% group_by(body_site_corrected, Grp2, date_sampling_category_days_continuous, birth_mode_ms) %>% summarise(mean = Hmisc::smean.cl.boot(Rel_a) %>% paste(collapse = ",")) %>% ungroup %>% separate(mean, into = c("mean", "lower", "upper"), sep = ",") %>% mutate(across(mean:upper, ~round(as.numeric(.x), 3))) %>% arrange(body_site_corrected, Grp2, date_sampling_category_days_continuous, mean) %>% ungroup
+
+Tmp <- lapply(list(asv_bb_tmp_2_sum_stat, asv_bb_tmp_2_sum_means), function(x){split(x, list(x$body_site_corrected, x$Grp2, x$date_sampling_category_days_continuous))})
+
+for (i in seq(length(Tmp[[1]]))){
+    if (length(Tmp[[2]][[i]]$birth_mode_ms)<=1){next}
+    tt = Tmp[[2]][[i]]$birth_mode_ms %>% combn(., 2) %>% apply(2, sort) %>% t() %>% as.data.frame() %>% left_join(., Tmp[[1]][[i]] %>% select(group1, group2, equal), by = c("V1"="group1", "V2"="group2"))
+    if(nrow(tt)==3){
+        Tmp[[2]][[i]]$p.adj.l = 
+            if(tt[1, 3]){
+                if(tt[2, 3]){
+                    rep("a", 3)
+                }else{
+                    if(tt[3, 3]){
+                        c("a", "ab", "b")
+                    }else{
+                        c("a", "a", "b")
+                    }
+                }
+            }else{
+                if(tt[3, 3]){
+                    c("a", "b", "b")
+                }else{
+                    c("a", "b", "c")
+                }
+            }
+    }else{
+        Tmp[[2]][[i]]$p.adj.l = 
+            if(tt[1,3]){c("a", "a")}else{c("a", "b")}
+    }
+}
+asv_bb_tmp_2_sum_means <- data.table::rbindlist(Tmp[[2]], fill = T)
     
 ggplot(asv_bb_tmp_2_sum %>% filter(!is.na(Grp2), date_sampling_category_days_continuous<=30), aes(x = date_sampling_category_days_continuous, y = Rel_a, color = birth_mode_ms)) +
     geom_point(size = 1, alpha = 0.5) +

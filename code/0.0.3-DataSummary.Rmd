@@ -157,3 +157,8 @@ mom_abx_2 %>% select(birth_mode_sum, abx) %>% table
 mf_all_samples_anal %>% group_by(date_sampling_category_days_continuous, mom_baby, body_site_corrected) %>% summarise(N = n(), N_check = length(unique(subjectid_unique))) %>% pivot_wider(id_cols = date_sampling_category_days_continuous, names_from = c(mom_baby, body_site_corrected), values_from = N) %>% View
 ```
 
+
+```{r}
+mf_all_samples_anal_bb %>% group_by(date_sampling_category_days_continuous, body_site_corrected, birth_mode_ms) %>% summarise(N = n(), N_check = length(unique(subjectid_unique))) %>% pivot_wider(id_cols = date_sampling_category_days_continuous, names_from = c(body_site_corrected, birth_mode_ms), values_from = N) %>% View
+```
+

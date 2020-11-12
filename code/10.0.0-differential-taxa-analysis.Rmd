@@ -1,0 +1,47 @@
+---
+title: "Differential taxa analysis"
+author: "Jincheng Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, 
+                      warning = FALSE, message = FALSE)
+# Loading library here
+library(conflicted)
+library(tidyverse)
+library(extrafont)
+
+#devtools::source_url("https://raw.githubusercontent.com/sidhujyatha/ANCOM/master/ANCOM_updated_code_06_06_2020.R", sha1 = "c38079a8387079d5218605142578c8d7767925d5") 
+
+# library(biomformat)
+# library(ape)
+library(qiime2R)
+# library(phyloseq)
+# library(patchwork)
+# library(ggrepel)
+sessionInfo()
+conflict_prefer("filter", "dplyr")
+
+np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
+
+fig_path = "tmp_figs/"
+```
+
+```{r}
+dat_path = list.dirs(path = "../data/diff-analysis-new", 
+                     full.names = T, recursive = F)
+
+dat_files = lapply(dat_path, function(x){
+    list(ft = read_qza(paste0(x, "/table.qza")), 
+         mf = read.table(file = paste0(x, "/metadata.tsv"), header = T, sep = "\t",
+                         stringsAsFactors = F))})
+names(dat_files) = (dat_path %>% str_split(pattern = "/", simplify = T))[, 4]
+```
+
+

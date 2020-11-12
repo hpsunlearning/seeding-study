@@ -1,0 +1,40 @@
+---
+title: "Differential taxa analysis"
+author: "Jincheng Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, 
+                      warning = FALSE, message = FALSE)
+# Loading library here
+library(conflicted)
+library(tidyverse)
+library(extrafont)
+
+sessionInfo()
+conflict_prefer("filter", "dplyr")
+
+np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
+
+fig_path = "tmp_figs/"
+```
+
+```{r}
+songbird <- read.csv("../data/diff-analysis-new/Songbird-final.tsv", sep = "\t", fill = F)
+songbird_wk <- songbird %>% select(body_site_days, featureid, starts_with("P."), Taxon, feature.frequency, seeding.effectiveness) %>% separate(body_site_days, into = c(NA, "body_site", "days"), sep = "-") %>% mutate(days = as.numeric(days))
+
+# check the distribution of seeding-effectiveness score
+ggplot(songbird_wk, aes(x = seeding.effectiveness)) +
+    geom_histogram(aes(color = as.factor(days), fill = as.factor(days)), alpha = 0.3, position = "identity") +
+    facet_grid(body_site ~ .)
+# obtain feature >90% effective
+songbird_wk_0.9 <- songbird_wk %>% group_by()
+```
+
+

@@ -27,14 +27,94 @@ fig_path = "tmp_figs/"
 
 ```{r}
 songbird <- read.csv("../data/diff-analysis-new/Songbird-final.tsv", sep = "\t", fill = F)
-songbird_wk <- songbird %>% select(body_site_days, featureid, starts_with("P."), Taxon, feature.frequency, seeding.effectiveness) %>% separate(body_site_days, into = c(NA, "body_site", "days"), sep = "-") %>% mutate(days = as.numeric(days))
+songbird_wk <- songbird %>% 
+    select(body_site_days, featureid, 
+           starts_with("P."), Taxon, feature.frequency, seeding.effectiveness) %>% 
+    separate(body_site_days, into = c(NA, "body_site", "days"), sep = "-") %>% 
+    mutate(days = as.numeric(days)) %>%
+    group_by(body_site, days) %>% 
+    mutate(seeding.effectiveness.scale = pnorm(as.numeric(scale(seeding.effectiveness, 
+                                               center = mean(seeding.effectiveness), 
+                                               scale = T)))) %>%
+    ungroup() %>%
+    arrange(body_site, days, desc(seeding.effectiveness.scale)) %>%
+    mutate(featureid = factor(featureid, levels = unique(featureid)), 
+           Taxon = gsub(" ", "", Taxon),
+           Taxon = gsub("__", "_", Taxon)) %>%
+    separate(Taxon, into = c("k", "p", "c", "o", "f", "g", "s"), sep = ";",
+             remove = F,
+             fill = "right") %>%
+    mutate(across(k:s, ~ifelse(is.na(.x), "-", .x)))
 
+write.csv(songbird_wk, file = "../tmp.csv")
 # check the distribution of seeding-effectiveness score
 ggplot(songbird_wk, aes(x = seeding.effectiveness)) +
     geom_histogram(aes(color = as.factor(days), fill = as.factor(days)), alpha = 0.3, position = "identity") +
     facet_grid(body_site ~ .)
 # obtain feature >90% effective
-songbird_wk_0.9 <- songbird_wk %>% group_by()
+songbird_wk %>% group_by(body_site, days) %>% summarise(stats = Hmisc::smean.sd(seeding.effectiveness) %>% paste(collapse = "--"))
+
+#
+ggplot(songbird_wk, aes(x = featureid, y = seeding.effectiveness.scale, color = p)) +
+    geom_point() +
+    facet_grid(body_site ~ days)
+
+songbird_wk_0.9 <- songbird_wk %>% filter(seeding.effectiveness.scale>=0.9, 
+                                          feature.frequency>=0.1) %>%
+    mutate(across(.cols = c(P.CS.:P.Vaginal., feature.frequency:seeding.effectiveness.scale), ~round(., 3)))
+    
+songbird_wk_0.9 %>% pivot_wider(id_cols = c(body_site, days, Taxon, k:s), names_from = NULL, values_from = c(seeding.effectiveness.scale, feature.frequency, P.Vaginal., P.CS.seeded., P.CS.), names_repair = "minimal") %>% arrange(body_site, days, Taxon) %>% View
+
+songbird_wk_0.85 <- songbird_wk %>% filter(seeding.effectiveness.scale>=0.85, 
+                                          feature.frequency>=0.1) %>%
+    mutate(across(.cols = c(P.CS.:P.Vaginal., feature.frequency:seeding.effectiveness.scale), ~round(., 3)))
+    
+songbird_wk_0.85 %>% pivot_wider(id_cols = c(body_site, days, Taxon, k:s), names_from = NULL, values_from = c(seeding.effectiveness.scale, feature.frequency, P.Vaginal., P.CS.seeded., P.CS.), names_repair = "minimal") %>% arrange(body_site, days, Taxon) %>% View
+```
+
+```{r}
+dat_path = list.files(path = "../data/diff-analysis-new/ancom_all_results",
+                     pattern = "*rds", full.names = T, include.dirs = F)
+
+dat_nms <- (dat_path %>% str_split(., "/|\\.", simplify = T))[, 7]
+dat_files <- lapply(dat_path, function(x){readRDS(x)})
+names(dat_files) <- dat_nms
+
+dat_flt <- lapply(dat_files, function(x){lapply(x, function(y){y$W.taxa %>% filter(detected_0.6==T)}) %>% 
+        do.call("rbind", .) %>% 
+        rownames_to_column(var = "body_site_days")}) %>% 
+    do.call("rbind", .) %>%
+    rownames_to_column(var = "level") %>%
+    separate(level, into = c(NA, NA, "level", NA), sep = "_|\\.") %>%
+    separate(body_site_days, into = c(NA, "body_sites", "days", NA, NA), sep = "-|\\.") %>%
+    mutate(days = as.numeric(days))
+    
+dat_flt %>% arrange(level, body_sites, days, desc(W_stat)) %>% select(level, body_sites, days, W_stat, Domain:Species)
+```
+
+```{r}
+load("tmp_all_phylo.Rdata")
+levels = dat_flt$level %>% unique
+bodysites = dat_flt$body_sites %>% unique
+timepoints = dat_flt$days %>% unique
+for (ll in levels){
+    for (bb in bodysites){
+        for (tt in timepoints){
+            dat = dat_flt %>% filter(level==ll, body_sites==bb, days==tt)
+            dat_phylo = all_phylo[[ll]][[paste0("Baby-", bb, "-", tt, ".0")]] %>%
+                prune_taxa(dat$Taxa_id, x = .) %>% 
+                transform_sample_counts(., function(x){x / sum(x)})
+            mf_phylo = sample_data(dat_phylo) %>% as.matrix() %>% as.data.frame() %>%
+                rownames_to_column(var = "sample_name") %>%
+                arrange(birth_mode_ms)
+            plot_heatmap(dat_phylo, 
+                         sample.label = "birth_mode_ms",
+                         sample.order = mf_phylo$sample_name,
+                         method = NULL, 
+                         distance = NULL) %>% print()
+        }
+    }
+}
 ```
 
 

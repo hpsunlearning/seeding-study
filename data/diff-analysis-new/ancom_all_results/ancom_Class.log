@@ -1,0 +1,176 @@
+ Package ‘exactRankTests’ is no longer under development.
+ Please consider using package ‘coin’ instead.
+
+NULL
+Warning message:
+In file(file, "rt") :
+  cannot open file '/local/home/jingchengw/Dropbox/Work at NIEHS/sid_reference_data/ys_genera.txt': No such file or directory
+── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
+✔ tibble  3.0.4     ✔ dplyr   1.0.2
+✔ tidyr   1.1.0     ✔ stringr 1.4.0
+✔ readr   1.3.1     ✔ forcats 0.5.0
+✔ purrr   0.3.4     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::collapse() masks nlme::collapse()
+✖ dplyr::filter()   masks stats::filter()
+✖ dplyr::lag()      masks stats::lag()
+[1] "tmp_all_phylo.Rdata" "Class"               "8"                  
+Loading required package: phyloseq
+Loading required package: phyloseq
+Loading required package: phyloseq
+Loading required package: phyloseq
+Loading required package: phyloseq
+Loading required package: phyloseq
+Loading required package: phyloseq
+Loading required package: phyloseq
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+9 samples removedbecause they contained fewer reads than `sample.size`.
+Up to first five removed samples are: 
+
+10249.C017.10SS10894.NYCR06610894.NY198710894.NY257710894.NY1959
+...
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+18 samples removedbecause they contained fewer reads than `sample.size`.
+Up to first five removed samples are: 
+
+10894.CH11510894.CH134010894.HR506410894.HR422710894.HR3967
+...
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+10 samples removedbecause they contained fewer reads than `sample.size`.
+Up to first five removed samples are: 
+
+10894.HR451810894.NY143710894.HR106210894.749610894.6371
+...
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+6 samples removedbecause they contained fewer reads than `sample.size`.
+Up to first five removed samples are: 
+
+10894.CH31810894.776910894.BL110210894.CH189310894.MGDB.ESP.JUL18.0466
+...
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+24 samples removedbecause they contained fewer reads than `sample.size`.
+Up to first five removed samples are: 
+
+10894.CH13110894.CH153110894.CH30610894.NY371710894.NY4325
+...
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+4 samples removedbecause they contained fewer reads than `sample.size`.
+Up to first five removed samples are: 
+
+10894.NYCR04510894.NYCR04110894.CH311710894.12261.MGDB.ESP.JUL18.0846
+...
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+6 samples removedbecause they contained fewer reads than `sample.size`.
+Up to first five removed samples are: 
+
+10894.BL112610894.BL111010894.NY194610894.PR460910894.MGDB.ESP.JUL18.0471
+...
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+5 samples removedbecause they contained fewer reads than `sample.size`.
+Up to first five removed samples are: 
+
+10894.NY256710894.HR299810894.CH65510894.12261.C.022410894.12261.MGDB.ESP.JUL18.0390
+...
+4OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+7OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+12OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+19OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+5OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+6OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+14OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+4OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+6 samples removedbecause they contained fewer reads than `sample.size`.
+Up to first five removed samples are: 
+
+10894.HR112310894.PR414610894.HR359610894.BL53710894.NY4079
+...
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+1 samples removedbecause they contained fewer reads than `sample.size`.
+Up to first five removed samples are: 
+
+10894.NY2904
+...
+9OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+9OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+4OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...
+`set.seed(20)` was used to initialize repeatable random subsampling.
+Please record this for your records so others can reproduce.
+Try `set.seed(20); .Random.seed` for the full vector
+...
+3 samples removedbecause they contained fewer reads than `sample.size`.
+Up to first five removed samples are: 
+
+10894.744010894.HR486810894.NY0984
+...
+16OTUs were removed because they are no longer 
+present in any sample after random subsampling
+
+...

@@ -16,13 +16,20 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE,
 library(conflicted)
 library(tidyverse)
 library(extrafont)
+library(ggtern)
 
 sessionInfo()
 conflict_prefer("filter", "dplyr")
+conflict_prefer("aes", "ggtern")
+conflict_prefer("ggsave", "ggtern")
+
 
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 
 fig_path = "tmp_figs/"
+
+col_birthmode = c("#377EB8", "#4DAF4A", "#E41A1C")
+names(col_birthmode) = c("Vag", "CSseed", "CS")
 ```
 
 ```{r}
@@ -46,12 +53,10 @@ songbird_wk <- songbird %>%
              fill = "right") %>%
     mutate(across(k:s, ~ifelse(is.na(.x), "-", .x)))
 
-write.csv(songbird_wk, file = "../tmp.csv")
 # check the distribution of seeding-effectiveness score
 ggplot(songbird_wk, aes(x = seeding.effectiveness)) +
     geom_histogram(aes(color = as.factor(days), fill = as.factor(days)), alpha = 0.3, position = "identity") +
-    facet_grid(body_site ~ .)
-# obtain feature >90% effective
+
 songbird_wk %>% group_by(body_site, days) %>% summarise(stats = Hmisc::smean.sd(seeding.effectiveness) %>% paste(collapse = "--"))
 
 #
@@ -71,6 +76,30 @@ songbird_wk_0.85 <- songbird_wk %>% filter(seeding.effectiveness.scale>=0.85,
     
 songbird_wk_0.85 %>% pivot_wider(id_cols = c(body_site, days, Taxon, k:s), names_from = NULL, values_from = c(seeding.effectiveness.scale, feature.frequency, P.Vaginal., P.CS.seeded., P.CS.), names_repair = "minimal") %>% arrange(body_site, days, Taxon) %>% View
 ```
+
+```{r}
+songbird_wk2 <- songbird_wk %>% rename(P.VD = P.Vaginal., P.CSR = P.CS.seeded., P.CS = P.CS.)
+
+ggtern(songbird_wk2 %>% filter(body_site=="Feces"), 
+       aes(x = P.CS, y = P.CSR, z = P.VD)) +
+    geom_point(aes(color = seeding.effectiveness.scale), 
+               size = 1) +
+    facet_wrap(.~days) +
+    theme_custom(base_size = 10,  tern.panel.background = "white",
+                 col.T = "#4DAF4A", col.L = "#E41a1c", 
+                 col.R = "#377EB8") + theme(legend.position = "bottom") +
+    theme_showarrows() +
+    scale_T_continuous(labels = c("", seq(0.2, 1, 0.2))) +
+    scale_L_continuous(labels = c("", seq(0.2, 1, 0.2))) +
+    scale_R_continuous(labels = c("", seq(0.2, 1, 0.2))) +
+    scale_color_distiller(palette = 'RdYlBu', direction = 1) +
+    labs(x = "", xarrow = "Cesarean", y = "", yarrow = "Cesarean-seeded",
+         z = "", zarrow = "Vaginal", color = "Seeding, effectiveness")
+
+ggsave(paste0(fig_path, "Ternary_songbird_feces.pdf"), width = 7, height = 9, useDingbats = F)
+
+```
+
 
 ```{r}
 dat_path = list.files(path = "../data/diff-analysis-new/ancom_all_results",

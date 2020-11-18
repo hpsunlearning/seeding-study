@@ -29,9 +29,9 @@ def songbird_gird_search(input_biom, metadata_file, out_dir):
     # baseline songbird and formula
     time_split = 0
     # formulas
-    formulas = ['1', 'C(birth_mode_ms, Treatment("Vag"))']
+    formulas = ['1', 'C(birth_mode_ms, Treatment("Vag")) + host_subject_id']
     # feat freq.
-    ffq = [0.05, 0.10]
+    ffq = [0.0, 0.01, 0.05, 0.10]
     # convert those to samp. #'s
     tbl_ = load_table(input_biom)
     ffq = [int(f_ * tbl_.shape[1])
@@ -75,6 +75,7 @@ def songbird_gird_search(input_biom, metadata_file, out_dir):
 					  '--random-seed', str(42)],
                                          stdout=subprocess.PIPE)
                     out, err = p.communicate()
+    print("Complete")
 
 if __name__ == '__main__':
     songbird_gird_search()

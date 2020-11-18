@@ -16,13 +16,10 @@ knitr::opts_chunk$set(echo = TRUE, cache = TRUE,
 library(conflicted)
 library(tidyverse)
 library(extrafont)
-# library(ggtern)
-
+library(Ternary)
+library(colorspace)
 sessionInfo()
 conflict_prefer("filter", "dplyr")
-# conflict_prefer("aes", "ggtern")
-# conflict_prefer("ggsave", "ggtern")
-
 
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 
@@ -33,11 +30,17 @@ names(col_birthmode) = c("Vag", "CSseed", "CS")
 ```
 ## Summarizing songbird resulst
 ```{r}
-songbird <- read.csv("../data/diff-analysis-new/Songbird-final.tsv", sep = "\t", fill = F)
+songbird <- read.csv("../data/diff-analysis-new/Songbird-final.tsv", 
+                     sep = "\t", fill = F)
 songbird_wk <- songbird %>% 
     select(body_site_days, featureid, 
-           starts_with("P."), Taxon, C.birth_mode_ms..Treatment..Vag....T.CS., C.birth_mode_ms..Treatment..Vag....T.CSseed., feature.frequency, seeding.effectiveness) %>%
-    rename(P.VD = P.Vaginal., P.CSR = P.CS.seeded., P.CS = P.CS., Diff.CS = C.birth_mode_ms..Treatment..Vag....T.CS., Diff.CSR = C.birth_mode_ms..Treatment..Vag....T.CSseed.) %>%
+           starts_with("P."), Taxon, 
+           C.birth_mode_ms..Treatment..Vag....T.CS., 
+           C.birth_mode_ms..Treatment..Vag....T.CSseed., 
+           feature.frequency, seeding.effectiveness) %>%
+    rename(P.VD = P.Vaginal., P.CSR = P.CS.seeded., P.CS = P.CS., 
+           Diff.CS = C.birth_mode_ms..Treatment..Vag....T.CS.,
+           Diff.CSR = C.birth_mode_ms..Treatment..Vag....T.CSseed.) %>%
     separate(body_site_days, into = c(NA, "body_site", "days"), sep = "-") %>% 
     mutate(days = as.numeric(days)) %>%
     group_by(body_site, days) %>% 
@@ -53,8 +56,8 @@ songbird_wk <- songbird %>%
     mutate(across(k:s, ~ifelse(is.na(.x), "-", .x)))
 
 # check the distribution of seeding-effectiveness score
-ggplot(songbird_wk, aes(x = seeding.effectiveness)) +
-    geom_histogram(aes(color = as.factor(days), fill = as.factor(days)), alpha = 0.3, position = "identity") +
+ggplot(songbird_wk, ggplot2::aes(x = seeding.effectiveness)) +
+    geom_histogram(ggplot2::aes(color = as.factor(days), fill = as.factor(days)), alpha = 0.3, position = "identity") +
     facet_grid(body_site ~ .)
 
 songbird_wk %>% group_by(body_site, days) %>% summarise(stats = Hmisc::smean.sd(seeding.effectiveness) %>% paste(collapse = "--"))
@@ -76,23 +79,48 @@ songbird_wk_0.8 %>% group_by(body_site, days) %>% summarize(N = n())
 ### Ternary plot
 ```{r}
 bb = "Feces"
-ggtern(songbird_wk %>% filter(body_site==bb), 
-       aes(x = P.CS, y = P.CSR, z = P.VD)) +
-    geom_point(aes(color = seeding.effectiveness.scale), 
-               size = 1) +
-    facet_wrap(.~days) +
-    theme_custom(base_size = 10,  tern.panel.background = "white",
-                 col.T = "#4DAF4A", col.L = "#E41a1c", 
-                 col.R = "#377EB8") + theme(legend.position = "bottom") +
-    theme_showarrows() +
-    scale_T_continuous(labels = c("", seq(0.2, 1, 0.2))) +
-    scale_L_continuous(labels = c("", seq(0.2, 1, 0.2))) +
-    scale_R_continuous(labels = c("", seq(0.2, 1, 0.2))) +
-    scale_color_distiller(palette = 'RdYlBu', direction = 1) +
-    labs(x = "", xarrow = "Cesarean", y = "", yarrow = "Cesarean-seeded",
-         z = "", zarrow = "Vaginal", color = "Seeding, effectiveness")
+pdf(file = paste0(fig_path, "songbird_ternary_plot_", bb, ".pdf"),
+    width = 7, height = 10, useDingbats = F)
+par(mfrow = c(2, 2), mar = rep(0.1, 4))
 
-ggsave(paste0(fig_path, "Ternary_songbird_", bb, ".pdf"), width = 7, height = 9, useDingbats = F)
+plot_ternary = function(bb, dd){
+    TernaryPlot(point = "up",  alab = "Cesaren-seeded <---", 
+                blab = "Vaginal --->", clab = "Cesarean <---",
+                lab.col = c( "#4DAF4A", "#377EB8", "#E41A1C"),
+                
+                grid.minor.lines = 0,
+                grid.col = c( "#4DAF4A", "#377EB8", "#E41A1C"),
+                grid.lty = "dotted",
+                
+                padding = 0,
+                
+                axis.col = "black",
+                axis.labels=seq(0, 1, by = 0.1),
+                
+                clockwise = F)
+    dat_ternary = songbird_wk %>% filter(body_site==bb, days==dd) %>% 
+        select(P.CSR, P.VD, P.CS, seeding.effectiveness.scale)
+    dat_ternary$col = circlize::colorRamp2(seq(0, 1, 0.1), colors = divergingx_hcl(11, palette = "Tropic"))(dat_ternary$seeding.effectiveness.scale)
+    
+    AddToTernary(points, dat_ternary[, 1:3], pch = 21, cex = 0.7,
+                 bg = dat_ternary$col)
+}
+
+p1 <- as.ggplot(function() plot_ternary(bb, 2)) + coord_fixed() +
+    theme_void(base_size = 10) + theme(plot.margin = margin(0,0,0,0),
+                                       plot.background = element_rect(color = "black"))
+p1
+p2 <- as.grob(function() plot_ternary(bb, 30))
+plot_grid(p1, p2)
+
+ggplot(data.frame(x = seq(0, 1, length.out = 100), y = 1), aes(x = x, y = y, fill = x-0.5)) +
+    geom_raster(show.legend = F) +
+    theme_minimal() + theme(axis.ticks.length.x = unit(-0.5, "cm"), axis.ticks.x = element_line(color = "black")) +
+    scale_fill_continuous_divergingx(palette = "Tropic") +
+    scale_x_continuous(breaks = seq(0.1, 0.9, 0.2))
+
+
+
 ```
 ### Plot against differentials
 ```{r}
@@ -121,10 +149,10 @@ for (dd in c(2, 30, 120, 180)){
     
     p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
         ggplot(ggplot2::aes(x = x, y = -Diff.CS)) +
-        annotate("rect", ymin = -Inf, ymax = 0, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
-        annotate("rect", ymin = 0, ymax = Inf, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
+        ggplot::annotate("rect", ymin = -Inf, ymax = 0, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
+        ggplot::annotate("rect", ymin = 0, ymax = Inf, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
         geom_hline(yintercept = 0, color = "grey") +
-        geom_point(aes(fill = seeding.effectiveness.scale), 
+        geom_point(ggplot::aes(fill = seeding.effectiveness.scale), 
                    shape = 21, color = "black", size = 1.5) +
         scale_fill_distiller(palette = 'RdYlBu', direction = 1) +
         ggplot2::coord_flip() +
@@ -163,10 +191,10 @@ for (dd in c(2, 30, 120, 180)){
     
     p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
         ggplot(ggplot2::aes(x = x, y = -Diff.CS)) +
-        annotate("rect", ymin = -Inf, ymax = 0, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
-        annotate("rect", ymin = 0, ymax = Inf, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
+        ggplot::annotate("rect", ymin = -Inf, ymax = 0, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
+        ggplot::annotate("rect", ymin = 0, ymax = Inf, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
         geom_hline(yintercept = 0, color = "grey") +
-        geom_point(aes(fill = seeding.effectiveness.scale), 
+        geom_point(ggplot::aes(fill = seeding.effectiveness.scale), 
                    shape = 21, color = "black", size = 1.5) +
         scale_fill_distiller(palette = 'RdYlBu', direction = 1) +
         ggplot2::coord_flip() +
@@ -208,9 +236,9 @@ for (dd in c(2, 30, 120, 180)){
     
     p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
         ggplot(ggplot2::aes(x = x, y = P.CS)) +
-        annotate("rect", ymin = 0.75, ymax = 1, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
-        annotate("rect", ymin = 0, ymax = 0.25, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
-        geom_point(aes(fill = seeding.effectiveness.scale), 
+        ggplot::annotate("rect", ymin = 0.75, ymax = 1, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
+        ggplot::annotate("rect", ymin = 0, ymax = 0.25, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
+        geom_point(ggplot::aes(fill = seeding.effectiveness.scale), 
                    shape = 21, color = "black", size = 1.5) +
         scale_fill_distiller(palette = 'RdYlBu', direction = 1) +
         scale_y_continuous(position = "right") +
@@ -252,9 +280,9 @@ for (dd in c(2, 30, 120, 180)){
     
     p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
         ggplot(ggplot2::aes(x = x, y = P.CS)) +
-        annotate("rect", ymin = 0.75, ymax = 1, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
-        annotate("rect", ymin = 0, ymax = 0.25, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
-        geom_point(aes(fill = seeding.effectiveness.scale), 
+        ggplot::annotate("rect", ymin = 0.75, ymax = 1, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
+        ggplot::annotate("rect", ymin = 0, ymax = 0.25, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
+        geom_point(ggplot::aes(fill = seeding.effectiveness.scale), 
                    shape = 21, color = "black", size = 1.5) +
         scale_fill_distiller(palette = 'RdYlBu', direction = 1) +
         scale_y_continuous(position = "right") +

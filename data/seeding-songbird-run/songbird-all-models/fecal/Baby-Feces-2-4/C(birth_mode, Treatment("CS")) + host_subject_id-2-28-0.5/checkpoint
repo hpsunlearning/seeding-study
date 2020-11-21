@@ -1,2 +1,0 @@
-model_checkpoint_path: "/home/cmartino/seeding-songbird-run/songbird-results/fecal/Baby-Feces-2-4/C(birth_mode, Treatment(\"CS\")) + host_subject_id-2-28-0.5/model.ckpt-0"
-all_model_checkpoint_paths: "/home/cmartino/seeding-songbird-run/songbird-results/fecal/Baby-Feces-2-4/C(birth_mode, Treatment(\"CS\")) + host_subject_id-2-28-0.5/model.ckpt-0"

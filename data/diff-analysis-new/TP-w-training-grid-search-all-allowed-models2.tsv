@@ -1,0 +1,15 @@
+	formula	min_features	batch_size	differential_prior	CV	baseline_CV	q_squared	body_site	days	model	best
+0	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	15	0.25	347.838525390625	386.5162353515625	0.10006749115145841	Baby-Feces	2.0	TP-w-training	
+1	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	15	0.5	347.84307250976565	386.51624755859376	0.10005575520590626	Baby-Feces	2.0	TP-w-training	
+2	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	7	0.25	287.62196350097656	347.0219421386719	0.17117067085619264	Baby-Feces	2.0	TP-w-training	Yes
+3	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	7	0.5	287.62437133789064	347.0221771240234	0.17116429352843465	Baby-Feces	2.0	TP-w-training	
+4	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	15	0.25	691.7300659179688	755.0319519042969	0.08384000945479442	Baby-Feces	2.0	TP-w-training	
+5	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	15	0.5	691.7342834472656	755.0320373535156	0.08383452724485285	Baby-Feces	2.0	TP-w-training	
+6	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	7	0.25	569.6371215820312	679.9983093261719	0.16229626784440165	Baby-Feces	2.0	TP-w-training	
+7	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	7	0.5	569.6646789550781	679.9986022949219	0.16225610312650451	Baby-Feces	2.0	TP-w-training	
+10	"C(birth_mode_ms, Treatment(""Vag""))"	3	7	0.25	344.6433074951172	347.0219421386719	0.006854421449247083	Baby-Feces	2.0	TP-w-training	Yes
+11	"C(birth_mode_ms, Treatment(""Vag""))"	3	7	0.5	344.6446563720703	347.0221771240234	0.006851206950682642	Baby-Feces	2.0	TP-w-training	
+12	"C(birth_mode_ms, Treatment(""Vag""))"	7	15	0.25	744.5088623046875	755.0319519042969	0.01393727718816229	Baby-Feces	2.0	TP-w-training	
+13	"C(birth_mode_ms, Treatment(""Vag""))"	7	15	0.5	744.5098754882813	755.0320373535156	0.013936046875727137	Baby-Feces	2.0	TP-w-training	
+14	"C(birth_mode_ms, Treatment(""Vag""))"	7	7	0.25	612.2647155761719	679.9983093261719	0.09960847375799953	Baby-Feces	2.0	TP-w-training	
+15	"C(birth_mode_ms, Treatment(""Vag""))"	7	7	0.5	612.2676940917969	679.9986022949219	0.09960448150119783	Baby-Feces	2.0	TP-w-training	

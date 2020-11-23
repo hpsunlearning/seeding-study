@@ -18,6 +18,8 @@ library(tidyverse)
 library(extrafont)
 library(Ternary)
 library(phyloseq)
+library(colorspace)
+library(patchwork)
 sessionInfo()
 conflict_prefer("filter", "dplyr")
 
@@ -38,10 +40,12 @@ dat_models = lapply(dat_files, function(x){read_tsv(x) %>% select(-X1) %>% filte
 
 ## Summarizing songbird resulst
 When performing songbird parameter summarization, following parameters were tried:
-```{r}
-songbird_pp = readClipboard() %>% str_split(., pattern = "\t", simplify = T)
-colnames(songbird_pp) = songbird_pp[1, ]
-songbird_pp = songbird_pp[-1, ] %>% as.data.frame() %>% mutate(across(.fns = trimws)) %>% print()
+```{r, eval=FALSE}
+songbird_pp = read_csv("../data/diff-analysis-new/TP-w-training-grid-search-parameters-set.csv") %>%
+    mutate(across(everything(), ~trimws(.x))) %>%
+    separate(body_site_days, into = c("body_site", "days"), sep = "-(?=\\d)") %>%
+    mutate(days = as.numeric(days))
+songbird_pp
 ```
 
 ```{r}
@@ -55,19 +59,22 @@ songbird_best_models_print <- songbird_best_models %>%
            q_squared = round(q_squared, 3)) %>%
     select(body_site, days, min_features:differential_prior,
            model_CV, null_CV, q_squared) %>%
-    arrange(body_site, days) %>% 
-    write.csv(file = "../results/Extended_Data_Table_Songbird_model_fit_statistics.csv", quote = F, row.names = F)
+    arrange(body_site, days) %>%
+    full_join(., songbird_pp, by = c("body_site", "days")) %>% 
+    write.table(file = "../results/Extended_Data_Table_Songbird_model_fit_statistics.tsv", sep = "\t", quote = F, row.names = F)
     
 songbird_rsl <- read.csv("../data/diff-analysis-new/TP-w-training-best-model-processed.tsv", 
                      sep = "\t", fill = F) %>% select(-1, -2, -starts_with("country")) %>%
     filter(grepl("country", model.para))
 
 songbird_wk <- songbird_rsl %>% 
-    select(body_site_days, featureid, 
+    select(body_site_days, featureid,
+           X.T.CS., X.T.CSseed.,
            starts_with("P."), Taxon, 
            starts_with("centered"),
            feature.frequency, seeding.effectiveness) %>%
-    rename(P.VD = P.Vaginal., P.CSR = P.CS.seeded., P.CS = P.CS.) %>%
+    rename(P.VD = P.Vaginal., P.CSR = P.CS.seeded., P.CS = P.CS.,
+           Diff.CS = X.T.CS., Diff.CSR = X.T.CSseed.) %>%
     separate(body_site_days, into = c(NA, "body_site", "days"), sep = "-") %>% 
     mutate(days = as.numeric(days)) %>%
     group_by(body_site, days) %>% 
@@ -102,6 +109,8 @@ songbird_wk_0.8 <- songbird_wk %>%
 
 songbird_wk_0.8 %>% group_by(body_site, days) %>% summarize(N = n())
 
+songbird_wk2 <- songbird_wk %>%
+    filter(feature.frequency>=0.1, p!="p_", c!="c_", o!="o_", f!="f_", p!="-", c!="-", o!="-", f!="-")
 ```
 ### Ternary plot
 ```{r}
@@ -158,46 +167,12 @@ for (bb in c("Feces", "Forearm", "Mouth")){
 # create the main plot
 
 ```
-### Plot against differentials
+### Plots
 ```{r}
-bb = "Feces"
 load("tmp_all_phylo.Rdata")
-songbird_wk2 <- songbird_wk %>%
-    filter(feature.frequency>=0.1, p!="p_", c!="c_", o!="o_", f!="f_",
-           p!="-", c!="-", o!="-", f!="-")
+
 ```
-#### check bacteroides
-```{r}
-bacteroides <- songbird_wk2 %>% filter(g == "g_Bacteroides")
-for (bb in c("Feces", "Forearm", "Mouth")){
-    for (dd in c(2, 30, 120, 180)){
-        #dd=2
-        dat <- bacteroides %>% filter(body_site==bb, days ==dd) %>%
-            mutate(x = paste(p, c, o, f, g, sep = ";"))
-        dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
-            transform_sample_counts(., function(x){x / sum(x)}) %>%
-            otu_table() %>% as.matrix() %>% as.data.frame() %>%
-            rownames_to_column(var = "ASV") %>%
-            filter(ASV %in% dat$featureid) %>% 
-            pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
-            filter(rel_a>0) %>%
-            merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1) %>%
-            merge(., sample_data(all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]]) %>%
-                      as.matrix() %>% as.data.frame(),
-                  by.x = "sample_name", by.y = 0)
-        
-        p = ggplot(dat_ft, aes(x = ASV, y = rel_a, fill = birth_mode_ms)) +
-            geom_boxplot() +
-            coord_flip() +
-            scale_x_discrete(breaks = dat$featureid, labels = dat$s) +
-            geom_text(data = dat, aes(x = featureid, y = max(dat_ft$rel_a), 
-                                      label = centered.diff.CS), inherit.aes = F) +
-            labs(x = "Bacterloides ASV", title = paste(bb, "Day", dd))
-        print(p)
-    }
-}
-```
-#### All genus
+#### All genus plots against VD
 ```{r}
 for (bb in c("Feces", "Forearm", "Mouth")){
     for (dd in c(2, 30, 120, 180)){
@@ -213,257 +188,367 @@ for (bb in c("Feces", "Forearm", "Mouth")){
             filter(rel_a>0) %>%
             merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
         
-        x.order = dat %>% group_by(x) %>% summarise(MM = median(centered.diff.CS)) %>% arrange(desc(MM))
+        x.order = dat %>% group_by(x) %>% summarise(MM = median(P.VD)) %>% arrange(MM)
         
         p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
-            ggplot(aes(x = x, y = -centered.diff.CS)) +
-            annotate("rect", ymin = -Inf, ymax = 0, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
-            annotate("rect", ymin = 0, ymax = Inf, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
-            geom_hline(yintercept = 0, color = "grey") +
+            ggplot(aes(x = x, y = P.VD)) +
+            #annotate("rect", ymin = 0, ymax = 0.25, xmin = -Inf, xmax = Inf, 
+            #         fill = col_birthmode["CS"]#E41A1C", alpha = 0.1) +
+            #annotate("rect", ymin = 0.75, ymax = 1, xmin = -Inf, xmax = Inf, 
+            #         fill = "#377EB8", alpha = 0.1) +
+            #geom_hline(yintercept = 0.5, color = "grey") +
             geom_point(aes(fill = seeding.effectiveness.scale), 
                        shape = 21, color = "black", size = 1.5) +
             scale_fill_continuous_divergingx(palette = 'Tropic', mid = 0.5, n_interp = 11) +
+            scale_y_continuous(sec.axis = dup_axis()) +
             coord_flip() +
-            theme_bw() +
-            labs(x = "", y = expression(Songbird~differentials~log~frac(Vag, CS)), 
+            theme_bw(base_size = 10) +
+            labs(x = "", y = "Relative probality in vaginal birth", 
                  fill = "Seeding Efficacy", title = paste(bb, "Day", dd),
                  subtitle = "All genera")
-        print(p)
-    }
-}
-
-```
-
-#### Genera with at least 1 ASV having more than 1 log difference
-```{r}
-for (bb in c("Feces", "Forearm", "Mouth")){
-    for (dd in c(2, 30, 120, 180)){
-        #dd=2
-        dat <- songbird_wk2 %>% 
-            filter(body_site==bb, days ==dd) %>%
-            mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
-            group_by(x) %>%
-            filter(any(centered.diff.CS>=1 | centered.diff.CS<=-1)) # filter dataset according to effect size
-        dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
-            transform_sample_counts(., function(x){x / sum(x)}) %>%
-            otu_table() %>% as.matrix() %>% as.data.frame() %>%
-            rownames_to_column(var = "ASV") %>%
-            filter(ASV %in% dat$featureid) %>% 
-            pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
-            filter(rel_a>0) %>%
-            merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
-        
-        x.order = dat %>% group_by(x) %>% summarise(MM = median(centered.diff.CS)) %>% arrange(desc(MM))
-        
-        p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
-            ggplot(aes(x = x, y = -centered.diff.CS)) +
-            annotate("rect", ymin = -Inf, ymax = 0, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
-            annotate("rect", ymin = 0, ymax = Inf, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
-            geom_hline(yintercept = 0, color = "grey") +
-            geom_point(aes(fill = seeding.effectiveness.scale), 
-                       shape = 21, color = "black", size = 1.5) +
-            scale_fill_continuous_divergingx(palette = 'Tropic', mid = 0.5, n_interp = 11) +
-            coord_flip() +
-            theme_bw() +
-            labs(x = "", y = expression(Songbird~differentials~log~frac(Vag, CS)), 
-                 fill = "Seeding Efficacy", title = paste(bb, "Day", dd),
-                 subtitle = "Genus with at least 1 ASV had more than 1 log difference")
-        print(p)
-    }
-}
-```
-
-####
-```{r}
-for (bb in c("Feces", "Forearm", "Mouth")){
-    for (dd in c(2, 30, 120, 180)){
-        #dd=2
-        dat <- songbird_wk2 %>% 
-            filter(body_site==bb, days ==dd) %>%
-            mutate(x = paste(p, c, o, f, g, sep = ";"))
-        
-        %>%
-            group_by(x) %>%
-            filter(centered.diff.CS>=1 | centered.diff.CS<=-1)
-        dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
-            transform_sample_counts(., function(x){x / sum(x)}) %>%
-            otu_table() %>% as.matrix() %>% as.data.frame() %>%
-            rownames_to_column(var = "ASV") %>%
-            filter(ASV %in% dat$featureid) %>% 
-            pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
-            filter(rel_a>0) %>%
-            merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
         
         p2 <- dat_ft %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
             ggplot(aes(x = x, y = rel_a)) +
             geom_boxplot(outlier.size = 1) +
-            scale_y_continuous(breaks = c(1e-4, 1e-3, 1e-2, 1e-1, 1), labels =c("0.01%", "0.1%", "1%", "10%", "100%"), trans = "log10") +
+            scale_y_continuous(breaks = c(1e-4, 1e-3, 1e-2, 1e-1, 1), 
+                               labels =c("0.01%", "0.1%", "1%", "10%", "100%"), 
+                               trans = "log10",
+                               sec.axis = dup_axis()) +
             coord_flip() +
-            theme_bw() +
-            labs(x = "", y = "Relative Abundance in log scale", title = paste0("Day", dd))
+            theme_bw(base_size = 10) + theme(axis.text.y = element_blank()) +
+            labs(x = "", y = "Relative Abundance in log scale")
         
-        p3 = p + p2 + theme(axis.text.y = element_blank(), title = element_blank())
+        p3 = p + p2
         print(p3)
-        set_panel_size(g = patchworkGrob(p3), file = paste0(fig_path, "songbird_diff_", bb, "_g_day", dd, ".pdf"), width = unit(c(4, 3), "in"), height = unit(4*2.5*nrow(dat)/156, "in"), useDingbats = F )
+        #set_panel_size(g = patchworkGrob(p3), file = paste0(fig_path, "songbird_diff_", bb, "_all-g_day", dd, ".pdf"), width = unit(c(4, 3), "in"), height = unit(4*2.5*nrow(dat)/156, "in"), useDingbats = F )
     }
 }
+```
 
+#### All genus plots against CS
+```{r}
+for (bb in c("Feces", "Forearm", "Mouth")){
+    for (dd in c(2, 30, 120, 180)){
+        #dd=2
+        dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>%
+            mutate(x = paste(p, c, o, f, g, sep = ";"))
+        dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
+            transform_sample_counts(., function(x){x / sum(x)}) %>%
+            otu_table() %>% as.matrix() %>% as.data.frame() %>%
+            rownames_to_column(var = "ASV") %>%
+            filter(ASV %in% dat$featureid) %>% 
+            pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
+            filter(rel_a>0) %>%
+            merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
+        
+        x.order = dat %>% group_by(x) %>% summarise(MM = median(seeding.effectiveness.scale)) %>% arrange(MM)
+        
+        p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
+            ggplot(aes(x = x, y = P.CS)) +
+            annotate("rect", ymin = 0, ymax = 0.25, xmin = -Inf, xmax = Inf, 
+                     fill = col_birthmode["Vag"], alpha = 0.1) +
+            annotate("rect", ymin = 0.75, ymax = 1, xmin = -Inf, xmax = Inf, 
+                     fill = col_birthmode["CS"], alpha = 0.1) +
+            geom_point(aes(fill = seeding.effectiveness.scale), 
+                       shape = 21, color = "black", size = 1.5) +
+            scale_fill_continuous_divergingx(palette = 'Tropic', mid = 0.5, n_interp = 11) +
+            scale_y_continuous(sec.axis = dup_axis()) +
+            coord_flip() +
+            theme_bw(base_size = 10) +
+            labs(x = "", y = "Relative probality in cesarean birth", 
+                 fill = "Seeding Efficacy", title = paste(bb, "Day", dd),
+                 subtitle = "All genera")
+        p
+        p2 <- dat_ft %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
+            ggplot(aes(x = x, y = rel_a)) +
+            geom_boxplot(outlier.size = 1) +
+            scale_y_continuous(breaks = c(1e-4, 1e-3, 1e-2, 1e-1, 1), 
+                               labels =c("0.01%", "0.1%", "1%", "10%", "100%"), 
+                               trans = "log10",
+                               sec.axis = dup_axis()) +
+            coord_flip() +
+            theme_bw(base_size = 10) + theme(axis.text.y = element_blank()) +
+            labs(x = "", y = "Relative Abundance in log scale")
+        
+        p3 = p + p2
+        print(p3)
+        set_panel_size(g = patchworkGrob(p3), file = paste0(fig_path, "songbird_p.cs_", bb, "_all-g_day", dd, ".pdf"), width = unit(c(4, 3), "in"), height = unit(4*2.5*nrow(dat)/130, "in"), useDingbats = F )
+    }
+}
+```
 
-## filter by seeding effectiveness
-for (dd in c(2, 30, 120, 180)){
+#### Top `pct` genus plots against CS
+```{r}
+pct = 0.3
+for (bb in c("Feces", "Forearm", "Mouth")){
+    for (dd in c(2, 30, 120, 180)){
+        #dd=2
+        dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>%
+            mutate(x = paste(p, c, o, f, g, sep = ";"))
+        x.order = dat %>% group_by(x) %>% 
+            summarise(MM = max(seeding.effectiveness.scale), 
+                      MM2 = median(seeding.effectiveness.scale)) %>% 
+            arrange(desc(MM))
+        x.order2 = head(x.order, n = round(nrow(x.order)*pct)) %>%
+            arrange(MM2)
+        dat <- dat %>% filter(x %in% x.order2$x)
+        dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
+            transform_sample_counts(., function(x){x / sum(x)}) %>%
+            otu_table() %>% as.matrix() %>% as.data.frame() %>%
+            rownames_to_column(var = "ASV") %>%
+            filter(ASV %in% dat$featureid) %>% 
+            pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
+            filter(rel_a>0) %>%
+            merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
+        
+        p <- dat %>% mutate(x = factor(x, levels = unique(x.order2$x))) %>%
+            ggplot(aes(x = x, y = P.CS)) +
+            annotate("rect", ymin = 0, ymax = 0.25, xmin = -Inf, xmax = Inf, 
+                     fill = col_birthmode["Vag"], alpha = 0.1) +
+            annotate("rect", ymin = 0.75, ymax = 1, xmin = -Inf, xmax = Inf, 
+                     fill = col_birthmode["CS"], alpha = 0.1) +
+            geom_point(aes(fill = seeding.effectiveness.scale), 
+                       shape = 21, color = "black", size = 1.5) +
+            scale_fill_continuous_divergingx(palette = 'Tropic', mid = 0.5, n_interp = 11) +
+            scale_y_continuous(sec.axis = dup_axis()) +
+            coord_flip() +
+            theme_bw(base_size = 10) +
+            labs(x = "", y = "Relative probality in cesarean birth", 
+                 fill = "Seeding Efficacy", title = paste(bb, "Day", dd),
+                 subtitle = paste("Top", pct, "genera"))
+        p
+        p2 <- dat_ft %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
+            ggplot(aes(x = x, y = rel_a)) +
+            geom_boxplot(outlier.size = 1) +
+            scale_y_continuous(breaks = c(1e-4, 1e-3, 1e-2, 1e-1, 1), 
+                               labels =c("0.01%", "0.1%", "1%", "10%", "100%"), 
+                               trans = "log10",
+                               sec.axis = dup_axis()) +
+            coord_flip() +
+            theme_bw(base_size = 10) + theme(axis.text.y = element_blank()) +
+            labs(x = "", y = "Relative Abundance in log scale")
+        
+        p3 = p + p2
+        print(p3)
+        #set_panel_size(g = patchworkGrob(p3), file = paste0(fig_path, "songbird_p.cs_", bb, "_top", pct, "-g_day", dd, ".pdf"), width = unit(c(4, 3), "in"), height = unit(4*2.5*nrow(dat)/130, "in"), useDingbats = F )
+    }
+}
+```
+#### Top `pct` ASV plots against seeding effectiveness
+```{r}
+pct = 0.2
+for (bb in c("Feces", "Forearm", "Mouth")){
+    for (dd in c(2, 30, 120, 180)){
+        #dd=2
+        dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>%
+            mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
+            arrange(desc(seeding.effectiveness.scale)) %>%
+            head(n = nrow(.)*pct)
+            
+        x.order = dat %>% group_by(x) %>% 
+            summarise(MM = median(seeding.effectiveness.scale)) %>% 
+            arrange(MM)
+        
+        dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
+            transform_sample_counts(., function(x){x / sum(x)}) %>%
+            otu_table() %>% as.matrix() %>% as.data.frame() %>%
+            rownames_to_column(var = "ASV") %>%
+            filter(ASV %in% dat$featureid) %>% 
+            pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
+            filter(rel_a>0) %>%
+            merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
+        
+        p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
+            ggplot(aes(x = x, y = seeding.effectiveness.scale)) +
+            geom_point(aes(fill = P.CS), 
+                       shape = 21, color = "black", size = 1.5) +
+            scale_fill_continuous_divergingx(palette = 'RdYlBu', mid = 0.5, n_interp = 11, rev = T) +
+            scale_y_continuous(n.breaks = 6) +
+            coord_flip() +
+            theme_bw(base_size = 10) +
+            labs(x = "", y = "Seeding efficacy", 
+                 fill = "P.CS", title = paste(bb, "Day", dd),
+                 subtitle = paste("Top", pct, "genera"))
+        p
+        p2 <- dat_ft %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
+            ggplot(aes(x = x, y = rel_a)) +
+            geom_boxplot(outlier.size = 1) +
+            scale_y_continuous(breaks = c(1e-4, 1e-3, 1e-2, 1e-1, 1), 
+                               labels =c("0.01%", "0.1%", "1%", "10%", "100%"), 
+                               trans = "log10") +
+            coord_flip() +
+            theme_bw(base_size = 10) + theme(axis.text.y = element_blank()) +
+            labs(x = "", y = "Relative Abundance in log scale")
+        
+        p3 = p + p2
+        print(p3)
+        set_panel_size(g = patchworkGrob(p3), file = paste0(fig_path, "songbird_p.cs_", bb, "_top", pct, "-g_day", dd, ".pdf"), width = unit(c(4, 3), "in"), height = unit(10/.pt*nrow(dat), "mm"), useDingbats = F )
+    }
+}
+```
+```{r}
+n_top = 20
+#pct = 0.2
+for (bb in c("Feces", "Forearm", "Mouth")){
     #dd=2
-    dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>%
+    dat <- songbird_wk2 %>% filter(body_site==bb) %>%
         mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
-        group_by(k, p, c, o, f, g) %>%
-        filter(any(seeding.effectiveness.scale>=0.8))
-    dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
-        transform_sample_counts(., function(x){x / sum(x)}) %>%
-        otu_table() %>% as.matrix() %>% as.data.frame() %>%
-        rownames_to_column(var = "ASV") %>%
-        filter(ASV %in% dat$featureid) %>% 
-        pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
-        filter(rel_a>0) %>%
-        merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
-    
-    x.order = dat %>% group_by(x, featureid) %>% summarise(MM = mean(Diff.CS)) %>% arrange(desc(MM))
+        group_by(days) %>%
+        slice_max(seeding.effectiveness.scale, n = n_top)
+    x.order = dat %>% group_by(x) %>% 
+        summarise(MM = median(seeding.effectiveness.scale)) %>%
+        arrange(MM)
     
     p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
-        ggplot(aes(x = x, y = -Diff.CS)) +
-        annotate("rect", ymin = -Inf, ymax = 0, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
-        annotate("rect", ymin = 0, ymax = Inf, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
-        geom_hline(yintercept = 0, color = "grey") +
-        geom_point(aes(fill = seeding.effectiveness.scale), 
+        ggplot(aes(x = x, y = seeding.effectiveness.scale)) +
+        geom_point(aes(fill = P.CS), 
                    shape = 21, color = "black", size = 1.5) +
-        scale_fill_distiller(palette = 'RdYlBu', direction = 1) +
+        scale_fill_continuous_divergingx(palette = 'RdYlBu', mid = 0.5, n_interp = 11, rev = T) +
+        scale_y_continuous(n.breaks = 4) +
         coord_flip() +
-        theme_bw() +
-        labs(x = "", y = expression(Songbird~differentials~log~frac(Vag, CS)), fill = "Seeding Efficacy", title = paste0("Day", dd))
-    p2 <- dat_ft %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
-        ggplot(aes(x = x, y = rel_a)) +
-        geom_boxplot(outlier.size = 1) +
-        scale_y_continuous(breaks = c(1e-4, 1e-3, 1e-2, 1e-1, 1), labels =c("0.01%", "0.1%", "1%", "10%", "100%"), trans = "log10") +
-        coord_flip() +
-        theme_bw() +
-        labs(x = "", y = "Relative Abundance in log scale", title = paste0("Day", dd))
-    
-    p3 = p + p2 + theme(axis.text.y = element_blank(), title = element_blank())
-    print(p3)
-    set_panel_size(g = patchworkGrob(p3), file = paste0(fig_path, "songbird_diff_", bb, "_g_day", dd, "_v0.8.pdf"), width = unit(c(4, 3), "in"), height = unit(4*2.5*nrow(dat)/156, "in"), useDingbats = F )
+        facet_grid(.~days) +
+        theme_bw(base_size = 10) +
+        labs(x = "", y = "Seeding efficacy", 
+             fill = "P.CS", title = bb,
+             subtitle = paste("Top", n_top, "ASV"))
+    p
+    set_panel_size(p, file = paste0(fig_path, "songbird_p.cs_", bb, "_top", n_top, "-g.pdf"), width = unit(2, "in"), height = unit(10/.pt*length(unique(dat$x)), "mm"), useDingbats = F )
 }
+songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
+    group_by(body_site, days) %>%
+    slice_max(seeding.effectiveness.scale, n = n_top) %>%
+    arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
+    select(body_site, days, p:s, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
+    write.table(file = "../results/songbird_top20_asv.tsv", sep = "\t", quote = F, row.names = F)
+    
 ```
 
-### Plot against P.CS
+#### All gneus plots songbird differential
 ```{r}
-
-for (dd in c(2, 30, 120, 180)){
-    #dd=2
-    dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>%
-        mutate(x = paste(p, c, o, f, g, sep = ";"))
-    print(nrow(dat))
-    next
-    dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
-        transform_sample_counts(., function(x){x / sum(x)}) %>%
-        otu_table() %>% as.matrix() %>% as.data.frame() %>%
-        rownames_to_column(var = "ASV") %>%
-        filter(ASV %in% dat$featureid) %>% 
-        pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
-        filter(rel_a>0) %>%
-        merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
-    
-    x.order = dat %>% group_by(x, featureid) %>% summarise(MM = mean(P.CS)) %>% arrange(desc(MM))
-    
-    p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
-        ggplot(aes(x = x, y = P.CS)) +
-        annotate("rect", ymin = 0.75, ymax = 1, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
-        annotate("rect", ymin = 0, ymax = 0.25, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
-        geom_point(aes(fill = seeding.effectiveness.scale), 
-                   shape = 21, color = "black", size = 1.5) +
-        scale_fill_distiller(palette = 'RdYlBu', direction = 1) +
-        scale_y_continuous(position = "right") +
-        coord_flip() +
-        theme_bw() +
-        labs(x = "", y = "Relative probality in cesarean", fill = "Seeding Efficacy", title = paste0("Day", dd))
-    p2 <- dat_ft %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
-        ggplot(aes(x = x, y = rel_a)) +
-        geom_boxplot(outlier.size = 1) +
-        scale_y_continuous(breaks = c(1e-4, 1e-3, 1e-2, 1e-1, 1), labels =c("0.01%", "0.1%", "1%", "10%", "100%"), trans = "log10", position = "right") +
-        coord_flip() +
-        theme_bw() +
-        labs(x = "", y = "Relative Abundance in log scale", title = paste0("Day", dd))
-    
-    p3 = p + p2 + theme(axis.text.y = element_blank(), title = element_blank())
-    print(p3)
-    set_panel_size(g = patchworkGrob(p3), file = paste0(fig_path, "songbird_diff_", bb, "_g_day", dd, "_v3.pdf"), width = unit(c(4, 3), "in"), height = unit(4*2.5*nrow(dat)/156, "in"), useDingbats = F )
+for (bb in c("Feces", "Forearm", "Mouth")){
+    for (dd in c(2, 30, 120, 180)){
+        #dd=2
+        dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>%
+            mutate(x = paste(p, c, o, f, g, sep = ";"))
+        dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
+            transform_sample_counts(., function(x){x / sum(x)}) %>%
+            otu_table() %>% as.matrix() %>% as.data.frame() %>%
+            rownames_to_column(var = "ASV") %>%
+            filter(ASV %in% dat$featureid) %>% 
+            pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
+            filter(rel_a>0) %>%
+            merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
+        
+        x.order = dat %>% group_by(x) %>% summarise(MM = median(Diff.CS)) %>% arrange(desc(MM))
+        
+        p = dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
+            arrange(x) %>%
+            ggplot(aes(x = x, y = Diff.CS)) +
+                coord_flip() +
+            stat_summary(geom = "bar", fun = median, fill = "grey50") +
+            stat_summary(geom = 'errorbar', fun.data =  'mean_se') +
+            theme_bw(base_size = 10) +
+            labs(x = "", y = "Songbird differentials with vaginal as reference", 
+                 title = paste(bb, "Day", dd))
+        p2 <- dat_ft %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
+            ggplot(aes(x = x, y = rel_a)) +
+            geom_boxplot(outlier.size = 1) +
+            scale_y_continuous(breaks = c(1e-4, 1e-3, 1e-2, 1e-1, 1), 
+                               labels =c("0.01%", "0.1%", "1%", "10%", "100%"), 
+                               trans = "log10",
+                               sec.axis = dup_axis()) +
+            coord_flip() +
+            theme_bw(base_size = 10) + theme(axis.text.y = element_blank()) +
+            labs(x = "", y = "Relative Abundance in log scale")
+        
+        p3 = p + p2
+        print(p3)
+        set_panel_size(g = patchworkGrob(p3), file = paste0(fig_path, "songbird_diff_", bb, "_all-g_day", dd, ".pdf"), width = unit(c(4, 3), "in"), height = unit(4*2.5*nrow(dat)/130, "in"), useDingbats = F )
+    }
 }
-
 ```
 
+#### Top `pct` genus plots songbird differential
 ```{r}
-for (dd in c(2, 30, 120, 180)){
-    #dd=2
-    dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd, abs(Diff.CS)>=0.7) %>%
-        mutate(x = paste(p, c, o, f, g, sep = ";"))
-    #print(nrow(dat))
-    #next
-    dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
-        transform_sample_counts(., function(x){x / sum(x)}) %>%
-        otu_table() %>% as.matrix() %>% as.data.frame() %>%
-        rownames_to_column(var = "ASV") %>%
-        filter(ASV %in% dat$featureid) %>% 
-        pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
-        filter(rel_a>0) %>%
-        merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
-    
-    x.order = dat %>% group_by(x, featureid) %>% summarise(MM = mean(P.CS)) %>% arrange(desc(MM))
-    
-    p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
-        ggplot(aes(x = x, y = P.CS)) +
-        annotate("rect", ymin = 0.75, ymax = 1, xmin = -Inf, xmax = Inf, fill = "#E41A1C", alpha = 0.1) +
-        annotate("rect", ymin = 0, ymax = 0.25, xmin = -Inf, xmax = Inf, fill = "#377EB8", alpha = 0.1) +
-        geom_point(aes(fill = seeding.effectiveness.scale), 
-                   shape = 21, color = "black", size = 1.5) +
-        scale_fill_distiller(palette = 'RdYlBu', direction = 1) +
-        scale_y_continuous(position = "right") +
-        coord_flip() +
-        theme_bw() +
-        labs(x = "", y = "Relative probality in cesarean", fill = "Seeding Efficacy", title = paste0("Day", dd))
-    p2 <- dat_ft %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
-        ggplot(aes(x = x, y = rel_a)) +
-        geom_boxplot(outlier.size = 1) +
-        scale_y_continuous(breaks = c(1e-4, 1e-3, 1e-2, 1e-1, 1), labels =c("0.01%", "0.1%", "1%", "10%", "100%"), trans = "log10", position = "right") +
-        coord_flip() +
-        theme_bw() +
-        labs(x = "", y = "Relative Abundance in log scale", title = paste0("Day", dd))
-    
-    p3 = p + p2 + theme(axis.text.y = element_blank(), title = element_blank())
-    print(p3)
-    set_panel_size(g = patchworkGrob(p3), file = paste0(fig_path, "songbird_diff_", bb, "_g_day", dd, "_v4.pdf"), width = unit(c(4, 3), "in"), height = unit(4*2.5*nrow(dat)/156, "in"), useDingbats = F )
+pct = 0.2
+for (bb in c("Feces", "Forearm", "Mouth")){
+    for (dd in c(2, 30, 120, 180)){
+        #dd=2
+        dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>%
+            mutate(x = paste(p, c, o, f, g, sep = ";"))
+        x.order = dat %>% group_by(x) %>% summarise(MM = median(Diff.CS)) %>% arrange(desc(MM))
+        x.order2 = head(x.order, n = round(nrow(x.order)*pct)) %>%
+            rbind(., tail(x.order, n = round(nrow(x.order)*pct)))
+        dat <- dat %>% filter(x %in% x.order2$x)
+        
+        dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
+            transform_sample_counts(., function(x){x / sum(x)}) %>%
+            otu_table() %>% as.matrix() %>% as.data.frame() %>%
+            rownames_to_column(var = "ASV") %>%
+            filter(ASV %in% dat$featureid) %>% 
+            pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
+            filter(rel_a>0) %>%
+            merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
+        
+        
+        
+        p = dat %>% mutate(x = factor(x, levels = unique(x.order2$x))) %>%
+            arrange(x) %>%
+            ggplot(aes(x = x, y = Diff.CS)) +
+                coord_flip() +
+            stat_summary(geom = "bar", fun = median, fill = "grey50") +
+            stat_summary(geom = 'errorbar', fun.data =  'mean_se') +
+            theme_bw(base_size = 10) +
+            labs(x = "", y = "Songbird differentials with vaginal as reference", 
+                 title = paste(bb, "Day", dd))
+        p2 <- dat_ft %>% mutate(x = factor(x, levels = unique(x.order2$x))) %>%
+            ggplot(aes(x = x, y = rel_a)) +
+            geom_boxplot(outlier.size = 1) +
+            scale_y_continuous(breaks = c(1e-4, 1e-3, 1e-2, 1e-1, 1), 
+                               labels =c("0.01%", "0.1%", "1%", "10%", "100%"), 
+                               trans = "log10",
+                               sec.axis = dup_axis()) +
+            coord_flip() +
+            theme_bw(base_size = 10) + theme(axis.text.y = element_blank()) +
+            labs(x = "", y = "Relative Abundance in log scale")
+        
+        p3 = p + p2
+        print(p3)
+        set_panel_size(g = patchworkGrob(p3), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g_day", dd, ".pdf"), width = unit(c(4, 3), "in"), height = unit(4*2.5*nrow(dat)/130, "in"), useDingbats = F )
+    }
 }
-
 ```
-
 
 ## Summarizing ANCOM results
 ```{r}
-dat_path = list.files(path = "../data/diff-analysis-new/ancom_all_results",
+dat_path = list.files(path = "../data/diff-analysis-new/ancom_all_results/ancom_w_country",
                      pattern = "*rds", full.names = T, include.dirs = F)
 
-dat_nms <- (dat_path %>% str_split(., "/|\\.", simplify = T))[, 7]
+dat_nms <- (dat_path %>% str_split(., "/|\\.", simplify = T))[, 8]
 dat_files <- lapply(dat_path, function(x){readRDS(x)})
 names(dat_files) <- dat_nms
 
-dat_flt <- lapply(dat_files, function(x){lapply(x, function(y){y$W.taxa %>% filter(detected_0.6==T)}) %>% 
-        do.call("rbind", .) %>% 
-        rownames_to_column(var = "body_site_days")}) %>% 
+dat_flt <- lapply(dat_files, function(x){lapply(x, function(y){y$W.taxa %>% filter(detected_0.6==T)}) %>%
+        do.call("rbind", .) %>%
+        rownames_to_column(var = "body_site_days")}) %>%
     do.call("rbind", .) %>%
     rownames_to_column(var = "level") %>%
     separate(level, into = c(NA, NA, "level", NA), sep = "_|\\.") %>%
     separate(body_site_days, into = c(NA, "body_sites", "days", NA, NA), sep = "-|\\.") %>%
     mutate(days = as.numeric(days))
+dat_flt$Taxa_id[dat_flt$level!="ASV"] = NA
 ```
 
 ```{r}
 load("tmp_all_phylo.Rdata")
+songbird_wk2
+ancom_wk <- dat_flt %>% filter(level=="ASV", Phylum!="p_", Class!="c_", Order!="o_", Family!="f_", Phylum!="-", Class!="-", Order!="-", Family!="-")
+
+ASV_merge <- 
+
+
+
 levels = dat_flt$level %>% unique
 bodysites = dat_flt$body_sites %>% unique
 timepoints = dat_flt$days %>% unique
@@ -472,15 +557,15 @@ for (ll in levels){
         for (tt in timepoints){
             dat = dat_flt %>% filter(level==ll, body_sites==bb, days==tt)
             dat_phylo = all_phylo[[ll]][[paste0("Baby-", bb, "-", tt, ".0")]] %>%
-                prune_taxa(dat$Taxa_id, x = .) %>% 
+                prune_taxa(dat$Taxa_id, x = .) %>%
                 transform_sample_counts(., function(x){x / sum(x)})
             mf_phylo = sample_data(dat_phylo) %>% as.matrix() %>% as.data.frame() %>%
                 rownames_to_column(var = "sample_name") %>%
                 arrange(birth_mode_ms)
-            plot_heatmap(dat_phylo, 
+            plot_heatmap(dat_phylo,
                          sample.label = "birth_mode_ms",
                          sample.order = mf_phylo$sample_name,
-                         method = NULL, 
+                         method = NULL,
                          distance = NULL) %>% print()
         }
     }

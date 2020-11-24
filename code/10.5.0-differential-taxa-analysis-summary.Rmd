@@ -30,6 +30,68 @@ fig_path = "tmp_figs/"
 col_birthmode = c("#377EB8", "#4DAF4A", "#E41A1C")
 names(col_birthmode) = c("Vag", "CSseed", "CS")
 ```
+```{r}
+
+set_panel_size <- function (p = last_plot(), g = ggplot2::ggplotGrob(p), file = NULL, margin = unit(1, "mm"), width = unit(4, "cm"), height = unit(4, "cm"), panel.size = T, msg = F, bitmap = "png", useDingbats = F, ...) {
+    # This function is used to fine-tube the size of the panel
+    #
+    # Args:
+    #   p: the ggplot object
+    #   g: the ggplotGrob table for p, usually this parameter should not be changed
+    #   file: file path
+    #   margin: page margin, a unit object
+    #   width: the exact unit object
+    #   height: the exact unit object
+    #   panel.size: whether the width and height is panel size or the overall graph
+    #   msg: whether to print the grob table
+    #   bitmap: whether to also export an exact version of bitmap: "png", "tiff", NULL
+    #   ...: other ggsave parameters
+    panels <- grep("panel", g$layout$name)
+    panel_index_w <- unique(g$layout$l[panels])
+    panel_index_h <- unique(g$layout$t[panels])
+    nw <- length(panel_index_w)
+    nh <- length(panel_index_h)
+    if (panel.size){
+        if (length(width)==1 & length(height)==1){
+            g$widths[panel_index_w] <- rep(width, nw)
+            g$heights[panel_index_h] <- rep(height, nh)
+            if (!is.null(file)) {
+                ggplot2::ggsave(file, g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE), useDingbats = useDingbats, ...)
+                if (!is.null(bitmap)) {
+                    ggplot2::ggsave(paste0(tools::file_path_sans_ext(file), ".", bitmap), g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE),  dpi = 600, ...)
+                }
+            }
+        }
+        else{
+            g$widths[panel_index_w] <- width
+            g$heights[panel_index_h] <- height
+            if (!is.null(file)) {
+                ggplot2::ggsave(file, g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE), useDingbats = useDingbats, ...)
+                if (!is.null(bitmap)) {
+                    ggplot2::ggsave(paste0(tools::file_path_sans_ext(file), ".", bitmap), g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE),  dpi = 600, ...)
+                }
+            }
+        }
+    }
+    else{
+        sum_panel_width = convertWidth(width - sum(g$widths[-panel_index_w]) - 2 * margin, unitTo = "in", valueOnly = TRUE)
+        sum_panel_height = convertWidth(height - sum(g$heights[-panel_index_h]) - 2 * margin, unitTo = "in", valueOnly = TRUE)
+        panel_width_r <- as.numeric(g$widths[panel_index_w])
+        panel_height_r <- as.numeric(g$heights[panel_index_h])
+        g$widths[panel_index_w] <- unit(panel_width_r/sum(panel_width_r)*sum_panel_width, units = "in")
+        g$heights[panel_index_h] <- unit(panel_height_r/sum(panel_height_r)*sum_panel_height, units = "in")
+        if (!is.null(file)) {
+            ggplot2::ggsave(file, g, width = width, height = height, useDingbats = useDingbats, ...)
+            if (!is.null(bitmap)) {
+                ggplot2::ggsave(paste0(tools::file_path_sans_ext(file), ".", bitmap), g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE),  dpi = 600, ...)
+            }
+            print(g$widths[panel_index_w])
+            print(g$heights[panel_index_h])
+        }
+    }
+}
+
+```
 
 ## examing songbird model fit
 ```{r, eval=FALSE}
@@ -39,7 +101,7 @@ dat_models = lapply(dat_files, function(x){read_tsv(x) %>% select(-X1) %>% filte
 ```
 
 ## Summarizing songbird resulst
-When performing songbird parameter summarization, following parameters were tried:
+When performing songbird parameter summary, following parameters were tried:
 ```{r, eval=FALSE}
 songbird_pp = read_csv("../data/diff-analysis-new/TP-w-training-grid-search-parameters-set.csv") %>%
     mutate(across(everything(), ~trimws(.x))) %>%
@@ -100,21 +162,33 @@ songbird_wk %>% group_by(body_site, days) %>% summarise(stats = Hmisc::smean.sd(
 songbird_wk_0.9 <- songbird_wk %>% 
     filter(seeding.effectiveness.scale>=0.9, feature.frequency>=0.1) %>%
     mutate(across(.cols = c(P.CS:P.VD, feature.frequency:seeding.effectiveness.scale), ~round(., 3)))
-
 songbird_wk_0.9 %>% pivot_wider(id_cols = c(body_site, days, Taxon, k:s), names_from = NULL, values_from = c(Diff.CS, Diff.CSR, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS), names_repair = "minimal") %>% arrange(body_site, days, Taxon) %>% View
-
 songbird_wk_0.8 <- songbird_wk %>% 
     filter(seeding.effectiveness.scale>=0.8, feature.frequency>=0.1) %>%
     mutate(across(.cols = c(P.CS:P.VD, feature.frequency:seeding.effectiveness.scale), ~round(., 3)))
 
 songbird_wk_0.8 %>% group_by(body_site, days) %>% summarize(N = n())
-
+if (VagASV=="VagASV"){
+    phylo_trans = readRDS("phylo_transmission_analysis.Rdata")
+    mf_tmp <- sample_data(phylo_trans) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
+    ## Maternal ASV paranatal
+    mf_mm_day0 <- mf_tmp %>% filter((mom_baby=="Mom" & as.numeric(date_sampling_category_days_continuous)<=2)|body_site_corrected=="Gauze")
+    mf_mm_day0$body_site_corrected[mf_mm_day0$body_site_corrected=="Gauze"] = "Vagina"
+    mf_mm_day0$birth_mode_ms[mf_mm_day0$birth_mode_ms=="CSself"] = "CSseed"
+    mf_mm_day0_vagina <- mf_mm_day0 %>% filter(body_site_corrected=="Vagina") %>% split(., list(.$birth_mode_ms))
+    otu_mm_day0_vagina <- parallel::mclapply(mf_mm_day0_vagina, function(x){prune_samples(x$sample_name, phylo_trans) %>% 
+            otu_table %>% as.matrix() %>% as.data.frame() %>%
+            filter(rowSums(.>0)>0.1*ncol(.)) %>%
+            row.names()}, mc.cores = np) %>%
+        do.call("c", .) %>%
+        unique() # only include otu existed in more than 10% of samples
+    songbird_wk <- songbird_wk %>% filter(featureid %in% otu_mm_day0_vagina)
+}
 songbird_wk2 <- songbird_wk %>%
     filter(feature.frequency>=0.1, p!="p_", c!="c_", o!="o_", f!="f_", p!="-", c!="-", o!="-", f!="-")
 ```
 ### Ternary plot
 ```{r}
-
 plot_ternary = function(bb, dd){
     TernaryPlot(point = "up",  alab = "Cesaren-seeded <---", 
                 blab = "Vaginal --->", clab = "Cesarean <---",
@@ -172,6 +246,29 @@ for (bb in c("Feces", "Forearm", "Mouth")){
 load("tmp_all_phylo.Rdata")
 
 ```
+```{r}
+target_taxa <- songbird_wk2 %>% 
+    filter(body_site=="Feces", days==2, grepl("Streptococcus", Taxon)) %>%
+    mutate(x = paste(p, c, o, f, g, sep = ";"))
+ft_target <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
+    transform_sample_counts(., function(x){x / sum(x)}) %>%
+    otu_table() %>% as.matrix() %>% as.data.frame() %>%
+    rownames_to_column(var = "ASV") %>%
+    filter(ASV %in% target_taxa$featureid) %>% 
+    pivot_longer(-1, names_to = "sample_name", values_to = "rel_a") %>% 
+    filter(rel_a>0) %>%
+    merge(., target_taxa, by.x = "ASV", by.y = "featureid") %>%
+    merge(., sample_data(all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]]) %>% as.matrix %>% as.data.frame, by.x = "sample_name", by.y = 0)
+
+ggplot(ft_target, aes(ASV, rel_a, color = birth_mode_ms)) +
+    geom_boxplot() +
+    stat_summary(geom = "point", fun = mean, position = position_dodge(width = 0.8)) +
+    geom_text(aes(y = max(rel_a), label = Diff.CS)) +
+    scale_x_discrete(breaks = ft_target$ASV, labels = ft_target$Taxon) +
+    scale_y_continuous(trans = "log10") +
+    coord_flip()
+```
+
 #### All genus plots against VD
 ```{r}
 for (bb in c("Feces", "Forearm", "Mouth")){
@@ -442,17 +539,18 @@ for (bb in c("Feces", "Forearm", "Mouth")){
             filter(rel_a>0) %>%
             merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
         
-        x.order = dat %>% group_by(x) %>% summarise(MM = median(Diff.CS)) %>% arrange(desc(MM))
+        x.order = dat %>% group_by(x) %>% summarise(MM = mean(centered.diff.CS)) %>% arrange(desc(MM))
         
         p = dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
             arrange(x) %>%
-            ggplot(aes(x = x, y = Diff.CS)) +
+            ggplot(aes(x = x, y = centered.diff.CS)) +
                 coord_flip() +
-            stat_summary(geom = "bar", fun = median, fill = "grey50") +
+            stat_summary(geom = "bar", fun = mean, fill = "grey50") +
             stat_summary(geom = 'errorbar', fun.data =  'mean_se') +
             theme_bw(base_size = 10) +
             labs(x = "", y = "Songbird differentials with vaginal as reference", 
                  title = paste(bb, "Day", dd))
+        p
         p2 <- dat_ft %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
             ggplot(aes(x = x, y = rel_a)) +
             geom_boxplot(outlier.size = 1) +
@@ -479,7 +577,7 @@ for (bb in c("Feces", "Forearm", "Mouth")){
         #dd=2
         dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>%
             mutate(x = paste(p, c, o, f, g, sep = ";"))
-        x.order = dat %>% group_by(x) %>% summarise(MM = median(Diff.CS)) %>% arrange(desc(MM))
+        x.order = dat %>% group_by(x) %>% summarise(MM = mean(centered.diff.CS)) %>% arrange(desc(MM))
         x.order2 = head(x.order, n = round(nrow(x.order)*pct)) %>%
             rbind(., tail(x.order, n = round(nrow(x.order)*pct)))
         dat <- dat %>% filter(x %in% x.order2$x)
@@ -497,9 +595,9 @@ for (bb in c("Feces", "Forearm", "Mouth")){
         
         p = dat %>% mutate(x = factor(x, levels = unique(x.order2$x))) %>%
             arrange(x) %>%
-            ggplot(aes(x = x, y = Diff.CS)) +
+            ggplot(aes(x = x, y = centered.diff.CS)) +
                 coord_flip() +
-            stat_summary(geom = "bar", fun = median, fill = "grey50") +
+            stat_summary(geom = "bar", fun = mean, fill = "grey50") +
             stat_summary(geom = 'errorbar', fun.data =  'mean_se') +
             theme_bw(base_size = 10) +
             labs(x = "", y = "Songbird differentials with vaginal as reference", 
@@ -522,6 +620,27 @@ for (bb in c("Feces", "Forearm", "Mouth")){
 }
 ```
 
+### Statistical comparisons
+```{r}
+load("tmp_all_phylo.Rdata")
+# filter the songbird table to include top 20% ASVs with highest differentials comparing CS/Vag, and lowest 20%ASVs
+songbird_diff <- songbird_wk2 %>% 
+    split(., list(.$body_site, .$days)) %>%
+    lapply(., function(x){
+        rbind(slice_max(x, centered.diff.CS, prop = 0.2) %>% 
+                  mutate(Flag = "High_CS"), 
+              slice_min(x, centered.diff.CS, prop = 0.2) %>% 
+                  mutate(Flag = "High_VD"))}) %>%
+    do.call("rbind", .) %>% 
+    mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
+    select(body_site, days, featureid, p:s, seeding.effectiveness.scale, feature.frequency, centered.diff.CS, centered.diff.CS, P.VD, P.CSR, P.CS, Flag) %>%
+    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3)))
+
+# phyloseq object
+phylo_asv <- all_phylo$ASV
+
+```
+
 ## Summarizing ANCOM results
 ```{r}
 dat_path = list.files(path = "../data/diff-analysis-new/ancom_all_results/ancom_w_country",
@@ -540,16 +659,23 @@ dat_flt <- lapply(dat_files, function(x){lapply(x, function(y){y$W.taxa %>% filt
     separate(body_site_days, into = c(NA, "body_sites", "days", NA, NA), sep = "-|\\.") %>%
     mutate(days = as.numeric(days))
 dat_flt$Taxa_id[dat_flt$level!="ASV"] = NA
+write.table(dat_flt, file = "../data/diff-analysis-new/ancom_all_results/ancom_w_country_all_rsl.txt", sep = "\t", quote = F, row.names = F)
 ```
 
 ```{r}
 load("tmp_all_phylo.Rdata")
-songbird_flt <- songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
-    group_by(body_site, days) %>%
-    slice_max(seeding.effectiveness.scale, n = 20) %>%
-    arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
-    select(body_site, days, featureid, p:s, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+songbird_diff <- songbird_wk2 %>% 
+    split(., list(.$body_site, .$days)) %>%
+    lapply(., function(x){
+        rbind(slice_max(x, Diff.CS, prop = 0.2) %>% 
+                  mutate(Flag = "High_CS"), 
+              slice_min(x, Diff.CS, prop = 0.2) %>% 
+                  mutate(Flag = "High_VD"))}) %>%
+    do.call("rbind", .) %>% 
+    mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
+    select(body_site, days, featureid, p:s, seeding.effectiveness.scale, feature.frequency, Diff.CS, Diff.CSR, P.VD, P.CSR, P.CS, Flag) %>%
     mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3)))
+
 ancom_flt <- dat_flt %>% filter(level=="ASV", Phylum!="p_", Class!="c_", Order!="o_", Family!="f_", Phylum!="-", Class!="-", Order!="-", Family!="-")
 
 ASV_merge <- 

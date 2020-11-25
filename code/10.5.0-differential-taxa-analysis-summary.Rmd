@@ -91,6 +91,47 @@ set_panel_size <- function (p = last_plot(), g = ggplot2::ggplotGrob(p), file = 
     }
 }
 
+add_global_label <- function(pwobj, Xlab = NULL, Ylab = NULL, Xgap = 0.03, Ygap = 0.03, ...) {
+    ylabgrob <- patchwork::plot_spacer()
+    if (!is.null(Ylab)) {
+        ylabgrob <- ggplot() +
+            geom_text(aes(x = .5, y = .5), label = Ylab, angle = 90, ...) +
+            theme_void()
+    }
+    if (!is.null(Xlab)) {
+        xlabgrob <- ggplot() +
+            geom_text(aes(x = .5, y = .5), label = Xlab, ...) +
+            theme_void()
+    }
+    if (!is.null(Ylab) & is.null(Xlab)) {
+        return((ylabgrob + patchworkGrob(pwobj)) + 
+            patchwork::plot_layout(widths = 100 * c(Ygap, 1 - Ygap)))
+    }
+    if (is.null(Ylab) & !is.null(Xlab)) {
+        return((ylabgrob + pwobj) + 
+            (xlabgrob) +
+            patchwork::plot_layout(heights = 100 * c(1 - Xgap, Xgap),
+                                   widths = c(0, 100),
+                                   design = "
+                                   AB
+                                   CC
+                                   "
+            ))
+    }
+    if (!is.null(Ylab) & !is.null(Xlab)) {
+        return((ylabgrob + pwobj) + 
+            (xlabgrob) +
+            patchwork::plot_layout(heights = 100 * c(1 - Xgap, Xgap),
+                                   widths = 100 * c(Ygap, 1 - Ygap),
+                                   design = "
+                                   AB
+                                   CC
+                                   "
+            ))
+    }
+    return(pwobj)
+}
+
 ```
 
 ## examing songbird model fit
@@ -168,6 +209,7 @@ songbird_wk_0.8 <- songbird_wk %>%
     mutate(across(.cols = c(P.CS:P.VD, feature.frequency:seeding.effectiveness.scale), ~round(., 3)))
 
 songbird_wk_0.8 %>% group_by(body_site, days) %>% summarize(N = n())
+
 if (VagASV=="VagASV"){
     phylo_trans = readRDS("phylo_transmission_analysis.Rdata")
     mf_tmp <- sample_data(phylo_trans) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
@@ -189,10 +231,11 @@ songbird_wk2 <- songbird_wk %>%
 ```
 ### Ternary plot
 ```{r}
-plot_ternary = function(bb, dd){
-    TernaryPlot(point = "up",  alab = "Cesaren-seeded <---", 
-                blab = "Vaginal --->", clab = "Cesarean <---",
+plot_ternary = function(bb, dd, color_fun){
+    TernaryPlot(point = "up",  alab = "P(Cesaren-seeded) <---", 
+                blab = "P(Vaginal) --->", clab = "P(Cesarean) <---",
                 lab.col = c( "#4DAF4A", "#377EB8", "#E41A1C"),
+                lab.cex = 0.8,
                 
                 grid.minor.lines = 0,
                 grid.col = c( "#4DAF4A", "#377EB8", "#E41A1C"),
@@ -204,24 +247,24 @@ plot_ternary = function(bb, dd){
                 
                 axis.col = "black",
                 axis.labels=seq(0, 1, by = 0.1),
+                axis.cex = 0.8,
                 
                 clockwise = F)
     dat_ternary = songbird_wk %>% filter(body_site==bb, days==dd) %>% 
         select(P.CSR, P.VD, P.CS, seeding.effectiveness.scale)
-    dat_ternary$col = circlize::colorRamp2(seq(0, 1, 0.1), 
-                                           colors = colorspace::divergingx_hcl(11, palette = "Tropic"))(dat_ternary$seeding.effectiveness.scale)
+    dat_ternary$col = color_fun(dat_ternary$seeding.effectiveness.scale)
     
-    AddToTernary(points, dat_ternary[, 1:3], pch = 21, cex = 0.7,
-                 bg = dat_ternary$col)
+    AddToTernary(points, dat_ternary[, 1:3], pch = 21, cex = 0.7, col = dat_ternary$col, bg = dat_ternary$col)
 }
 
 for (bb in c("Feces", "Forearm", "Mouth")){
-    par(mfrow = c(2, 2), mar = rep(0.1, 4))
-    for (dd in c(2, 30, 120, 180)){
-        plot_ternary(bb, dd)
+    par(mfrow = c(1, 3), mar = rep(0.1, 4))
+    for (dd in c(2, 30, 180)){
+        color_fun = circlize::colorRamp2(seq(0, 1, 0.1), colors = sequential_hcl(11, palette = "Inferno"))
+        plot_ternary(bb, dd, color_fun)
     }
     dev.copy2pdf(file = paste0(fig_path, "songbird_ternary_plot_", bb, ".pdf"),
-                 width = 7, height = 10, useDingbats = F, pointsize = 10)
+                 width = 3.5, height = 6, useDingbats = F, pointsize = 8)
     dev.off()
     
     # create the legend
@@ -229,9 +272,9 @@ for (bb in c("Feces", "Forearm", "Mouth")){
     image(x = seq(0,1,len=100), 
           y = 1,
           z = matrix(1:100,ncol=1),
-          main = "Seeding efficacy",
+          main = "Engralftment Efficacy",
           cex.main = 1, 
-          col = colorspace::divergingx_hcl(100, palette = "Tropic"),
+          col = color_fun(seq(0,1,len=100)),
           axes = FALSE, xlab = "", ylab = "")
     axis(1, at = seq(0.1, 0.9, 0.2), cex.axis = 1)
     dev.copy2pdf(file = paste0(fig_path, "songbird_ternary_plot_", bb, "_legend.pdf"), width = 3, height = 1, pointsize = 8, useDingbats = F)
@@ -325,6 +368,7 @@ for (bb in c("Feces", "Forearm", "Mouth")){
 #### All genus plots against CS
 ```{r}
 for (bb in c("Feces", "Forearm", "Mouth")){
+    # bb = "Feces"
     for (dd in c(2, 30, 120, 180)){
         #dd=2
         dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>%
@@ -484,7 +528,6 @@ for (bb in c("Feces", "Forearm", "Mouth")){
 }
 ```
 #### Top `n_top` ASV plots against seeding effectiveness
-
 ```{r}
 n_top = 20
 #pct = 0.2
@@ -522,7 +565,51 @@ songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     write.table(file = "../results/songbird_top20_asv.tsv", sep = "\t", quote = F, row.names = F)
     
 ```
+#### ASV above `pct` seeding effectiveness
+```{r}
+pct = 0.8
+for (bb in c("Feces", "Forearm", "Mouth")){
+    # bb="Feces"
+    dat <- songbird_wk2 %>% filter(body_site==bb) %>%
+        mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
+        group_by(days) %>%
+        filter(seeding.effectiveness.scale>=pct) %>%
+        ungroup()
+    
+    dat_mat = dat %>% 
+        pivot_wider(id_cols = c(featureid, Taxon), names_from = days, values_from = P.CS) %>%
+        arrange(Taxon) %>% select(-Taxon) %>%
+        column_to_rownames(var = "featureid")
+    color_fun = circlize::colorRamp2(seq(0.1, 1, 0.1), colors = divergingx_hcl(10, palette = "RdYlBu", rev = T))
+    
+    df_row = dat %>% distinct(featureid, Taxon, p, c, o, f, g, s, x)
+    p = Heatmap(dat_mat,
+                rect_gp = gpar(col = "grey", lwd = 1),
+                name = "Relative probability in CS",
+                heatmap_legend_param = list(at = seq(0.1, 0.9, 0.2),
+                                            labels_gp = gpar(fontsize = 6), 
+                                            title_gp = gpar(fontsize = 7, fontface = "bold")),
+                cluster_columns = F,
+                cluster_rows = F,
+                
+                row_labels = paste(df_row$f, df_row$g, df_row$s, sep = ";")[match(rownames(dat_mat), df_row$featureid)],
+                row_names_gp = gpar(fontsize = 8),
+                column_names_side = "top",
+                column_names_rot = 0,
+                column_names_gp = gpar(fontsize = 9, fontface = "bold"),
+                column_names_centered = T,
+                column_title = "Days after birth",
+                column_title_gp = gpar(fontsize = 10, fontface = "bold"),
+                height = unit(9, "pt")*dim(dat_mat)[1],
+                width = unit(1.2, "in"),
+                col = color_fun,
+                na_col = "white")
+    p = draw(p)
+    dev.copy2pdf(file = paste0(fig_path, "ASV", pct,"-Heatmap-", bb, ".pdf"), width = ComplexHeatmap:::width(p)/25.4, height = ComplexHeatmap:::height(p)/25.4, useDingbats = F)
+    dev.off()
 
+}
+```
 #### All gneus plots songbird differential
 ```{r}
 for (bb in c("Feces", "Forearm", "Mouth")){
@@ -577,10 +664,11 @@ for (bb in c("Feces", "Forearm", "Mouth")){
         #dd=2
         dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>%
             mutate(x = paste(p, c, o, f, g, sep = ";"))
-        x.order = dat %>% group_by(x) %>% summarise(MM = mean(centered.diff.CS)) %>% arrange(desc(MM))
+        x.order = dat %>% group_by(x) %>% summarise(MM = median(centered.diff.CS)) %>% arrange(desc(MM))
         x.order2 = head(x.order, n = round(nrow(x.order)*pct)) %>%
             rbind(., tail(x.order, n = round(nrow(x.order)*pct)))
         dat <- dat %>% filter(x %in% x.order2$x)
+        dat_sum <- dat %>% group_by(x) %>% summarise(sum_seeding = mean(seeding.effectiveness.scale), sum_diff = mean(centered.diff.CS))
         
         dat_ft <- all_phylo$ASV[[paste0("Baby-", bb, "-", dd, ".0")]] %>% 
             transform_sample_counts(., function(x){x / sum(x)}) %>%
@@ -591,14 +679,13 @@ for (bb in c("Feces", "Forearm", "Mouth")){
             filter(rel_a>0) %>%
             merge(., dat %>% select(featureid, k:s, x), by.x = "ASV", by.y = 1)
         
-        
-        
         p = dat %>% mutate(x = factor(x, levels = unique(x.order2$x))) %>%
             arrange(x) %>%
             ggplot(aes(x = x, y = centered.diff.CS)) +
                 coord_flip() +
-            stat_summary(geom = "bar", fun = mean, fill = "grey50") +
+            geom_bar(dat = dat_sum %>% mutate(x = factor(x, levels = unique(x.order2$x))), stat = "identity", aes(y = sum_diff, fill = sum_seeding)) +
             stat_summary(geom = 'errorbar', fun.data =  'mean_se') +
+            scale_fill_continuous_sequential(palette = "Inferno", n_interp = 11, rev = F) +
             theme_bw(base_size = 10) +
             labs(x = "", y = "Songbird differentials with vaginal as reference", 
                  title = paste(bb, "Day", dd))
@@ -620,26 +707,56 @@ for (bb in c("Feces", "Forearm", "Mouth")){
 }
 ```
 
-### Statistical comparisons
+
 ```{r}
-load("tmp_all_phylo.Rdata")
-# filter the songbird table to include top 20% ASVs with highest differentials comparing CS/Vag, and lowest 20%ASVs
-songbird_diff <- songbird_wk2 %>% 
-    split(., list(.$body_site, .$days)) %>%
-    lapply(., function(x){
-        rbind(slice_max(x, centered.diff.CS, prop = 0.2) %>% 
-                  mutate(Flag = "High_CS"), 
-              slice_min(x, centered.diff.CS, prop = 0.2) %>% 
-                  mutate(Flag = "High_VD"))}) %>%
-    do.call("rbind", .) %>% 
-    mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
-    select(body_site, days, featureid, p:s, seeding.effectiveness.scale, feature.frequency, centered.diff.CS, centered.diff.CS, P.VD, P.CSR, P.CS, Flag) %>%
-    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3)))
-
-# phyloseq object
-phylo_asv <- all_phylo$ASV
-
+pct = 0.2
+for (bb in c("Feces", "Forearm", "Mouth")){
+    p_list = list()
+    for (dd in c(2, 30, 180)){
+        #dd=2
+        dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>% mutate(x = paste(p, c, o, f, g, sep = ";"))
+        x.order = dat %>% group_by(x) %>% summarise(MM = median(centered.diff.CS)) %>% arrange(desc(MM))
+        x.order2 = head(x.order, n = round(nrow(x.order)*pct)) %>%
+            rbind(., tail(x.order, n = round(nrow(x.order)*pct)))
+        dat <- dat %>% filter(x %in% x.order2$x) %>% mutate(x = factor(x, levels = unique(x.order2$x))) %>% arrange(x) 
+        dat_sum <- dat %>% group_by(x) %>% summarise(med_seeding = median(seeding.effectiveness.scale), med_diff = median(centered.diff.CS), mean_seeding = round(mean(seeding.effectiveness.scale), 3))
+        
+        p_list[[as.character(dd)]] = ggplot(dat, aes(x = x, y = centered.diff.CS)) +
+            coord_flip() +
+            geom_bar(data = dat_sum, stat = "identity", aes(y = med_diff, fill = med_seeding), color = "grey", size = 0.1) +
+            geom_text(data = dat_sum[dat_sum$med_diff>0, ], aes(y = -0.1, label = mean_seeding), size = 6/.pt, hjust = 1) +
+            geom_text(data = dat_sum[dat_sum$med_diff<=0, ], aes(y = 0.1, label = mean_seeding), size = 6/.pt, hjust = 0) +
+            scale_x_discrete(breaks = dat$x, labels = ifelse(dat$g %in% c("-", "g_"), paste(dat$f, dat$g, sep = ";"), dat$g)) +
+            scale_fill_continuous_sequential(palette = "Inferno", n_interp = 11, rev = F, begin = 0, end = 1, breaks = seq(0.1, 0.9, 0.2), limits = c(0, 1)) +
+            theme_bw(base_size = 8) +
+            labs(x = "", y = expression(Songbird~differentials~":"~log~"("~frac(Cesarean, Vaginal)~")"~ + K), fill = "Probability of coexistance in exposed babies", title = paste(bb, "Day", dd))
+        
+    }
+    p = wrap_plots(p_list) + plot_layout(guides = "collect")
+    set_panel_size(g = patchworkGrob(p), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g.pdf"), width = unit(1.3, "in"), height = unit(9/.pt*nrow(dat_sum), "mm"), useDingbats = F)
+}
 ```
+
+<!-- ### Statistical comparisons -->
+<!-- ```{r} -->
+<!-- load("tmp_all_phylo.Rdata") -->
+<!-- # filter the songbird table to include top 20% ASVs with highest differentials comparing CS/Vag, and lowest 20%ASVs -->
+<!-- songbird_diff <- songbird_wk2 %>%  -->
+<!--     split(., list(.$body_site, .$days)) %>% -->
+<!--     lapply(., function(x){ -->
+<!--         rbind(slice_max(x, centered.diff.CS, prop = 0.2) %>%  -->
+<!--                   mutate(Flag = "High_CS"),  -->
+<!--               slice_min(x, centered.diff.CS, prop = 0.2) %>%  -->
+<!--                   mutate(Flag = "High_VD"))}) %>% -->
+<!--     do.call("rbind", .) %>%  -->
+<!--     mutate(x = paste(p, c, o, f, g, sep = ";")) %>% -->
+<!--     select(body_site, days, featureid, p:s, seeding.effectiveness.scale, feature.frequency, centered.diff.CS, centered.diff.CS, P.VD, P.CSR, P.CS, Flag) %>% -->
+<!--     mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) -->
+
+<!-- # phyloseq object -->
+<!-- phylo_asv <- all_phylo$ASV -->
+
+<!-- ``` -->
 
 ## Summarizing ANCOM results
 ```{r}

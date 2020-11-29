@@ -91,51 +91,10 @@ set_panel_size <- function (p = last_plot(), g = ggplot2::ggplotGrob(p), file = 
     }
 }
 
-add_global_label <- function(pwobj, Xlab = NULL, Ylab = NULL, Xgap = 0.03, Ygap = 0.03, ...) {
-    ylabgrob <- patchwork::plot_spacer()
-    if (!is.null(Ylab)) {
-        ylabgrob <- ggplot() +
-            geom_text(aes(x = .5, y = .5), label = Ylab, angle = 90, ...) +
-            theme_void()
-    }
-    if (!is.null(Xlab)) {
-        xlabgrob <- ggplot() +
-            geom_text(aes(x = .5, y = .5), label = Xlab, ...) +
-            theme_void()
-    }
-    if (!is.null(Ylab) & is.null(Xlab)) {
-        return((ylabgrob + patchworkGrob(pwobj)) + 
-            patchwork::plot_layout(widths = 100 * c(Ygap, 1 - Ygap)))
-    }
-    if (is.null(Ylab) & !is.null(Xlab)) {
-        return((ylabgrob + pwobj) + 
-            (xlabgrob) +
-            patchwork::plot_layout(heights = 100 * c(1 - Xgap, Xgap),
-                                   widths = c(0, 100),
-                                   design = "
-                                   AB
-                                   CC
-                                   "
-            ))
-    }
-    if (!is.null(Ylab) & !is.null(Xlab)) {
-        return((ylabgrob + pwobj) + 
-            (xlabgrob) +
-            patchwork::plot_layout(heights = 100 * c(1 - Xgap, Xgap),
-                                   widths = 100 * c(Ygap, 1 - Ygap),
-                                   design = "
-                                   AB
-                                   CC
-                                   "
-            ))
-    }
-    return(pwobj)
-}
-
 ```
 
 ## examing songbird model fit
-```{r, eval=FALSE}
+```{r}
 dat_path = '../data/diff-analysis-new'
 dat_files = list.files(dat_path, pattern = "grid-search-all-allowed-models", full.names = T)
 dat_models = lapply(dat_files, function(x){read_tsv(x) %>% select(-X1) %>% filter(best=="Yes")}) %>% data.table::rbindlist(fill = T)
@@ -143,7 +102,7 @@ dat_models = lapply(dat_files, function(x){read_tsv(x) %>% select(-X1) %>% filte
 
 ## Summarizing songbird resulst
 When performing songbird parameter summary, following parameters were tried:
-```{r, eval=FALSE}
+```{r}
 songbird_pp = read_csv("../data/diff-analysis-new/TP-w-training-grid-search-parameters-set.csv") %>%
     mutate(across(everything(), ~trimws(.x))) %>%
     separate(body_site_days, into = c("body_site", "days"), sep = "-(?=\\d)") %>%
@@ -232,7 +191,7 @@ songbird_wk2 <- songbird_wk %>%
 ### Ternary plot
 ```{r}
 plot_ternary = function(bb, dd, color_fun){
-    TernaryPlot(point = "up",  alab = "P(Cesaren-seeded) <---", 
+    TernaryPlot(point = "up",  alab = "P(Cesarean-seeded) <---", 
                 blab = "P(Vaginal) --->", clab = "P(Cesarean) <---",
                 lab.col = c( "#4DAF4A", "#377EB8", "#E41A1C"),
                 lab.cex = 0.8,
@@ -240,44 +199,48 @@ plot_ternary = function(bb, dd, color_fun){
                 grid.minor.lines = 0,
                 grid.col = c( "#4DAF4A", "#377EB8", "#E41A1C"),
                 grid.lty = "dotted",
+                grid.lwd = 0.4,
                 
                 #padding = 0,
                 
                 main = paste0("Day ", dd),
+                cex.main = 1,
                 
                 axis.col = "black",
                 axis.labels=seq(0, 1, by = 0.1),
                 axis.cex = 0.8,
+                axis.lwd = 0.3,
+                ticks.lwd = 0.3,
                 
                 clockwise = F)
     dat_ternary = songbird_wk %>% filter(body_site==bb, days==dd) %>% 
         select(P.CSR, P.VD, P.CS, seeding.effectiveness.scale)
     dat_ternary$col = color_fun(dat_ternary$seeding.effectiveness.scale)
     
-    AddToTernary(points, dat_ternary[, 1:3], pch = 21, cex = 0.7, col = dat_ternary$col, bg = dat_ternary$col)
+    AddToTernary(points, dat_ternary[, 1:3], pch = 21, cex = 0.5, col = dat_ternary$col, bg = dat_ternary$col)
 }
 
 for (bb in c("Feces", "Forearm", "Mouth")){
+    pdf(file = paste0(fig_path, "songbird_ternary_plot_", bb, ".pdf"), width = 8.5, height = 4, useDingbats = F, pointsize = 12)
     par(mfrow = c(1, 3), mar = rep(0.1, 4))
     for (dd in c(2, 30, 180)){
         color_fun = circlize::colorRamp2(seq(0, 1, 0.1), colors = sequential_hcl(11, palette = "Inferno"))
         plot_ternary(bb, dd, color_fun)
     }
-    dev.copy2pdf(file = paste0(fig_path, "songbird_ternary_plot_", bb, ".pdf"),
-                 width = 3.5, height = 6, useDingbats = F, pointsize = 8)
+
     dev.off()
     
     # create the legend
-    par(mar = c(3, 0.1, 2, 0.1))
+    pdf(file = paste0(fig_path, "songbird_ternary_plot_", bb, "_legend.pdf"), width = 3, height = 1, pointsize = 8, useDingbats = F)
+    par(mai = c(0.3, 0.1, 0.3, 0.1))
     image(x = seq(0,1,len=100), 
           y = 1,
           z = matrix(1:100,ncol=1),
-          main = "Engralftment Efficacy",
+          main = "Probability of coexistance in exposed babies",
           cex.main = 1, 
           col = color_fun(seq(0,1,len=100)),
           axes = FALSE, xlab = "", ylab = "")
     axis(1, at = seq(0.1, 0.9, 0.2), cex.axis = 1)
-    dev.copy2pdf(file = paste0(fig_path, "songbird_ternary_plot_", bb, "_legend.pdf"), width = 3, height = 1, pointsize = 8, useDingbats = F)
     dev.off()
 }
 
@@ -719,21 +682,22 @@ for (bb in c("Feces", "Forearm", "Mouth")){
         x.order2 = head(x.order, n = round(nrow(x.order)*pct)) %>%
             rbind(., tail(x.order, n = round(nrow(x.order)*pct)))
         dat <- dat %>% filter(x %in% x.order2$x) %>% mutate(x = factor(x, levels = unique(x.order2$x))) %>% arrange(x) 
-        dat_sum <- dat %>% group_by(x) %>% summarise(med_seeding = median(seeding.effectiveness.scale), med_diff = median(centered.diff.CS), mean_seeding = round(mean(seeding.effectiveness.scale), 3))
+        dat_sum <- dat %>% group_by(x) %>% summarise(med_seeding = median(seeding.effectiveness.scale), med_diff = median(centered.diff.CS), mean_seeding = round(mean(seeding.effectiveness.scale), 3), max_seeding = max(seeding.effectiveness.scale))
         
         p_list[[as.character(dd)]] = ggplot(dat, aes(x = x, y = centered.diff.CS)) +
             coord_flip() +
-            geom_bar(data = dat_sum, stat = "identity", aes(y = med_diff, fill = med_seeding), color = "grey", size = 0.1) +
-            geom_text(data = dat_sum[dat_sum$med_diff>0, ], aes(y = -0.1, label = mean_seeding), size = 6/.pt, hjust = 1) +
-            geom_text(data = dat_sum[dat_sum$med_diff<=0, ], aes(y = 0.1, label = mean_seeding), size = 6/.pt, hjust = 0) +
+            geom_bar(data = dat_sum, stat = "identity", aes(y = med_diff, fill = max_seeding), color = "grey", size = 0.1) +
+            #geom_text(data = dat_sum[dat_sum$med_diff>0, ], aes(y = -0.1, label = mean_seeding), size = 6/.pt, hjust = 1) +
+            #geom_text(data = dat_sum[dat_sum$med_diff<=0, ], aes(y = 0.1, label = mean_seeding), size = 6/.pt, hjust = 0) +
             scale_x_discrete(breaks = dat$x, labels = ifelse(dat$g %in% c("-", "g_"), paste(dat$f, dat$g, sep = ";"), dat$g)) +
             scale_fill_continuous_sequential(palette = "Inferno", n_interp = 11, rev = F, begin = 0, end = 1, breaks = seq(0.1, 0.9, 0.2), limits = c(0, 1)) +
-            theme_bw(base_size = 8) +
+            theme_bw(base_size = 6) +
             labs(x = "", y = expression(Songbird~differentials~":"~log~"("~frac(Cesarean, Vaginal)~")"~ + K), fill = "Probability of coexistance in exposed babies", title = paste(bb, "Day", dd))
         
     }
     p = wrap_plots(p_list) + plot_layout(guides = "collect")
-    set_panel_size(g = patchworkGrob(p), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g.pdf"), width = unit(1.3, "in"), height = unit(9/.pt*nrow(dat_sum), "mm"), useDingbats = F)
+    set_panel_size(g = patchworkGrob(p), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g.pdf"), width = unit(1.3, "in"), height = unit(4,"in"), useDingbats = F)
+    
 }
 ```
 

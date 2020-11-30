@@ -683,25 +683,23 @@ for (bb in c("Feces", "Forearm", "Mouth")){
     for (dd in c(2, 30, 180)){
         #dd=2
         dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>% mutate(x = paste(p, c, o, f, g, sep = ";"))
-        x.order = dat %>% group_by(x) %>% summarise(MM = median(centered.diff.CS)) %>% arrange(desc(MM))
+        x.order = dat %>% group_by(x) %>% summarise(MM = median(centered.diff.CS)) %>% ungroup() %>% arrange(desc(MM)) 
         x.order2 = head(x.order, n = round(nrow(x.order)*pct)) %>%
             rbind(., tail(x.order, n = round(nrow(x.order)*pct)))
         dat <- dat %>% filter(x %in% x.order2$x) %>% mutate(x = factor(x, levels = unique(x.order2$x))) %>% arrange(x) 
-        dat_sum <- dat %>% group_by(x) %>% summarise(med_seeding = median(seeding.effectiveness.scale), med_diff = median(centered.diff.CS), mean_seeding = round(mean(seeding.effectiveness.scale), 3), max_seeding = max(seeding.effectiveness.scale))
+        dat_sum <- dat %>% group_by(p, c, o, f, g, x) %>% summarise(med_seeding = median(seeding.effectiveness.scale), med_diff = median(centered.diff.CS), mean_seeding = round(mean(seeding.effectiveness.scale), 3), max_seeding = max(seeding.effectiveness.scale)) %>% mutate(g_label = ifelse(g %in% c("-", "g_"), paste(gsub("f_", "", f), g, sep = ";"), gsub("g_", "", g)))
         
-        p_list[[as.character(dd)]] = ggplot(dat, aes(x = x, y = centered.diff.CS)) +
+        p_list[[as.character(dd)]] = ggplot(dat_sum, aes(x = x, y = med_diff)) +
             coord_flip() +
-            geom_bar(data = dat_sum, stat = "identity", aes(y = med_diff, fill = max_seeding), color = "grey", size = 0.1) +
-            #geom_text(data = dat_sum[dat_sum$med_diff>0, ], aes(y = -0.1, label = mean_seeding), size = 6/.pt, hjust = 1) +
-            #geom_text(data = dat_sum[dat_sum$med_diff<=0, ], aes(y = 0.1, label = mean_seeding), size = 6/.pt, hjust = 0) +
-            scale_x_discrete(breaks = dat$x, labels = ifelse(dat$g %in% c("-", "g_"), paste(dat$f, dat$g, sep = ";"), dat$g)) +
+            geom_bar(stat = "identity", aes(fill = max_seeding), color = "grey", size = 0.1) +
+            geom_text(aes(y = ifelse(med_diff>0, -0.1, 0.1), label = g_label, hjust = ifelse(med_diff>0, 1, 0)), size = 6/.pt) +
             scale_fill_continuous_sequential(palette = "Inferno", n_interp = 11, rev = F, begin = 0, end = 1, breaks = seq(0.1, 0.9, 0.2), limits = c(0, 1)) +
-            theme_bw(base_size = 6) +
+            theme_bw(base_size = 8) + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), plot.margin = margin(0, 0, 0, 0)) +
             labs(x = "", y = expression(Songbird~differentials~":"~log~"("~frac(Cesarean, Vaginal)~")"~ + K), fill = "Probability of coexistance in exposed babies", title = paste(bb, "Day", dd))
         
     }
     p = wrap_plots(p_list) + plot_layout(guides = "collect")
-    set_panel_size(g = patchworkGrob(p), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g.pdf"), width = unit(1.3, "in"), height = unit(4,"in"), useDingbats = F)
+    set_panel_size(g = patchworkGrob(p), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g.pdf"), width = unit(10/9, "in"), height = unit(3.5,"in"), useDingbats = F)
     
 }
 ```

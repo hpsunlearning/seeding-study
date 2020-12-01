@@ -20,12 +20,17 @@ library(Ternary)
 library(phyloseq)
 library(colorspace)
 library(patchwork)
+library(ComplexHeatmap)
 sessionInfo()
 conflict_prefer("filter", "dplyr")
 
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 
-fig_path = "tmp_figs/"
+if (VagASV=="VagASV"){
+    fig_path = "tmp_figs2/"
+} else {
+    fig_path = "tmp_figs/"
+}
 
 col_birthmode = c("#377EB8", "#4DAF4A", "#E41A1C")
 names(col_birthmode) = c("Vag", "CSseed", "CS")
@@ -282,7 +287,7 @@ ggplot(ft_target, aes(ASV, rel_a, color = birth_mode_ms)) +
     coord_flip()
 ```
 
-#### All genus plots against VD
+#### All genera plots against P.VD
 ```{r}
 for (bb in c("Feces", "Forearm", "Mouth")){
     for (dd in c(2, 30, 120, 180)){
@@ -330,12 +335,11 @@ for (bb in c("Feces", "Forearm", "Mouth")){
         
         p3 = p + p2
         print(p3)
-        #set_panel_size(g = patchworkGrob(p3), file = paste0(fig_path, "songbird_diff_", bb, "_all-g_day", dd, ".pdf"), width = unit(c(4, 3), "in"), height = unit(4*2.5*nrow(dat)/156, "in"), useDingbats = F )
     }
 }
 ```
 
-#### All genus plots against CS
+#### All genera plots against P.CS
 ```{r}
 for (bb in c("Feces", "Forearm", "Mouth")){
     # bb = "Feces"
@@ -388,7 +392,7 @@ for (bb in c("Feces", "Forearm", "Mouth")){
 }
 ```
 
-#### Top `pct` genus plots against CS
+#### Top `pct` ASV in genus plots against CS
 ```{r}
 pct = 0.3
 for (bb in c("Feces", "Forearm", "Mouth")){
@@ -445,7 +449,7 @@ for (bb in c("Feces", "Forearm", "Mouth")){
     }
 }
 ```
-#### Top `pct` ASV plots against seeding effectiveness
+#### Top `pct` (in term of seeding effectiveness) ASV plots against seeding effectiveness
 ```{r}
 pct = 0.2
 for (bb in c("Feces", "Forearm", "Mouth")){
@@ -523,9 +527,11 @@ for (bb in c("Feces", "Forearm", "Mouth")){
         labs(x = "", y = "Seeding efficacy", 
              fill = "P.CS", title = bb,
              subtitle = paste("Top", n_top, "ASV"))
-    p
+    print(p)
     set_panel_size(p, file = paste0(fig_path, "songbird_p.cs_", bb, "_top", n_top, "-g.pdf"), width = unit(2, "in"), height = unit(10/.pt*length(unique(dat$x)), "mm"), useDingbats = F )
 }
+```
+```{r}
 songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     group_by(body_site, days) %>%
     slice_max(seeding.effectiveness.scale, n = n_top) %>%
@@ -682,6 +688,7 @@ for (bb in c("Feces", "Forearm", "Mouth")){
 pct = 0.2
 for (bb in c("Feces", "Forearm", "Mouth")){
     p_list = list()
+    max_n = 0
     for (dd in c(2, 30, 180)){
         #dd=2
         dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd) %>% mutate(x = paste(p, c, o, f, g, sep = ";"))
@@ -689,43 +696,22 @@ for (bb in c("Feces", "Forearm", "Mouth")){
         x.order2 = head(x.order, n = round(nrow(x.order)*pct)) %>%
             rbind(., tail(x.order, n = round(nrow(x.order)*pct)))
         dat <- dat %>% filter(x %in% x.order2$x) %>% mutate(x = factor(x, levels = unique(x.order2$x))) %>% arrange(x) 
-        dat_sum <- dat %>% group_by(p, c, o, f, g, x) %>% summarise(med_seeding = median(seeding.effectiveness.scale), med_diff = median(centered.diff.CS), mean_seeding = round(mean(seeding.effectiveness.scale), 3), max_seeding = max(seeding.effectiveness.scale)) %>% mutate(g_label = ifelse(g %in% c("-", "g_"), paste(gsub("f_", "", f), g, sep = ";"), gsub("g_", "", g)))
+        dat_sum <- dat %>% group_by(p, c, o, f, g, x) %>% summarise(med_seeding = median(seeding.effectiveness.scale), med_diff = median(centered.diff.CS), mean_seeding = round(mean(seeding.effectiveness.scale), 3), max_seeding = max(seeding.effectiveness.scale)) %>% mutate(g_label = ifelse(g %in% c("-", "g_"), f, gsub("g_", "", g)))
         
         p_list[[as.character(dd)]] = ggplot(dat_sum, aes(x = x, y = med_diff)) +
             coord_flip() +
             geom_bar(stat = "identity", aes(fill = max_seeding), color = "grey", size = 0.1) +
             geom_text(aes(y = ifelse(med_diff>0, -0.1, 0.1), label = g_label, hjust = ifelse(med_diff>0, 1, 0)), size = 6/.pt) +
             scale_fill_continuous_sequential(palette = "Inferno", n_interp = 11, rev = F, begin = 0, end = 1, breaks = seq(0.1, 0.9, 0.2), limits = c(0, 1)) +
-            theme_bw(base_size = 8) + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), plot.margin = margin(0, 0, 0, 0)) +
+            theme_bw(base_size = 8) + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), plot.margin = margin(0, 0, 0, 0), panel.grid.major.y = element_blank()) +
             labs(x = "", y = expression(Songbird~differentials~":"~log~"("~frac(Cesarean, Vaginal)~")"~ + K), fill = "Probability of coexistance in exposed babies", title = paste(bb, "Day", dd))
-        
+        max_n = max(nrow(dat_sum), max_n)
     }
     p = wrap_plots(p_list) + plot_layout(guides = "collect")
-    set_panel_size(g = patchworkGrob(p), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g.pdf"), width = unit(2, "in"), height = unit(4,"in"), useDingbats = F)
+    set_panel_size(g = patchworkGrob(p), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g.pdf"), width = unit(2, "in"), height = unit(min(0.1*max_n, 4),"in"), useDingbats = F)
     
 }
 ```
-
-<!-- ### Statistical comparisons -->
-<!-- ```{r} -->
-<!-- load("tmp_all_phylo.Rdata") -->
-<!-- # filter the songbird table to include top 20% ASVs with highest differentials comparing CS/Vag, and lowest 20%ASVs -->
-<!-- songbird_diff <- songbird_wk2 %>%  -->
-<!--     split(., list(.$body_site, .$days)) %>% -->
-<!--     lapply(., function(x){ -->
-<!--         rbind(slice_max(x, centered.diff.CS, prop = 0.2) %>%  -->
-<!--                   mutate(Flag = "High_CS"),  -->
-<!--               slice_min(x, centered.diff.CS, prop = 0.2) %>%  -->
-<!--                   mutate(Flag = "High_VD"))}) %>% -->
-<!--     do.call("rbind", .) %>%  -->
-<!--     mutate(x = paste(p, c, o, f, g, sep = ";")) %>% -->
-<!--     select(body_site, days, featureid, p:s, seeding.effectiveness.scale, feature.frequency, centered.diff.CS, centered.diff.CS, P.VD, P.CSR, P.CS, Flag) %>% -->
-<!--     mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) -->
-
-<!-- # phyloseq object -->
-<!-- phylo_asv <- all_phylo$ASV -->
-
-<!-- ``` -->
 
 ## Summarizing ANCOM results
 ```{r}

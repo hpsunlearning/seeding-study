@@ -196,17 +196,18 @@ plot_ternary = function(bb, dd, color_fun){
                 blab = "P(Vaginal) --->", clab = "P(Cesarean) <---",
                 lab.col = c( "#4DAF4A", "#377EB8", "#E41A1C"),
                 lab.cex = 0.75,
-                lab.offset = 0.1,
+                lab.offset = 0.15,
                 
                 grid.lines = 5,
                 grid.minor.lines = 1,
-                grid.col = c( "#4DAF4A", "#377EB8", "#E41A1C"),
+                grid.col = c("#4DAF4A", "#377EB8", "#E41A1C"),
                 grid.lty = "dotted",
                 grid.lwd = 0.4,
                 grid.minor.lty = "dotted",
                 grid.minor.lwd = 0.2,
+                grid.minor.col = c("#4DAF4A", "#377EB8", "#E41A1C"),
                 
-                padding = 0,
+                padding = 0.12,
                 
                 main = paste0("Day ", dd),
                 cex.main = 1,
@@ -225,8 +226,9 @@ plot_ternary = function(bb, dd, color_fun){
     AddToTernary(points, dat_ternary[, 1:3], pch = 21, cex = 0.3, col = dat_ternary$col, bg = dat_ternary$col)
 }
 
+
 for (bb in c("Feces", "Forearm", "Mouth")){
-    pdf(file = paste0(fig_path, "songbird_ternary_plot_", bb, ".pdf"), width = 10/3, height = 2, useDingbats = F, pointsize = 12)
+    pdf(file = paste0(fig_path, "songbird_ternary_plot_", bb, ".pdf"), width = 6, height = 4, useDingbats = F, pointsize = 12)
     par(mfrow = c(1, 3), mar = rep(0.1, 4))
     for (dd in c(2, 30, 180)){
         color_fun = circlize::colorRamp2(seq(0, 1, 0.1), colors = sequential_hcl(11, palette = "Inferno"))
@@ -699,7 +701,7 @@ for (bb in c("Feces", "Forearm", "Mouth")){
         
     }
     p = wrap_plots(p_list) + plot_layout(guides = "collect")
-    set_panel_size(g = patchworkGrob(p), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g.pdf"), width = unit(10/9, "in"), height = unit(3.5,"in"), useDingbats = F)
+    set_panel_size(g = patchworkGrob(p), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g.pdf"), width = unit(2, "in"), height = unit(4,"in"), useDingbats = F)
     
 }
 ```

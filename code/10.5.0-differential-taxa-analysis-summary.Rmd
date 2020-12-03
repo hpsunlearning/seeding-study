@@ -26,11 +26,8 @@ conflict_prefer("filter", "dplyr")
 
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 
-if (VagASV=="VagASV"){
-    fig_path = "tmp_figs2/"
-} else {
-    fig_path = "tmp_figs/"
-}
+
+fig_path = "tmp_figs/"
 
 col_birthmode = c("#377EB8", "#4DAF4A", "#E41A1C")
 names(col_birthmode) = c("Vag", "CSseed", "CS")
@@ -175,24 +172,23 @@ songbird_wk_0.8 <- songbird_wk %>%
 songbird_wk_0.8 %>% group_by(body_site, days) %>% summarize(N = n())
 ```
 ```{r}
-if (VagASV=="VagASV"){
-    phylo_trans = readRDS("phylo_transmission_analysis.Rdata")
-    mf_tmp <- sample_data(phylo_trans) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
-    ## Maternal ASV paranatal
-    mf_mm_day0 <- mf_tmp %>% filter((mom_baby=="Mom" & as.numeric(date_sampling_category_days_continuous)<=2)|body_site_corrected=="Gauze")
-    mf_mm_day0$body_site_corrected[mf_mm_day0$body_site_corrected=="Gauze"] = "Vagina"
-    mf_mm_day0$birth_mode_ms[mf_mm_day0$birth_mode_ms=="CSself"] = "CSseed"
-    mf_mm_day0_vagina <- mf_mm_day0 %>% filter(body_site_corrected=="Vagina") %>% split(., list(.$birth_mode_ms))
-    otu_mm_day0_vagina <- parallel::mclapply(mf_mm_day0_vagina, function(x){prune_samples(x$sample_name, phylo_trans) %>% 
-            otu_table %>% as.matrix() %>% as.data.frame() %>%
-            filter(rowSums(.>0)>0.1*ncol(.)) %>%
-            row.names()}, mc.cores = np) %>%
-        do.call("c", .) %>%
-        unique() # only include otu existed in more than 10% of samples
-    songbird_wk <- songbird_wk %>% filter(featureid %in% otu_mm_day0_vagina)
-}
+phylo_trans = readRDS("phylo_transmission_analysis.Rdata")
+mf_tmp <- sample_data(phylo_trans) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
+## Maternal ASV paranatal
+mf_mm_day0 <- mf_tmp %>% filter((mom_baby=="Mom" & as.numeric(date_sampling_category_days_continuous)<=2)|body_site_corrected=="Gauze")
+mf_mm_day0$body_site_corrected[mf_mm_day0$body_site_corrected=="Gauze"] = "Vagina"
+mf_mm_day0$birth_mode_ms[mf_mm_day0$birth_mode_ms=="CSself"] = "CSseed"
+mf_mm_day0_vagina <- mf_mm_day0 %>% filter(body_site_corrected=="Vagina") %>% split(., list(.$birth_mode_ms))
+otu_mm_day0_vagina <- parallel::mclapply(mf_mm_day0_vagina, function(x){prune_samples(x$sample_name, phylo_trans) %>% 
+        otu_table %>% as.matrix() %>% as.data.frame() %>%
+        filter(rowSums(.>0)>0.1*ncol(.)) %>%
+        row.names()}, mc.cores = np) %>%
+    do.call("c", .) %>%
+    unique() # only include otu existed in more than 10% of samples
+
 songbird_wk2 <- songbird_wk %>%
-    filter(feature.frequency>=0.1, p!="p_", c!="c_", o!="o_", f!="f_", p!="-", c!="-", o!="-", f!="-")
+    filter(feature.frequency>=0.1, p!="p_", c!="c_", o!="o_", f!="f_", p!="-", c!="-", o!="-", f!="-") %>%
+    mutate(VaginaASV = featureid %in% otu_mm_day0_vagina)
 ```
 ### Ternary plot
 ```{r}
@@ -360,14 +356,12 @@ for (bb in c("Feces", "Forearm", "Mouth")){
         
         p <- dat %>% mutate(x = factor(x, levels = unique(x.order$x))) %>%
             ggplot(aes(x = x, y = P.CS)) +
-            annotate("rect", ymin = 0, ymax = 0.25, xmin = -Inf, xmax = Inf, 
-                     fill = col_birthmode["Vag"], alpha = 0.1) +
-            annotate("rect", ymin = 0.75, ymax = 1, xmin = -Inf, xmax = Inf, 
-                     fill = col_birthmode["CS"], alpha = 0.1) +
-            geom_point(aes(fill = seeding.effectiveness.scale), 
-                       shape = 21, color = "black", size = 1.5) +
+            annotate("rect", ymin = 0, ymax = 0.25, xmin = -Inf, xmax = Inf, fill = col_birthmode["Vag"], alpha = 0.1) +
+            annotate("rect", ymin = 0.75, ymax = 1, xmin = -Inf, xmax = Inf, fill = col_birthmode["CS"], alpha = 0.1) +
+            geom_point(aes(fill = seeding.effectiveness.scale, shape = VaginaASV), color = "black", size = 1.5) +
             scale_fill_continuous_divergingx(palette = 'Tropic', mid = 0.5, n_interp = 11) +
             scale_y_continuous(sec.axis = dup_axis()) +
+            scale_shape_manual(values = c(21, 24)) +
             coord_flip() +
             theme_bw(base_size = 10) +
             labs(x = "", y = "Relative probality in cesarean birth", 
@@ -531,16 +525,7 @@ for (bb in c("Feces", "Forearm", "Mouth")){
     set_panel_size(p, file = paste0(fig_path, "songbird_p.cs_", bb, "_top", n_top, "-g.pdf"), width = unit(2, "in"), height = unit(10/.pt*length(unique(dat$x)), "mm"), useDingbats = F )
 }
 ```
-```{r}
-songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
-    group_by(body_site, days) %>%
-    slice_max(seeding.effectiveness.scale, n = n_top) %>%
-    arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
-    select(body_site, days, p:s, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
-    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
-    write.table(file = "../results/songbird_top20_asv.tsv", sep = "\t", quote = F, row.names = F)
-    
-```
+
 #### ASV above `pct` seeding effectiveness
 ```{r}
 pct = 0.8
@@ -696,12 +681,13 @@ for (bb in c("Feces", "Forearm", "Mouth")){
         x.order2 = head(x.order, n = round(nrow(x.order)*pct)) %>%
             rbind(., tail(x.order, n = round(nrow(x.order)*pct)))
         dat <- dat %>% filter(x %in% x.order2$x) %>% mutate(x = factor(x, levels = unique(x.order2$x))) %>% arrange(x) 
-        dat_sum <- dat %>% group_by(p, c, o, f, g, x) %>% summarise(med_seeding = median(seeding.effectiveness.scale), med_diff = median(centered.diff.CS), mean_seeding = round(mean(seeding.effectiveness.scale), 3), max_seeding = max(seeding.effectiveness.scale)) %>% mutate(g_label = ifelse(g %in% c("-", "g_"), f, gsub("g_", "", g)))
+        dat_sum <- dat %>% group_by(p, c, o, f, g, x) %>% summarise(med_seeding = median(seeding.effectiveness.scale), med_diff = median(centered.diff.CS), mean_seeding = round(mean(seeding.effectiveness.scale), 3), max_seeding = max(seeding.effectiveness.scale), VaginaASV = any(VaginaASV)) %>% mutate(g_label = ifelse(g %in% c("-", "g_"), f, gsub("g_", "", g)))
         
         p_list[[as.character(dd)]] = ggplot(dat_sum, aes(x = x, y = med_diff)) +
             coord_flip() +
             geom_bar(stat = "identity", aes(fill = max_seeding), color = "grey", size = 0.1) +
-            geom_text(aes(y = ifelse(med_diff>0, -0.1, 0.1), label = g_label, hjust = ifelse(med_diff>0, 1, 0)), size = 6/.pt) +
+            geom_text(aes(y = ifelse(med_diff>0, -0.1, 0.1), label = g_label, hjust = ifelse(med_diff>0, 1, 0), color = VaginaASV), size = 6/.pt, show.legend = F) +
+            scale_color_manual(values = c("black", "blue")) +
             scale_fill_continuous_sequential(palette = "Inferno", n_interp = 11, rev = F, begin = 0, end = 1, breaks = seq(0.1, 0.9, 0.2), limits = c(0, 1)) +
             theme_bw(base_size = 8) + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank(), plot.margin = margin(0, 0, 0, 0), panel.grid.major.y = element_blank()) +
             labs(x = "", y = expression(Songbird~differentials~":"~log~"("~frac(Cesarean, Vaginal)~")"~ + K), fill = "Probability of coexistance in exposed babies", title = paste(bb, "Day", dd))
@@ -712,7 +698,48 @@ for (bb in c("Feces", "Forearm", "Mouth")){
     
 }
 ```
+### Tables
+```{r}
+songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
+    group_by(body_site, days) %>%
+    slice_max(seeding.effectiveness.scale, n = 20) %>%
+    arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
+    select(body_site, days, p:s, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
+    write.table(file = "../results/songbird_top20_seedingeffectiveness_asv.tsv", sep = "\t", quote = F, row.names = F)
 
+songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
+    group_by(body_site, days) %>%
+    slice_max(seeding.effectiveness.scale, prop = 0.2) %>%
+    arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
+    select(body_site, days, p:s, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
+    write.table(file = "../results/songbird_top0.2_seedingeffectiveness_asv.tsv", sep = "\t", quote = F, row.names = F)
+
+songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
+    group_by(body_site, days) %>%
+    filter(seeding.effectiveness.scale>=0.8) %>%
+    arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
+    select(body_site, days, p:s, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
+    write.table(file = "../results/songbird_seedingeffectiveness0.8_asv.tsv", sep = "\t", quote = F, row.names = F)
+songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
+    group_by(body_site, days) %>%
+    filter(seeding.effectiveness.scale>=0.8) %>%
+    arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
+    select(body_site, days, p:s, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
+    group_by(body_site, days, VaginaASV) %>% summarise(N = n()) %>% mutate(Pct = N/sum(N)) %>% filter(VaginaASV)
+
+songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
+    split(., f = list(.$body_site, .$days)) %>%
+    lapply(., function(x){rbind(slice_max(x, centered.diff.CS, prop = 0.2), slice_min(x, centered.diff.CS, prop = 0.2))}) %>%
+    data.table::rbindlist(.) %>%
+    arrange(body_site, days, Taxon, desc(centered.diff.CS)) %>%
+    select(body_site, days, p:s, VaginaASV, centered.diff.CS, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+    mutate(across(centered.diff.CS:P.CS, ~round(.x, 3))) %>%
+    write.table(file = "../results/songbird_topbottom0.2_differential_asv.tsv", sep = "\t", quote = F, row.names = F)
+```
 ## Summarizing ANCOM results
 ```{r}
 dat_path = list.files(path = "../data/diff-analysis-new/ancom_all_results/ancom_w_country",

@@ -31,9 +31,9 @@ X_16S <- X_16S[ , !(names(X_16S) %in% drops)]
 
 # generate effect sizes ---------------------------------------------------_
 (dbrda_0 <- rda(Y_16S ~ 1., 
-                  X_16S, scale=TRUE)) # Model with intercept only
+                  X_16S)) # Model with intercept only
 (dbrda_1 <- rda(Y_16S ~ ., 
-                 X_16S, scale=TRUE)) # Model with all explanatory variables
+                 X_16S)) # Model with all explanatory variables
 step.res <- ordiR2step(dbrda_0, dbrda_1,
                        perm.max = 5000,
                        steps = 5000,
@@ -42,7 +42,7 @@ step.res <- ordiR2step(dbrda_0, dbrda_1,
                        trace = TRUE,
                        Pin = 0.1,
                        direction = c("both", "forward"),
-                       R2scope = FALSE)
+                       R2scope = TRUE)
 anova_table = step.res$anova
 
 write.table(anova_table,

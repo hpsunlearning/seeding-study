@@ -1,0 +1,242 @@
+---
+title: "Traditional Beta"
+author: "Jincheng Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, message = FALSE)
+# Loading library here
+library(tidyverse)
+library(extrafont)
+library(biomformat)
+library(qiime2R)
+library(vegan)
+library(ape)
+sessionInfo()
+np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
+fig_path = "tmp_figs/"
+```
+
+```{r}
+theme_Pub <- function(base_size=10) {
+    require(grid)
+    require(ggthemes)
+    (theme_foundation(base_size=base_size)
+        + theme(plot.title = element_text(face = "bold",
+                                          size = rel(1.2), hjust = 0.5),
+                text = element_text(),
+                panel.background = element_rect(colour = NA),
+                plot.background = element_rect(colour = NA),
+                panel.border = element_rect(colour = NA),
+                axis.title = element_text(face = "bold", size = rel(1), color = "black"),
+                axis.title.y = element_text(angle=90, vjust =2),
+                axis.title.x = element_text(vjust = -0.2),
+                axis.text = element_text(size = rel(1), color = "black"),
+                axis.line = element_line(color = "black", size = 1/.pt),
+                axis.ticks = element_line(color = "black", size = 1/.pt),
+                panel.grid.major = element_line(color = "grey", size = 0.1),
+                panel.grid.minor = element_line(color = "grey", size = 0.1),
+                legend.key = element_rect(colour = NA),
+                legend.position = "right",
+                legend.direction = "vertical",
+                legend.key.size= unit(0.4, "cm"),
+                legend.title = element_text(face="italic"),
+                legend.text=element_text(size = rel(0.8)),
+                plot.margin=unit(c(1,0.5,0.5,0.5),"lines"),
+                strip.background=element_rect(colour="black",fill="black"),
+                strip.text = element_text(face="bold", color = "white", size = rel(1))
+        ))
+}
+
+
+set_panel_size <- function (p = last_plot(), g = ggplot2::ggplotGrob(p), file = NULL, margin = unit(1, "mm"), width = unit(4, "cm"), height = unit(4, "cm"), panel.size = T, msg = F, bitmap = "png", useDingbats = F, ...) {
+    # This function is used to fine-tube the size of the panel
+    #
+    # Args:
+    #   p: the ggplot object
+    #   g: the ggplotGrob table for p, usually this parameter should not be changed
+    #   file: file path
+    #   margin: page margin, a unit object
+    #   width: the exact unit object
+    #   height: the exact unit object
+    #   panel.size: whether the width and height is panel size or the overall graph
+    #   msg: whether to print the grob table
+    #   bitmap: whether to also export an exact version of bitmap: "png", "tiff", NULL
+    #   ...: other ggsave parameters
+    panels <- grep("panel", g$layout$name)
+    panel_index_w <- unique(g$layout$l[panels])
+    panel_index_h <- unique(g$layout$t[panels])
+    nw <- length(panel_index_w)
+    nh <- length(panel_index_h)
+    if (panel.size){
+        if (length(width)==1 & length(height)==1){
+            g$widths[panel_index_w] <- rep(width, nw)
+            g$heights[panel_index_h] <- rep(height, nh)
+            if (!is.null(file)) {
+                ggplot2::ggsave(file, g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE), useDingbats = useDingbats, ...)
+                if (!is.null(bitmap)) {
+                    ggplot2::ggsave(paste0(tools::file_path_sans_ext(file), ".", bitmap), g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE),  dpi = 600, ...)
+                }
+            }
+        }
+        else{
+            g$widths[panel_index_w] <- width
+            g$heights[panel_index_h] <- height
+            if (!is.null(file)) {
+                ggplot2::ggsave(file, g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE), useDingbats = useDingbats, ...)
+                if (!is.null(bitmap)) {
+                    ggplot2::ggsave(paste0(tools::file_path_sans_ext(file), ".", bitmap), g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE),  dpi = 600, ...)
+                }
+            }
+        }
+    }
+    else{
+        sum_panel_width = convertWidth(width - sum(g$widths[-panel_index_w]) - 2 * margin, unitTo = "in", valueOnly = TRUE)
+        sum_panel_height = convertWidth(height - sum(g$heights[-panel_index_h]) - 2 * margin, unitTo = "in", valueOnly = TRUE)
+        panel_width_r <- as.numeric(g$widths[panel_index_w])
+        panel_height_r <- as.numeric(g$heights[panel_index_h])
+        g$widths[panel_index_w] <- unit(panel_width_r/sum(panel_width_r)*sum_panel_width, units = "in")
+        g$heights[panel_index_h] <- unit(panel_height_r/sum(panel_height_r)*sum_panel_height, units = "in")
+        if (!is.null(file)) {
+            ggplot2::ggsave(file, g, width = width, height = height, useDingbats = useDingbats, ...)
+            if (!is.null(bitmap)) {
+                ggplot2::ggsave(paste0(tools::file_path_sans_ext(file), ".", bitmap), g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE),  dpi = 600, ...)
+            }
+            print(g$widths[panel_index_w])
+            print(g$heights[panel_index_h])
+        }
+    }
+}
+
+
+subset_dm_by_names <- function(DM, Sname){
+    # Extract the distance matrix using the sample names of a subset of the samples
+    #
+    # Args:
+    #   DM: the distance matrix as a dist class
+    #   Sname: a vector of the sample names
+    #
+    # Returns:
+    #   The extracted distance matrix as a class dist object
+    DM_mat <- DM %>% as.matrix
+    DM_sname <- DM_mat %>% row.names()
+    tmp <- match(Sname, DM_sname)
+    Exist <- tmp[!is.na(tmp)]
+    NoExist <- Sname[which(is.na(tmp))]
+    print("Following samples do not exist in the distance matrix:")
+    print(NoExist)
+    DM <- DM_mat[Exist, Exist] %>% as.dist()
+    return(DM)
+}
+```
+
+## Import files
+### baby and maternal samples
+```{r}
+# all body sites to use for now
+ss <- c("Feces", "Mouth", "Forearm")
+
+# distance matreces qza path
+data_path <- "../data/beta-diversity"
+
+dm_dat <- parallel::mclapply(list.dirs(data_path, full.names = T, recursive = F), function(x){read_qza(paste0(x, "/distance_matrix.qza"))$data}, mc.cores = np)
+names(dm_dat) <- (list.dirs(data_path, full.names = T, recursive = F) %>% str_split(., "/", simplify = T))[, 4]
+
+# import metadata
+mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+mf$body_site_corrected[mf$body_site_corrected=="Right_Forearm"] = "Forearm"
+
+clr_bm = c("#e41a1c", "#4daf4a", "#377eb8")
+names(clr_bm) = c("CS", "CSseed", "Vag")
+```
+
+## All countries together
+```{r}
+ss <- c("Feces", "Mouth", "Forearm")
+mm <- c("aitchison", "braycurtis", "unifrac", "wunifrac")
+
+mf_wk <- list()
+for (ss_ in ss){
+    
+    for (mm_ in mm){
+        dm_tmp = dm_dat[[paste("Baby", ss_, mm_, sep = "-")]]
+        pcoa_tmp = pcoa(dm_tmp)
+        
+        varPC1 <- round(pcoa_tmp$values$Relative_eig[1]*100, 2)
+        varPC2 <- round(pcoa_tmp$values$Relative_eig[2]*100, 2)
+        varPC3 <- round(pcoa_tmp$values$Relative_eig[3]*100, 2)
+        
+        mf_tmp = mf %>% filter(sample_name %in% rownames(pcoa_tmp$vectors))
+        plot_data = merge(pcoa_tmp$vectors[, 1:3], mf, by.x = 0, by.y = "sample_name", all = F)
+        p = ggplot(data = plot_data, aes(x = date_sampling_category_days_continuous, y = Axis.1, color = birth_mode_ms)) +
+            stat_summary(fun = "mean", geom = "line", aes(linetype = birth_mode_ms), size = 2/.pt) +
+            stat_summary(fun.data = "mean_cl_boot", geom = "ribbon", aes(fill = birth_mode_ms), color  = NA, alpha = 0.3) +
+            theme_Pub(base_size = 8) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), aspect.ratio = 0.6) +
+            labs(x = "Age (Days)", y = paste0("Axis.1 (", varPC1, "%)"), title = paste(ss_, mm_, sep = "-"), color = "Birth_Mode", fill = "Birth_Mode", linetype = "Birth_Mode") +
+            scale_color_manual(values = clr_bm) +
+            scale_fill_manual(values = clr_bm) +
+            scale_x_continuous(breaks = seq(0, 360, by = 30), labels = c(0, "", 60, "", 120, "", 180, "", 240, "", 300, "", 360)) +
+            scale_linetype_manual(values = c("dashed", "solid", "longdash")) +
+            scale_y_continuous(n.breaks = 5)
+        print(p)
+        set_panel_size(p, file = paste0(fig_path, "pc1_baby", ss_, "_", mm_, ".pdf"), width = unit(2.6, "in"), height = unit(1.6, "in"), useDingbats = F, family = "Arial")
+    }
+    mf_wk[[ss_]] <- mf_tmp
+}
+```
+
+```{r}
+ss <- c("Feces", "Mouth", "Forearm")
+mm <- c("aitchison", "braycurtis", "unifrac", "wunifrac")
+
+pairwise.adonis = function(dm_tmp, mf_tmp, main_var, min_n){
+    #browser()
+    mf_tmp = mf_tmp %>% ungroup() %>% group_by(across(main_var)) %>% filter(n()>=min_n)
+    levels = unique(mf_tmp[[main_var]])
+    if (length(levels)>3){
+        stop("There are too many levels in main variable")
+    }
+    
+    if (length(levels)==1){
+        return(NULL)
+    } else if (length(levels)==2){
+        dm_tmp = subset_dm_by_names(dm_tmp, mf_tmp$sample_name)
+        fit = adonis(formula(paste0("dm_tmp ~ ", main_var)), data = mf_tmp)
+        tbl = fit$aov.tab[1,] %>% as.data.frame() %>% mutate(comp = paste(sort(levels), collapse = "-"))
+        return(tbl)
+    } else {
+        tbl = list()
+        for (ll in levels){
+            mf_tmp_ = mf_tmp %>% filter(get(main_var)!=ll)
+            dm_tmp_ = subset_dm_by_names(dm_tmp, mf_tmp_$sample_name)
+            tbl[[ll]] = pairwise.adonis(dm_tmp_, mf_tmp_, main_var, min_n)
+        }
+        tbl = data.table::rbindlist(tbl)
+        return(tbl)
+    }
+}
+
+adonis_tbls = list()
+for (ss_ in ss){
+    for (mm_ in mm){
+        dm_tmp = dm_dat[[paste("Baby", ss_, mm_, sep = "-")]]
+        mf_tmp = mf %>% filter(sample_name %in% attr(dm_tmp, "Labels"))
+        
+        adonis_tmp = split(mf_tmp, mf_tmp$date_sampling_category_days_continuous) %>% 
+            lapply(., function(x){pairwise.adonis(dm_tmp, x, "birth_mode_ms", 5)})
+       adonis_tbls[[paste(ss_, mm_, sep = "-")]] = data.table::rbindlist(adonis_tmp, idcol = "days") %>% mutate(dist = mm_, bodysite = ss_)
+    }
+}
+adonis_tbl = data.table::rbindlist(adonis_tbls)
+adonis_tbl$q = p.adjust(adonis_tbl$`Pr(>F)`, method = "BY")
+
+adonis_tbl_out = adonis_tbl %>% pivot_wider(id_cols = c(dist, bodysite, comp), names_from = days, values_from = q) %>% ungroup %>% mutate(across(.cols = -(1:3), ~case_when(is.na(.x) ~ "-", .x<=0.2 ~ "*", T ~ "NS")))
+write.table(adonis_tbl_out, file = "../results/beta_diversity_stats_table.txt", sep = "\t", quote = F, row.names = F)
+```
+

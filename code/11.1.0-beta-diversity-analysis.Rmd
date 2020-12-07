@@ -196,8 +196,8 @@ ss <- c("Feces", "Mouth", "Forearm")
 mm <- c("aitchison", "braycurtis", "unifrac", "wunifrac")
 
 pairwise.adonis = function(dm_tmp, mf_tmp, main_var, min_n){
-    browser()
-    mf_tmp = mf_tmp %>% group_by(across(main_var)) %>% filter(n()>=min_n)
+    #browser()
+    mf_tmp = mf_tmp %>% ungroup() %>% group_by(across(main_var)) %>% filter(n()>=min_n)
     levels = unique(mf_tmp[[main_var]])
     if (length(levels)>3){
         stop("There are too many levels in main variable")
@@ -208,7 +208,7 @@ pairwise.adonis = function(dm_tmp, mf_tmp, main_var, min_n){
     } else if (length(levels)==2){
         dm_tmp = subset_dm_by_names(dm_tmp, mf_tmp$sample_name)
         fit = adonis(formula(paste0("dm_tmp ~ ", main_var)), data = mf_tmp)
-        tbl = fit$aov.tab[1,] %>% as.data.frame() %>% mutate(comp = paste(levels, collapse = "-"))
+        tbl = fit$aov.tab[1,] %>% as.data.frame() %>% mutate(comp = paste(sort(levels), collapse = "-"))
         return(tbl)
     } else {
         tbl = list()
@@ -222,21 +222,21 @@ pairwise.adonis = function(dm_tmp, mf_tmp, main_var, min_n){
     }
 }
 
-
+adonis_tbls = list()
 for (ss_ in ss){
     for (mm_ in mm){
         dm_tmp = dm_dat[[paste("Baby", ss_, mm_, sep = "-")]]
         mf_tmp = mf %>% filter(sample_name %in% attr(dm_tmp, "Labels"))
         
-        adonis_tbls = split(mf_tmp, mf_tmp$date_sampling_category_days_continuous) %>% lapply(., function(x){pairwise.adonis(dm_tmp, x, "birth_mode_ms", 5)})
-        
-        
-        
+        adonis_tmp = split(mf_tmp, mf_tmp$date_sampling_category_days_continuous) %>% 
+            lapply(., function(x){pairwise.adonis(dm_tmp, x, "birth_mode_ms", 5)})
+       adonis_tbls[[paste(ss_, mm_, sep = "-")]] = data.table::rbindlist(adonis_tmp, idcol = "days") %>% mutate(dist = mm_, bodysite = ss_)
     }
-    mf_wk[[ss_]] <- mf_tmp
 }
+adonis_tbl = data.table::rbindlist(adonis_tbls)
+adonis_tbl$q = p.adjust(adonis_tbl$`Pr(>F)`, method = "BY")
 
-mf_wk <- data.table::rbindlist(mf_wk)
-mf_wk %>% group_by(body_site_corrected, birth_mode_ms, date_sampling_category_days_continuous) %>% summarise(N = n()) %>% pivot_wider(names_from = birth_mode_ms, values_from  = N) %>% View
+adonis_tbl_out = adonis_tbl %>% pivot_wider(id_cols = c(dist, bodysite, comp), names_from = days, values_from = q) %>% ungroup %>% mutate(across(.cols = -(1:3), ~case_when(is.na(.x) ~ "-", .x<=0.2 ~ "*", T ~ "NS")))
+write.table(adonis_tbl_out, file = "../results/beta_diversity_stats_table.txt", sep = "\t", quote = F, row.names = F)
 ```
 

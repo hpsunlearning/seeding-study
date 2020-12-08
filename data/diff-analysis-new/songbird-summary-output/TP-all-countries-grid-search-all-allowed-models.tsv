@@ -1,0 +1,245 @@
+	formula	min_features	batch_size	differential_prior	CV	baseline_CV	q_squared	body_site	days	model	best
+0	"C(birth_mode_ms, Treatment(""Vag""))"	4	16	0.25	433.6286956787109	486.21045837402346	0.10814609556354582	Baby-Feces	120.0	TP-model-no-country	
+1	"C(birth_mode_ms, Treatment(""Vag""))"	4	16	0.5	433.62841796875	486.2106567382813	0.10814703059426234	Baby-Feces	120.0	TP-model-no-country	Yes
+2	"C(birth_mode_ms, Treatment(""Vag""))"	4	33	0.25	463.4579559326172	520.8009582519531	0.11010540862252893	Baby-Feces	120.0	TP-model-no-country	
+3	"C(birth_mode_ms, Treatment(""Vag""))"	4	33	0.5	463.4575897216797	520.8008361816406	0.11010590320934355	Baby-Feces	120.0	TP-model-no-country	
+8	"C(birth_mode_ms, Treatment(""Vag""))"	8	33	0.25	913.6316650390625	919.4436889648438	0.006321239675183166	Baby-Feces	120.0	TP-model-no-country	
+9	"C(birth_mode_ms, Treatment(""Vag""))"	8	33	0.5	913.6313720703125	919.4436218261719	0.006321485752780909	Baby-Feces	120.0	TP-model-no-country	
+12	"C(birth_mode_ms, Treatment(""Vag""))"	4	17	0.25	159.3034637451172	171.9343002319336	0.07346315697204009	Baby-Feces	180.0	TP-model-no-country	
+13	"C(birth_mode_ms, Treatment(""Vag""))"	4	17	0.5	159.3038314819336	171.93438110351562	0.07346145396002912	Baby-Feces	180.0	TP-model-no-country	
+14	"C(birth_mode_ms, Treatment(""Vag""))"	4	34	0.25	176.01524658203124	183.51522064208984	0.040868403360862504	Baby-Feces	180.0	TP-model-no-country	
+15	"C(birth_mode_ms, Treatment(""Vag""))"	4	34	0.5	176.01531219482422	183.51520690917968	0.04086797405332798	Baby-Feces	180.0	TP-model-no-country	
+16	"C(birth_mode_ms, Treatment(""Vag""))"	4	8	0.25	150.6424301147461	152.06768798828125	0.009372522804745875	Baby-Feces	180.0	TP-model-no-country	Yes
+17	"C(birth_mode_ms, Treatment(""Vag""))"	4	8	0.5	150.64252777099608	152.06787719726563	0.009373113194843574	Baby-Feces	180.0	TP-model-no-country	
+18	"C(birth_mode_ms, Treatment(""Vag""))"	8	17	0.25	266.5981170654297	282.8199859619141	0.0573575762027968	Baby-Feces	180.0	TP-model-no-country	
+19	"C(birth_mode_ms, Treatment(""Vag""))"	8	17	0.5	266.5984771728516	282.8200653076172	0.057356567388957225	Baby-Feces	180.0	TP-model-no-country	
+20	"C(birth_mode_ms, Treatment(""Vag""))"	8	34	0.25	296.6503051757812	309.11488647460936	0.04032345850756036	Baby-Feces	180.0	TP-model-no-country	
+21	"C(birth_mode_ms, Treatment(""Vag""))"	8	34	0.5	296.6503173828125	309.11488342285156	0.04032340954281477	Baby-Feces	180.0	TP-model-no-country	
+22	"C(birth_mode_ms, Treatment(""Vag""))"	8	8	0.25	252.5577651977539	257.0861877441406	0.01761441400692254	Baby-Feces	180.0	TP-model-no-country	
+23	"C(birth_mode_ms, Treatment(""Vag""))"	8	8	0.5	252.557861328125	257.086328125	0.01761457651172027	Baby-Feces	180.0	TP-model-no-country	
+24	"C(birth_mode_ms, Treatment(""Vag""))"	3	15	0.25	445.90050354003904	447.22316589355466	0.00295749964309866	Baby-Feces	2.0	TP-model-no-country	
+25	"C(birth_mode_ms, Treatment(""Vag""))"	3	15	0.5	445.9006072998047	447.22315368652346	0.0029572404197252267	Baby-Feces	2.0	TP-model-no-country	
+26	"C(birth_mode_ms, Treatment(""Vag""))"	3	31	0.25	458.7936065673828	459.3265777587891	0.0011603317056173568	Baby-Feces	2.0	TP-model-no-country	
+27	"C(birth_mode_ms, Treatment(""Vag""))"	3	31	0.5	458.79359741210936	459.32651672363284	0.0011602189120819562	Baby-Feces	2.0	TP-model-no-country	
+28	"C(birth_mode_ms, Treatment(""Vag""))"	3	7	0.25	394.25360107421875	401.61130676269534	0.01832046450032876	Baby-Feces	2.0	TP-model-no-country	Yes
+29	"C(birth_mode_ms, Treatment(""Vag""))"	3	7	0.5	394.2537414550781	401.6113616943359	0.018320249228550578	Baby-Feces	2.0	TP-model-no-country	
+30	"C(birth_mode_ms, Treatment(""Vag""))"	7	15	0.25	859.0363647460938	861.6497314453125	0.003032980344385483	Baby-Feces	2.0	TP-model-no-country	
+31	"C(birth_mode_ms, Treatment(""Vag""))"	7	15	0.5	859.0366271972656	861.6498413085938	0.0030328028696198217	Baby-Feces	2.0	TP-model-no-country	
+32	"C(birth_mode_ms, Treatment(""Vag""))"	7	31	0.25	892.0820190429688	893.4857543945312	0.0015710774846250386	Baby-Feces	2.0	TP-model-no-country	
+33	"C(birth_mode_ms, Treatment(""Vag""))"	7	31	0.5	892.0820190429688	893.4857177734375	0.001571036562248218	Baby-Feces	2.0	TP-model-no-country	
+34	"C(birth_mode_ms, Treatment(""Vag""))"	7	7	0.25	751.4124145507812	776.8393310546875	0.03273124246861314	Baby-Feces	2.0	TP-model-no-country	
+35	"C(birth_mode_ms, Treatment(""Vag""))"	7	7	0.5	751.414892578125	776.8394958496094	0.03272825777695332	Baby-Feces	2.0	TP-model-no-country	
+36	"C(birth_mode_ms, Treatment(""Vag""))"	14	14	0.25	864.2651489257812	874.6534423828125	0.011877039469175954	Baby-Feces	30.0	TP-model-no-country	
+37	"C(birth_mode_ms, Treatment(""Vag""))"	14	14	0.5	864.2650268554687	874.6536071777343	0.011877365207223822	Baby-Feces	30.0	TP-model-no-country	
+38	"C(birth_mode_ms, Treatment(""Vag""))"	14	28	0.25	893.8507385253906	909.4704467773438	0.017174508866451554	Baby-Feces	30.0	TP-model-no-country	
+39	"C(birth_mode_ms, Treatment(""Vag""))"	14	28	0.5	893.850634765625	909.4704833984375	0.01717466252939348	Baby-Feces	30.0	TP-model-no-country	
+40	"C(birth_mode_ms, Treatment(""Vag""))"	14	56	0.25	927.0893737792969	961.0399475097656	0.035326912079399975	Baby-Feces	30.0	TP-model-no-country	
+41	"C(birth_mode_ms, Treatment(""Vag""))"	14	56	0.5	927.0894226074219	961.0399475097656	0.03532686127180862	Baby-Feces	30.0	TP-model-no-country	
+42	"C(birth_mode_ms, Treatment(""Vag""))"	7	14	0.25	499.06679382324216	499.6149871826172	0.001097231615221017	Baby-Feces	30.0	TP-model-no-country	Yes
+43	"C(birth_mode_ms, Treatment(""Vag""))"	7	14	0.5	499.06683959960935	499.6150848388672	0.0010973352404574088	Baby-Feces	30.0	TP-model-no-country	
+44	"C(birth_mode_ms, Treatment(""Vag""))"	7	28	0.25	520.3867980957032	529.9031188964843	0.01795860500047397	Baby-Feces	30.0	TP-model-no-country	
+45	"C(birth_mode_ms, Treatment(""Vag""))"	7	28	0.5	520.3869262695313	529.9031372070312	0.017958397052822206	Baby-Feces	30.0	TP-model-no-country	
+46	"C(birth_mode_ms, Treatment(""Vag""))"	7	56	0.25	549.8077697753906	559.1120727539062	0.016641212794220706	Baby-Feces	30.0	TP-model-no-country	
+47	"C(birth_mode_ms, Treatment(""Vag""))"	7	56	0.5	549.8078369140625	559.1120361328125	0.016641028304638095	Baby-Feces	30.0	TP-model-no-country	
+48	"C(birth_mode_ms, Treatment(""Vag""))"	2	17	0.25	54.31811676025391	54.56285629272461	0.00448546042307052	Baby-Forearm	120.0	TP-model-no-country	
+49	"C(birth_mode_ms, Treatment(""Vag""))"	2	17	0.5	54.318159866333005	54.562852478027345	0.004484600796721194	Baby-Forearm	120.0	TP-model-no-country	
+50	"C(birth_mode_ms, Treatment(""Vag""))"	2	4	0.25	39.21238403320312	40.4388973236084	0.030330037948122723	Baby-Forearm	120.0	TP-model-no-country	Yes
+51	"C(birth_mode_ms, Treatment(""Vag""))"	2	4	0.5	39.21310119628906	40.43999099731445	0.03033852804534176	Baby-Forearm	120.0	TP-model-no-country	
+54	"C(birth_mode_ms, Treatment(""Vag""))"	4	17	0.25	89.28552780151367	89.5370002746582	0.0028085872027555636	Baby-Forearm	120.0	TP-model-no-country	
+55	"C(birth_mode_ms, Treatment(""Vag""))"	4	17	0.5	89.28565902709961	89.53699798583985	0.002807096109923024	Baby-Forearm	120.0	TP-model-no-country	
+58	"C(birth_mode_ms, Treatment(""Vag""))"	4	8	0.25	80.68305206298828	81.5813720703125	0.011011337325265602	Baby-Forearm	120.0	TP-model-no-country	
+59	"C(birth_mode_ms, Treatment(""Vag""))"	4	8	0.5	80.68377532958985	81.5815414428711	0.011004525011456545	Baby-Forearm	120.0	TP-model-no-country	
+60	"C(birth_mode_ms, Treatment(""Vag""))"	2	17	0.25	157.93010711669922	168.59122161865236	0.06323647458981119	Baby-Forearm	180.0	TP-model-no-country	
+61	"C(birth_mode_ms, Treatment(""Vag""))"	2	17	0.5	157.92987213134765	168.59125366210938	0.06323804645363917	Baby-Forearm	180.0	TP-model-no-country	
+62	"C(birth_mode_ms, Treatment(""Vag""))"	2	4	0.25	131.45953369140625	133.80283813476564	0.01751311463961036	Baby-Forearm	180.0	TP-model-no-country	Yes
+63	"C(birth_mode_ms, Treatment(""Vag""))"	2	4	0.5	131.46492919921874	133.8041763305664	0.01748261672766105	Baby-Forearm	180.0	TP-model-no-country	
+64	"C(birth_mode_ms, Treatment(""Vag""))"	2	8	0.25	145.08033447265626	151.75078125	0.043956589365787724	Baby-Forearm	180.0	TP-model-no-country	
+65	"C(birth_mode_ms, Treatment(""Vag""))"	2	8	0.5	145.08062896728515	151.75106506347657	0.04395643676966099	Baby-Forearm	180.0	TP-model-no-country	
+66	"C(birth_mode_ms, Treatment(""Vag""))"	4	17	0.25	273.7447814941406	294.9814086914063	0.07199310387551328	Baby-Forearm	180.0	TP-model-no-country	
+67	"C(birth_mode_ms, Treatment(""Vag""))"	4	17	0.5	273.7460632324219	294.98133544921876	0.07198852830623437	Baby-Forearm	180.0	TP-model-no-country	
+68	"C(birth_mode_ms, Treatment(""Vag""))"	4	4	0.25	168.159716796875	212.8561019897461	0.20998404450262953	Baby-Forearm	180.0	TP-model-no-country	
+69	"C(birth_mode_ms, Treatment(""Vag""))"	4	4	0.5	168.16251220703126	212.85904693603516	0.20998184184501845	Baby-Forearm	180.0	TP-model-no-country	
+70	"C(birth_mode_ms, Treatment(""Vag""))"	4	8	0.25	196.2070343017578	269.8808654785156	0.27298649367427186	Baby-Forearm	180.0	TP-model-no-country	
+71	"C(birth_mode_ms, Treatment(""Vag""))"	4	8	0.5	196.21258697509765	269.8811981201172	0.2729668152437634	Baby-Forearm	180.0	TP-model-no-country	
+72	"C(birth_mode_ms, Treatment(""Vag""))"	3	13	0.25	57.08543586730957	58.66420021057129	0.026911887276990898	Baby-Forearm	2.0	TP-model-no-country	
+73	"C(birth_mode_ms, Treatment(""Vag""))"	3	13	0.5	57.08615264892578	58.66436004638672	0.02690232018576566	Baby-Forearm	2.0	TP-model-no-country	
+74	"C(birth_mode_ms, Treatment(""Vag""))"	3	27	0.25	64.68876037597656	65.00181503295899	0.004816091009515633	Baby-Forearm	2.0	TP-model-no-country	
+75	"C(birth_mode_ms, Treatment(""Vag""))"	3	27	0.5	64.6888526916504	65.00181198120117	0.0048146240852683375	Baby-Forearm	2.0	TP-model-no-country	
+76	"C(birth_mode_ms, Treatment(""Vag""))"	3	6	0.25	42.326083755493165	43.67278785705567	0.03083622932363206	Baby-Forearm	2.0	TP-model-no-country	Yes
+77	"C(birth_mode_ms, Treatment(""Vag""))"	3	6	0.5	42.32631149291992	43.67319297790527	0.030840004889652883	Baby-Forearm	2.0	TP-model-no-country	
+78	"C(birth_mode_ms, Treatment(""Vag""))"	6	13	0.25	89.2946273803711	99.36260833740235	0.10132565082071654	Baby-Forearm	2.0	TP-model-no-country	
+79	"C(birth_mode_ms, Treatment(""Vag""))"	6	13	0.5	89.29517059326172	99.36284713745117	0.10132234365489323	Baby-Forearm	2.0	TP-model-no-country	
+80	"C(birth_mode_ms, Treatment(""Vag""))"	6	27	0.25	109.88021697998047	116.20201263427734	0.054403495352472575	Baby-Forearm	2.0	TP-model-no-country	
+81	"C(birth_mode_ms, Treatment(""Vag""))"	6	27	0.5	109.8806251525879	116.20203170776367	0.05440013795174825	Baby-Forearm	2.0	TP-model-no-country	
+82	"C(birth_mode_ms, Treatment(""Vag""))"	6	6	0.25	73.54686965942383	77.35199661254883	0.04919235597995786	Baby-Forearm	2.0	TP-model-no-country	
+83	"C(birth_mode_ms, Treatment(""Vag""))"	6	6	0.5	73.5470100402832	77.35230178833008	0.04919429234904782	Baby-Forearm	2.0	TP-model-no-country	
+84	"C(birth_mode_ms, Treatment(""Vag""))"	4	17	0.25	96.45116882324218	102.8438346862793	0.062158960549630105	Baby-Forearm	30.0	TP-model-no-country	
+85	"C(birth_mode_ms, Treatment(""Vag""))"	4	17	0.5	96.45096435546876	102.84389724731446	0.062161519185453096	Baby-Forearm	30.0	TP-model-no-country	Yes
+86	"C(birth_mode_ms, Treatment(""Vag""))"	4	35	0.25	108.03037948608399	111.01694946289062	0.026901927960153005	Baby-Forearm	30.0	TP-model-no-country	
+87	"C(birth_mode_ms, Treatment(""Vag""))"	4	35	0.5	108.03042831420899	111.01689910888672	0.02690104676539884	Baby-Forearm	30.0	TP-model-no-country	
+90	"C(birth_mode_ms, Treatment(""Vag""))"	8	17	0.25	139.59097900390626	144.71973571777343	0.035439234935234154	Baby-Forearm	30.0	TP-model-no-country	
+91	"C(birth_mode_ms, Treatment(""Vag""))"	8	17	0.5	139.59144744873046	144.71994018554688	0.0354373608104116	Baby-Forearm	30.0	TP-model-no-country	
+92	"C(birth_mode_ms, Treatment(""Vag""))"	8	35	0.25	168.95970458984374	170.55296020507814	0.009341706020925211	Baby-Forearm	30.0	TP-model-no-country	
+93	"C(birth_mode_ms, Treatment(""Vag""))"	8	35	0.5	168.95970764160157	170.55292053222655	0.00934145768746275	Baby-Forearm	30.0	TP-model-no-country	
+96	"C(birth_mode_ms, Treatment(""Vag""))"	2	18	0.25	754.4028076171875	825.4645629882813	0.08608698490198252	Baby-Mouth	120.0	TP-model-no-country	
+97	"C(birth_mode_ms, Treatment(""Vag""))"	2	18	0.5	754.403662109375	825.4646240234375	0.08608601731192411	Baby-Mouth	120.0	TP-model-no-country	
+100	"C(birth_mode_ms, Treatment(""Vag""))"	2	9	0.25	595.76025390625	741.5589416503906	0.196611057537322	Baby-Mouth	120.0	TP-model-no-country	Yes
+101	"C(birth_mode_ms, Treatment(""Vag""))"	2	9	0.5	595.7618713378906	741.5591613769532	0.19660911446140183	Baby-Mouth	120.0	TP-model-no-country	
+102	"C(birth_mode_ms, Treatment(""Vag""))"	4	18	0.25	1011.457470703125	1161.7105712890625	0.1293378095192962	Baby-Mouth	120.0	TP-model-no-country	
+103	"C(birth_mode_ms, Treatment(""Vag""))"	4	18	0.5	1011.458642578125	1161.710595703125	0.12933681906728234	Baby-Mouth	120.0	TP-model-no-country	
+106	"C(birth_mode_ms, Treatment(""Vag""))"	4	9	0.25	634.8269714355469	1009.4184875488281	0.37109634976361705	Baby-Mouth	120.0	TP-model-no-country	
+107	"C(birth_mode_ms, Treatment(""Vag""))"	4	9	0.5	634.832080078125	1009.4190612792969	0.3710916462449555	Baby-Mouth	120.0	TP-model-no-country	
+108	"C(birth_mode_ms, Treatment(""Vag""))"	2	18	0.25	836.9659301757813	889.2557556152344	0.05880178464886765	Baby-Mouth	180.0	TP-model-no-country	
+109	"C(birth_mode_ms, Treatment(""Vag""))"	2	18	0.5	836.9665588378906	889.2557861328125	0.05880110999594035	Baby-Mouth	180.0	TP-model-no-country	
+110	"C(birth_mode_ms, Treatment(""Vag""))"	2	4	0.25	345.53981628417966	489.5332977294922	0.2941444067506126	Baby-Mouth	180.0	TP-model-no-country	Yes
+111	"C(birth_mode_ms, Treatment(""Vag""))"	2	4	0.5	345.54755859375	489.5356048583984	0.2941319177515146	Baby-Mouth	180.0	TP-model-no-country	
+112	"C(birth_mode_ms, Treatment(""Vag""))"	2	9	0.25	693.3529602050781	830.5936889648438	0.16523208710001958	Baby-Mouth	180.0	TP-model-no-country	
+113	"C(birth_mode_ms, Treatment(""Vag""))"	2	9	0.5	693.3587890625	830.5939086914062	0.16522529023252652	Baby-Mouth	180.0	TP-model-no-country	
+114	"C(birth_mode_ms, Treatment(""Vag""))"	4	18	0.25	1365.7383178710938	1398.409521484375	0.02336311581932138	Baby-Mouth	180.0	TP-model-no-country	
+115	"C(birth_mode_ms, Treatment(""Vag""))"	4	18	0.5	1365.738623046875	1398.4095092773437	0.023362889063413106	Baby-Mouth	180.0	TP-model-no-country	
+116	"C(birth_mode_ms, Treatment(""Vag""))"	4	4	0.25	467.07753601074216	701.5196228027344	0.33419177336100936	Baby-Mouth	180.0	TP-model-no-country	
+117	"C(birth_mode_ms, Treatment(""Vag""))"	4	4	0.5	467.0860870361328	701.522265625	0.33418209239588914	Baby-Mouth	180.0	TP-model-no-country	
+118	"C(birth_mode_ms, Treatment(""Vag""))"	4	9	0.25	1086.9189575195312	1280.2974731445313	0.15104186306799794	Baby-Mouth	180.0	TP-model-no-country	
+119	"C(birth_mode_ms, Treatment(""Vag""))"	4	9	0.5	1086.9281005859375	1280.2979614257813	0.15103504548620916	Baby-Mouth	180.0	TP-model-no-country	
+120	"C(birth_mode_ms, Treatment(""Vag""))"	3	15	0.25	729.89296875	788.9211730957031	0.07482142241673928	Baby-Mouth	2.0	TP-model-no-country	Yes
+121	"C(birth_mode_ms, Treatment(""Vag""))"	3	15	0.5	729.8938720703125	788.9212280273438	0.07482034182883646	Baby-Mouth	2.0	TP-model-no-country	
+122	"C(birth_mode_ms, Treatment(""Vag""))"	3	30	0.25	856.4591552734375	869.8573303222656	0.015402727070040645	Baby-Mouth	2.0	TP-model-no-country	
+123	"C(birth_mode_ms, Treatment(""Vag""))"	3	30	0.5	856.4593444824219	869.8572937011719	0.01540246810110979	Baby-Mouth	2.0	TP-model-no-country	
+126	"C(birth_mode_ms, Treatment(""Vag""))"	7	15	0.25	1544.4804077148438	1639.466162109375	0.05793700204969188	Baby-Mouth	2.0	TP-model-no-country	
+127	"C(birth_mode_ms, Treatment(""Vag""))"	7	15	0.5	1544.4814453125	1639.4664428710937	0.05793653049235492	Baby-Mouth	2.0	TP-model-no-country	
+128	"C(birth_mode_ms, Treatment(""Vag""))"	7	30	0.25	1836.1473510742187	1845.8774536132812	0.005271261383043568	Baby-Mouth	2.0	TP-model-no-country	
+129	"C(birth_mode_ms, Treatment(""Vag""))"	7	30	0.5	1836.1474731445312	1845.8773559570313	0.00527114262553785	Baby-Mouth	2.0	TP-model-no-country	
+134	"C(birth_mode_ms, Treatment(""Vag""))"	4	36	0.25	792.1701171875	792.774560546875	0.0007624404079743519	Baby-Mouth	30.0	TP-model-no-country	
+135	"C(birth_mode_ms, Treatment(""Vag""))"	4	36	0.5	792.1701110839844	792.7745361328125	0.0007624173346643115	Baby-Mouth	30.0	TP-model-no-country	Yes
+142	"C(birth_mode_ms, Treatment(""Vag""))"	9	9	0.25	870.2746276855469	879.4715087890625	0.010457281460065415	Baby-Mouth	30.0	TP-model-no-country	
+143	"C(birth_mode_ms, Treatment(""Vag""))"	9	9	0.5	870.274072265625	879.4715942382812	0.010458009141980584	Baby-Mouth	30.0	TP-model-no-country	
+144	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	16	0.25	432.72422180175784	486.21045837402346	0.11000634735651993	Baby-Feces	120.0	TP-model-w-country	Yes
+145	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	16	0.5	432.72431030273435	486.2106567382813	0.11000652843431546	Baby-Feces	120.0	TP-model-w-country	
+146	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	33	0.25	463.80262756347656	520.8009582519531	0.10944359795302439	Baby-Feces	120.0	TP-model-w-country	
+147	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	33	0.5	463.8024383544922	520.8008361816406	0.10944375251976168	Baby-Feces	120.0	TP-model-w-country	
+150	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	16	0.25	802.9050537109375	829.3504272460938	0.0318868510419289	Baby-Feces	120.0	TP-model-w-country	
+151	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	16	0.5	802.905224609375	829.3505126953125	0.031886744725089566	Baby-Feces	120.0	TP-model-w-country	
+152	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	33	0.25	843.4467529296875	919.4436889648438	0.08265534577839939	Baby-Feces	120.0	TP-model-w-country	
+153	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	33	0.5	843.4468566894532	919.4436218261719	0.08265516594239486	Baby-Feces	120.0	TP-model-w-country	
+156	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	17	0.25	150.57428741455078	171.9343002319336	0.12423357520034617	Baby-Feces	180.0	TP-model-w-country	
+157	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	17	0.5	150.57503204345704	171.93438110351562	0.1242296562384394	Baby-Feces	180.0	TP-model-w-country	
+158	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	34	0.25	170.7925231933594	183.51522064208984	0.06932775060409602	Baby-Feces	180.0	TP-model-w-country	
+159	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	34	0.5	170.79271240234374	183.51520690917968	0.06932664993333337	Baby-Feces	180.0	TP-model-w-country	
+160	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	8	0.25	142.65743408203124	152.06768798828125	0.061882008142158274	Baby-Feces	180.0	TP-model-w-country	Yes
+161	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	8	0.5	142.6575714111328	152.06787719726563	0.06188227230873733	Baby-Feces	180.0	TP-model-w-country	
+162	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	17	0.25	248.97461700439453	282.8199859619141	0.11967106512082681	Baby-Feces	180.0	TP-model-w-country	
+163	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	17	0.5	248.97518310546874	282.8200653076172	0.11966931046895879	Baby-Feces	180.0	TP-model-w-country	
+164	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	34	0.25	290.5627746582031	309.11488647460936	0.060016882486602974	Baby-Feces	180.0	TP-model-w-country	
+165	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	34	0.5	290.56285095214844	309.11488342285156	0.06001662639234684	Baby-Feces	180.0	TP-model-w-country	
+166	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	8	0.25	245.15582733154298	257.0861877441406	0.04640607306554734	Baby-Feces	180.0	TP-model-w-country	
+167	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	8	0.5	245.15619659423828	257.086328125	0.046405157433969446	Baby-Feces	180.0	TP-model-w-country	
+168	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	15	0.25	392.12969970703125	447.22316589355466	0.12319009923478885	Baby-Feces	2.0	TP-model-w-country	
+169	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	15	0.5	392.12926330566404	447.22315368652346	0.123191051104382	Baby-Feces	2.0	TP-model-w-country	
+170	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	31	0.25	449.3726104736328	459.3265777587891	0.021670784507452412	Baby-Feces	2.0	TP-model-w-country	
+171	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	31	0.5	449.3699981689453	459.32651672363284	0.02167634175729105	Baby-Feces	2.0	TP-model-w-country	
+172	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	7	0.25	366.9752258300781	401.61130676269534	0.08624279334118212	Baby-Feces	2.0	TP-model-w-country	Yes
+173	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	7	0.5	366.97779846191406	401.6113616943359	0.08623651254861975	Baby-Feces	2.0	TP-model-w-country	
+174	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	15	0.25	773.1130249023438	861.6497314453125	0.10275254933864963	Baby-Feces	2.0	TP-model-w-country	
+175	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	15	0.5	773.1110656738281	861.6498413085938	0.1027549375513157	Baby-Feces	2.0	TP-model-w-country	
+176	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	31	0.25	886.4447631835938	893.4857543945312	0.00788036202738207	Baby-Feces	2.0	TP-model-w-country	
+177	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	31	0.5	886.44228515625	893.4857177734375	0.007883094801716228	Baby-Feces	2.0	TP-model-w-country	
+178	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	7	0.25	707.2088012695312	776.8393310546875	0.08963311588590828	Baby-Feces	2.0	TP-model-w-country	
+179	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	7	0.5	707.213720703125	776.8394958496094	0.08962697638118478	Baby-Feces	2.0	TP-model-w-country	
+182	"C(birth_mode_ms, Treatment(""Vag"")) + country"	14	28	0.25	907.719677734375	909.4704467773438	0.0019250422585721516	Baby-Feces	30.0	TP-model-w-country	
+183	"C(birth_mode_ms, Treatment(""Vag"")) + country"	14	28	0.5	907.7198425292969	909.4704833984375	0.0019249012486902695	Baby-Feces	30.0	TP-model-w-country	
+184	"C(birth_mode_ms, Treatment(""Vag"")) + country"	14	56	0.25	935.4291259765625	961.0399475097656	0.02664907072756495	Baby-Feces	30.0	TP-model-w-country	
+185	"C(birth_mode_ms, Treatment(""Vag"")) + country"	14	56	0.5	935.4292114257812	961.0399475097656	0.026648981814280104	Baby-Feces	30.0	TP-model-w-country	
+188	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	28	0.25	512.4035888671875	529.9031188964843	0.03302401779732744	Baby-Feces	30.0	TP-model-w-country	Yes
+189	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	28	0.5	512.4038330078125	529.9031372070312	0.033023590483824194	Baby-Feces	30.0	TP-model-w-country	
+190	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	56	0.25	538.1815063476563	559.1120727539062	0.03743536837463801	Baby-Feces	30.0	TP-model-w-country	
+191	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	56	0.5	538.1817626953125	559.1120361328125	0.03743484683725917	Baby-Feces	30.0	TP-model-w-country	
+192	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	17	0.25	52.39523544311523	54.56285629272461	0.03972704137738492	Baby-Forearm	120.0	TP-model-w-country	
+193	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	17	0.5	52.39483871459961	54.562852478027345	0.03973424527797198	Baby-Forearm	120.0	TP-model-w-country	
+194	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	4	0.25	30.993684196472167	40.4388973236084	0.2335675241476498	Baby-Forearm	120.0	TP-model-w-country	Yes
+195	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	4	0.5	30.99466209411621	40.43999099731445	0.23356407037344518	Baby-Forearm	120.0	TP-model-w-country	
+196	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	8	0.25	44.18764533996582	49.34873733520508	0.10458407395881575	Baby-Forearm	120.0	TP-model-w-country	
+197	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	8	0.5	44.19010353088379	49.34886436462402	0.10453656634575592	Baby-Forearm	120.0	TP-model-w-country	
+198	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	17	0.25	88.24440689086914	89.5370002746582	0.014436416004824482	Baby-Forearm	120.0	TP-model-w-country	
+199	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	17	0.5	88.24392776489258	89.53699798583985	0.014441741961817467	Baby-Forearm	120.0	TP-model-w-country	
+200	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	4	0.25	50.554758071899414	58.80312576293945	0.14027090539868126	Baby-Forearm	120.0	TP-model-w-country	
+201	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	4	0.5	50.56078567504883	58.804365921020505	0.14018653405843262	Baby-Forearm	120.0	TP-model-w-country	
+202	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	8	0.25	74.7912467956543	81.5813720703125	0.08323131987539989	Baby-Forearm	120.0	TP-model-w-country	
+203	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	8	0.5	74.79353713989258	81.5815414428711	0.08320514889672614	Baby-Forearm	120.0	TP-model-w-country	
+204	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	17	0.25	162.72742462158203	168.59122161865236	0.0347811525462105	Baby-Forearm	180.0	TP-model-w-country	
+205	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	17	0.5	162.6707748413086	168.59125366210938	0.03511735450207043	Baby-Forearm	180.0	TP-model-w-country	
+206	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	4	0.25	128.5080307006836	133.80283813476564	0.03957171243818558	Baby-Forearm	180.0	TP-model-w-country	
+207	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	4	0.5	128.4797134399414	133.8041763305664	0.0397929499410451	Baby-Forearm	180.0	TP-model-w-country	Yes
+208	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	8	0.25	148.08745574951172	151.75078125	0.024140406199643638	Baby-Forearm	180.0	TP-model-w-country	
+209	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	8	0.5	147.8958541870117	151.75106506347657	0.02540483570808716	Baby-Forearm	180.0	TP-model-w-country	
+210	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	17	0.25	264.05722961425784	294.9814086914063	0.10483433249008467	Baby-Forearm	180.0	TP-model-w-country	
+211	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	17	0.5	263.2484100341797	294.98133544921876	0.10757604499523299	Baby-Forearm	180.0	TP-model-w-country	
+214	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	8	0.25	237.22316284179686	269.8808654785156	0.12100784758791472	Baby-Forearm	180.0	TP-model-w-country	
+215	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	8	0.5	237.1086853027344	269.8811981201172	0.12143310851464573	Baby-Forearm	180.0	TP-model-w-country	
+216	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	13	0.25	41.44887008666992	58.66420021057129	0.2934554645270552	Baby-Forearm	2.0	TP-model-w-country	
+217	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	13	0.5	41.4550365447998	58.66436004638672	0.2933522753504728	Baby-Forearm	2.0	TP-model-w-country	
+218	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	27	0.25	59.259605407714844	65.00181503295899	0.08833921979459458	Baby-Forearm	2.0	TP-model-w-country	
+219	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	27	0.5	59.2611686706543	65.00181198120117	0.08831512746455583	Baby-Forearm	2.0	TP-model-w-country	
+220	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	6	0.25	38.62653923034668	43.67278785705567	0.11554674831443645	Baby-Forearm	2.0	TP-model-w-country	Yes
+221	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	6	0.5	38.62900085449219	43.67319297790527	0.11549858802320667	Baby-Forearm	2.0	TP-model-w-country	
+222	"C(birth_mode_ms, Treatment(""Vag"")) + country"	6	13	0.25	72.75064544677734	99.36260833740235	0.2678267341801217	Baby-Forearm	2.0	TP-model-w-country	
+223	"C(birth_mode_ms, Treatment(""Vag"")) + country"	6	13	0.5	72.75298614501953	99.36284713745117	0.2678049367448332	Baby-Forearm	2.0	TP-model-w-country	
+224	"C(birth_mode_ms, Treatment(""Vag"")) + country"	6	27	0.25	83.51948623657226	116.20201263427734	0.2812561130121456	Baby-Forearm	2.0	TP-model-w-country	
+225	"C(birth_mode_ms, Treatment(""Vag"")) + country"	6	27	0.5	83.52048721313477	116.20203170776367	0.28124761688177424	Baby-Forearm	2.0	TP-model-w-country	
+226	"C(birth_mode_ms, Treatment(""Vag"")) + country"	6	6	0.25	66.05325927734376	77.35199661254883	0.14606911043033222	Baby-Forearm	2.0	TP-model-w-country	
+227	"C(birth_mode_ms, Treatment(""Vag"")) + country"	6	6	0.5	66.05806884765624	77.35230178833008	0.14601030195041675	Baby-Forearm	2.0	TP-model-w-country	
+228	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	17	0.25	86.55266036987305	102.8438346862793	0.1584069124425569	Baby-Forearm	30.0	TP-model-w-country	
+229	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	17	0.5	86.55438613891602	102.84389724731446	0.15839064392149738	Baby-Forearm	30.0	TP-model-w-country	
+230	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	35	0.25	102.66905364990234	111.01694946289062	0.07519478650220623	Baby-Forearm	30.0	TP-model-w-country	
+231	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	35	0.5	102.66908798217773	111.01689910888672	0.07519405778503463	Baby-Forearm	30.0	TP-model-w-country	
+232	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	8	0.25	75.96167297363282	78.6357810974121	0.034006251180574765	Baby-Forearm	30.0	TP-model-w-country	Yes
+233	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	8	0.5	75.9629295349121	78.63665161132812	0.0340009654738509	Baby-Forearm	30.0	TP-model-w-country	
+234	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	17	0.25	119.2943328857422	144.71973571777343	0.17568718396235072	Baby-Forearm	30.0	TP-model-w-country	
+235	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	17	0.5	119.29369735717773	144.71994018554688	0.1756927400313315	Baby-Forearm	30.0	TP-model-w-country	
+236	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	35	0.25	161.1890090942383	170.55296020507814	0.05490348041793203	Baby-Forearm	30.0	TP-model-w-country	
+237	"C(birth_mode_ms, Treatment(""Vag"")) + country"	8	35	0.5	161.1890640258789	170.55292053222655	0.054902938496314446	Baby-Forearm	30.0	TP-model-w-country	
+240	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	18	0.25	667.9394348144531	825.4645629882813	0.19083209048195626	Baby-Mouth	120.0	TP-model-w-country	
+241	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	18	0.5	667.9403259277344	825.4646240234375	0.19083107078278683	Baby-Mouth	120.0	TP-model-w-country	
+242	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	4	0.25	312.6191864013672	379.79612731933594	0.1768763188611604	Baby-Mouth	120.0	TP-model-w-country	Yes
+243	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	4	0.5	312.63067626953125	379.798095703125	0.17685033230418357	Baby-Mouth	120.0	TP-model-w-country	
+244	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	9	0.25	432.6179901123047	741.5589416503906	0.41661010903666873	Baby-Mouth	120.0	TP-model-w-country	
+245	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	9	0.5	432.62273559570315	741.5591613769532	0.41660388256495406	Baby-Mouth	120.0	TP-model-w-country	
+246	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	18	0.25	1034.51865234375	1161.7105712890625	0.10948675348987924	Baby-Mouth	120.0	TP-model-w-country	
+247	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	18	0.5	1034.5226806640626	1161.710595703125	0.10948330462810485	Baby-Mouth	120.0	TP-model-w-country	
+248	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	4	0.25	476.62986145019534	549.1794799804687	0.13210547949252138	Baby-Mouth	120.0	TP-model-w-country	
+249	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	4	0.5	476.63283386230466	549.1814758300782	0.13210322117678408	Baby-Mouth	120.0	TP-model-w-country	
+250	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	9	0.25	557.7651062011719	1009.4184875488281	0.44743918099261937	Baby-Mouth	120.0	TP-model-w-country	
+251	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	9	0.5	557.7745544433594	1009.4190612792969	0.4474301349763907	Baby-Mouth	120.0	TP-model-w-country	
+252	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	18	0.25	740.2518310546875	889.2557556152344	0.16756025881154746	Baby-Mouth	180.0	TP-model-w-country	
+253	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	18	0.5	740.2685913085937	889.2557861328125	0.16754143987314718	Baby-Mouth	180.0	TP-model-w-country	
+254	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	4	0.25	430.71412048339846	489.5332977294922	0.1201535779463897	Baby-Mouth	180.0	TP-model-w-country	Yes
+255	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	4	0.5	430.7957702636719	489.5356048583984	0.1199909342890747	Baby-Mouth	180.0	TP-model-w-country	
+256	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	9	0.25	441.54437561035155	830.5936889648438	0.46839907228209066	Baby-Mouth	180.0	TP-model-w-country	
+257	"C(birth_mode_ms, Treatment(""Vag"")) + country"	2	9	0.5	441.6145477294922	830.5939086914062	0.4683147286436855	Baby-Mouth	180.0	TP-model-w-country	
+258	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	18	0.25	1314.0044189453124	1398.409521484375	0.06035792894878811	Baby-Mouth	180.0	TP-model-w-country	
+259	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	18	0.5	1314.0200439453124	1398.4095092773437	0.0603467473384397	Baby-Mouth	180.0	TP-model-w-country	
+260	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	4	0.25	599.1283508300781	701.5196228027344	0.14595639044789543	Baby-Mouth	180.0	TP-model-w-country	
+261	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	4	0.5	599.3556884765625	701.522265625	0.14563554452176275	Baby-Mouth	180.0	TP-model-w-country	
+262	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	9	0.25	799.8748413085938	1280.2974731445313	0.3752429743190653	Baby-Mouth	180.0	TP-model-w-country	
+263	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	9	0.5	799.963427734375	1280.2979614257813	0.37517402055103655	Baby-Mouth	180.0	TP-model-w-country	
+264	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	15	0.25	628.585888671875	788.9211730957031	0.203233592774139	Baby-Mouth	2.0	TP-model-w-country	
+265	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	15	0.5	628.5867370605469	788.9212280273438	0.2032325728738532	Baby-Mouth	2.0	TP-model-w-country	
+266	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	30	0.25	849.591064453125	869.8573303222656	0.023298379128025903	Baby-Mouth	2.0	TP-model-w-country	
+267	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	30	0.5	849.5912475585938	869.8572937011719	0.023298127508189048	Baby-Mouth	2.0	TP-model-w-country	
+268	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	7	0.25	378.1145904541016	403.7065765380859	0.06339254193836497	Baby-Mouth	2.0	TP-model-w-country	Yes
+269	"C(birth_mode_ms, Treatment(""Vag"")) + country"	3	7	0.5	378.11700134277345	403.7074951171875	0.06338870118570794	Baby-Mouth	2.0	TP-model-w-country	
+270	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	15	0.25	909.6708190917968	1639.466162109375	0.4451420589727858	Baby-Mouth	2.0	TP-model-w-country	
+271	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	15	0.5	909.6709716796875	1639.4664428710937	0.4451420609215775	Baby-Mouth	2.0	TP-model-w-country	
+272	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	30	0.25	1530.1462158203126	1845.8774536132812	0.17104669498775704	Baby-Mouth	2.0	TP-model-w-country	
+273	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	30	0.5	1530.14716796875	1845.8773559570313	0.17104613530761092	Baby-Mouth	2.0	TP-model-w-country	
+274	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	7	0.25	811.1573974609375	813.0978637695313	0.002386510154629762	Baby-Mouth	2.0	TP-model-w-country	
+275	"C(birth_mode_ms, Treatment(""Vag"")) + country"	7	7	0.5	811.1598327636718	813.0984985351563	0.00238429387703587	Baby-Mouth	2.0	TP-model-w-country	
+276	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	18	0.25	607.6793823242188	712.3397094726563	0.1469247407615636	Baby-Mouth	30.0	TP-model-w-country	Yes
+277	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	18	0.5	607.6822998046875	712.3397766113281	0.14692072553424818	Baby-Mouth	30.0	TP-model-w-country	
+278	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	36	0.25	788.9285766601563	792.774560546875	0.004851295788383614	Baby-Mouth	30.0	TP-model-w-country	
+279	"C(birth_mode_ms, Treatment(""Vag"")) + country"	4	36	0.5	788.9286682128907	792.7745361328125	0.004851149658113507	Baby-Mouth	30.0	TP-model-w-country	
+282	"C(birth_mode_ms, Treatment(""Vag"")) + country"	9	18	0.25	946.1205993652344	1285.69541015625	0.2641176192343623	Baby-Mouth	30.0	TP-model-w-country	
+283	"C(birth_mode_ms, Treatment(""Vag"")) + country"	9	18	0.5	946.1228698730469	1285.6955688476562	0.2641159440869518	Baby-Mouth	30.0	TP-model-w-country	
+284	"C(birth_mode_ms, Treatment(""Vag"")) + country"	9	36	0.25	1311.7738403320313	1497.6505493164063	0.12411220298968761	Baby-Mouth	30.0	TP-model-w-country	
+285	"C(birth_mode_ms, Treatment(""Vag"")) + country"	9	36	0.5	1311.7742309570312	1497.6505615234375	0.12411194930366765	Baby-Mouth	30.0	TP-model-w-country	
+286	"C(birth_mode_ms, Treatment(""Vag"")) + country"	9	9	0.25	872.12392578125	879.4715087890625	0.008354543534820458	Baby-Mouth	30.0	TP-model-w-country	
+287	"C(birth_mode_ms, Treatment(""Vag"")) + country"	9	9	0.5	872.1290771484375	879.4715942382812	0.008348782539364552	Baby-Mouth	30.0	TP-model-w-country	

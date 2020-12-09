@@ -126,9 +126,7 @@ songbird_best_models_print <- songbird_best_models %>%
     write.table(file = "../results/Extended_Data_Table_Songbird_model_fit_statistics.tsv", sep = "\t", quote = F, row.names = F)
 ```
 ```{r}
-songbird_rsl <- read.csv("../data/diff-analysis-new/TP-w-training-best-model-processed.tsv", 
-                     sep = "\t", fill = F) %>% select(-1, -2, -starts_with("country")) %>%
-    filter(grepl("country", model.para))
+songbird_rsl <- read.csv("../data/diff-analysis-new/songbird-summary-output/TP-w-training-best-model-processed.tsv", sep = "\t", fill = F) %>% select(-1, -2, -starts_with("country")) %>% filter(grepl("country", model.para))
 
 songbird_wk <- songbird_rsl %>% 
     select(body_site_days, featureid,
@@ -256,7 +254,7 @@ for (bb in c("Feces", "Forearm", "Mouth")){
 ```
 ### Plots
 ```{r}
-load("tmp_all_phylo.Rdata")
+load("diff_analysis_all_phylo.Rdata")
 
 ```
 ```{r}
@@ -703,25 +701,26 @@ songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     group_by(body_site, days) %>%
     slice_max(seeding.effectiveness.scale, n = 20) %>%
     arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
-    select(body_site, days, p:s, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+    select(body_site, days, p:s, featureid, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
     mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
-    write.table(file = "../results/songbird_top20_seedingeffectiveness_asv.tsv", sep = "\t", quote = F, row.names = F)
+    write.table(file = "../data/diff-analysis-new/songbird-summary-output/songbird_top20_seedingeffectiveness_asv.tsv", sep = "\t", quote = F, row.names = F)
 
 songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     group_by(body_site, days) %>%
     slice_max(seeding.effectiveness.scale, prop = 0.2) %>%
     arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
-    select(body_site, days, p:s, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+    select(body_site, days, p:s, featureid, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
     mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
-    write.table(file = "../results/songbird_top0.2_seedingeffectiveness_asv.tsv", sep = "\t", quote = F, row.names = F)
+    write.table(file = "../data/diff-analysis-new/songbird-summary-output/songbird_top0.2_seedingeffectiveness_asv.tsv", sep = "\t", quote = F, row.names = F)
 
 songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     group_by(body_site, days) %>%
     filter(seeding.effectiveness.scale>=0.8) %>%
     arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
-    select(body_site, days, p:s, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+    select(body_site, days, p:s, featureid, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
     mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
-    write.table(file = "../results/songbird_seedingeffectiveness0.8_asv.tsv", sep = "\t", quote = F, row.names = F)
+    write.table(file = "../data/diff-analysis-new/songbird-summary-output/songbird_seedingeffectiveness0.8_asv.tsv", sep = "\t", quote = F, row.names = F)
+
 songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     group_by(body_site, days) %>%
     filter(seeding.effectiveness.scale>=0.8) %>%
@@ -735,9 +734,9 @@ songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     lapply(., function(x){rbind(slice_max(x, centered.diff.CS, prop = 0.2), slice_min(x, centered.diff.CS, prop = 0.2))}) %>%
     data.table::rbindlist(.) %>%
     arrange(body_site, days, Taxon, desc(centered.diff.CS)) %>%
-    select(body_site, days, p:s, VaginaASV, centered.diff.CS, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+    select(body_site, days, p:s, featureid, VaginaASV, centered.diff.CS, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
     mutate(across(centered.diff.CS:P.CS, ~round(.x, 3))) %>%
-    write.table(file = "../results/songbird_topbottom0.2_differential_asv.tsv", sep = "\t", quote = F, row.names = F)
+    write.table(file = "../data/diff-analysis-new/songbird-summary-output/songbird_topbottom0.2_differential_asv.tsv", sep = "\t", quote = F, row.names = F)
 ```
 ## Summarizing ANCOM results
 ```{r}
@@ -773,65 +772,35 @@ dat_nms <- ((dat_path %>% str_split(., "/|\\.", simplify = T))[, 9] %>% str_spli
 dat_files <- lapply(dat_path, function(x){readRDS(x)})
 names(dat_files) <- dat_nms
 
-dat_flt = list()
+summarize_ancom_output <- function(ancom_out, main_var){
+    ancom_out = ancom_out
+    ancom_out_tst = ancom_out$W.taxa %>% as.data.frame()
+    ancom_out_mf = ancom_out$mf %>% select(Sample.ID, all_of(main_var))
+    ancom_out_ft = ancom_out$ft %>% merge(., ancom_out_mf, by = 1) %>% select(Sample.ID, all_of(main_var), all_of(ancom_out_tst$otu.names)) %>% pivot_longer(-c(1, 2), names_to = "otu.names", values_to = "count") %>% group_by(across(main_var), Sample.ID) %>% mutate(rel_a = count/sum(count)) %>% ungroup()
+    ancom_out_feature_means <- ancom_out_ft %>% 
+        group_by(otu.names, across(main_var)) %>%
+        summarise(mean_rel_a = mean(rel_a), med_rel_a = median(rel_a)) %>% 
+        ungroup() %>% 
+        pivot_wider(id_cols = otu.names, 
+                    names_from = main_var, 
+                    values_from = c(mean_rel_a, med_rel_a),
+                    names_sep = ".")
+    ancom_out_f = merge(ancom_out_tst, ancom_out_feature_means, by = "otu.names")
+    return(ancom_out_f)
+}
+
+dat_sum = list()
 for (i in seq_along(dat_files)){
     nm = names(dat_files)[i]
-    dat_flt_ = list()
+    dat_sum_ = list()
     for (j in seq_along(dat_files[[i]])){
         grp = names(dat_files[[i]])[j]
-        dat_flt_[[grp]] = lapply(dat_files[[i]][[j]], function(x){x$W.taxa %>% as.data.frame()}) %>% data.table::rbindlist(., idcol = "Comp")
+        dat_sum_[[grp]] = lapply(dat_files[[i]][[j]], function(x){summarize_ancom_output(x, "birth_mode_ms")}) %>% data.table::rbindlist(., idcol = "Comp", fill = T)
     }
-    dat_flt[[nm]] = data.table::rbindlist(dat_flt_, idcol = "body_site_days")
+    dat_sum[[nm]] = data.table::rbindlist(dat_sum_, idcol = "body_site_days", use.names = T)
 }
 
-write.table(dat_flt[["ASV"]], file = "../data/diff-analysis-new/ancom_all_results/ancom_w_country_pairwise_ASV_rsl.txt", sep = "\t", quote = F, row.names = F)
+dat_sum_asv_flt = dat_sum$ASV %>% filter(detected_0.6) %>% separate(body_site_days, into = c(NA, "Sampling Site", "Days"), sep = "-") %>% mutate(Flag_mean = case_when(Comp=="CS-Vag" ~ mean_rel_a.CS>mean_rel_a.Vag, Comp=="CS-CSseed" ~ mean_rel_a.CS>mean_rel_a.CSseed, Comp=="CSseed-Vag" ~ mean_rel_a.CSseed>mean_rel_a.Vag), Flag_med = case_when(Comp=="CS-Vag" ~ med_rel_a.CS>med_rel_a.Vag, Comp=="CS-CSseed" ~ med_rel_a.CS>med_rel_a.CSseed, Comp=="CSseed-Vag" ~ med_rel_a.CSseed>med_rel_a.Vag), Comp = factor(Comp, levels = c("CS-Vag", "CSseed-Vag", "CS-CSseed")), Days = as.numeric(Days)) %>% ungroup() %>% arrange(`Sampling Site`, Days, Comp, Phylum, Class, Order, Family, Genus, Species)
+
+write.table(dat_sum_asv_flt, file = "../data/diff-analysis-new/ancom_all_results/ancom_w_country_pairwise_ASV_rsl.txt", sep = "\t", quote = F, row.names = F)
 ```
-
-```{r}
-ancom_wrap_phyloseq <- function(phylo_obj, rarefy = NULL, ...){
-    require(phyloseq)
-    if(!is.null(rarefy)){
-        phylo_obj = rarefy_even_depth(phylo_obj, rarefy, 
-                                      replace = F, 
-                                      trimOTUs = T,
-                                      rngseed = 20)
-    } else {
-        phylo_obj = prune_samples(sample_sums(phylo_obj)>=1000, phylo_obj)
-    }
-    ft <- phylo_obj %>% otu_table() %>% as.matrix() %>% as.data.frame() %>% t() # feature table is in a format that a column of taxa with additional columns of counts from each samples
-    tax_tbl <- tax_table(phylo_obj) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "Taxa_id") %>% mutate(tax_ind = paste0("Taxa", seq(n()))) 
-    colnames(ft) <- tax_tbl$tax_ind[match(colnames(ft), tax_tbl$Taxa_id)]
-    
-    ft <- ft %>% as.data.frame %>% rownames_to_column(var = "Sample.ID")
-    mf <- sample_data(phylo_obj) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "Sample.ID")
-    ancom_mod <- ANCOM.main(OTUdat = ft, Vardat = mf, ...)
-    ancom_mod$W.taxa <- ancom_mod$W.taxa %>% merge(., tax_tbl, by.x = 1, by.y = "tax_ind", all.x = T)
-    return(ancom_mod)
-}
-
-generate_pairwise_phylo = function(phylo_obj, main_var, min_n){
-    mf_tmp = sample_data(phylo_obj) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "Sample.ID")
-    mf_tmp_ = mf_tmp %>% ungroup() %>% group_by(across(main_var)) %>% filter(n()>=min_n)
-    levels = unique(mf_tmp_[[main_var]])
-    if (length(levels)>3){
-        stop("There are too many levels in main variable")
-    }
-    
-    if (length(levels)==1){
-        return(NULL)
-    } else if (length(levels)==2){
-        phylo_obj_ = list(prune_samples(mf_tmp_$Sample.ID, phylo_obj) %>% filter_taxa(., function(x)sum(x)>0, T))
-        names(phylo_obj_) = sort(levels) %>% paste(., collapse = "-")
-        return(phylo_obj_)
-    } else {
-        phylo_obj_ = list()
-        for (ll in levels){
-            mf_tmp__ = mf_tmp_ %>% filter(get(main_var)!=ll)
-            ll_nm = mf_tmp__[[main_var]] %>% unique() %>% sort() %>% paste(., collapse = "-")
-            phylo_obj_[[ll_nm]] = prune_samples(mf_tmp__$Sample.ID, phylo_obj) %>% filter_taxa(., function(x)sum(x)>0, T)
-        }
-        return(phylo_obj_)
-    }
-}
-```
-

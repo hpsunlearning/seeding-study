@@ -1,3 +1,4 @@
 # remove the tracking of songbird-grid-search and songbird-optimized-models, it should only be saved on the office machine.
 data/diff-analysis-new/songbird-grid-search
 data/diff-analysis-new/songbird-optimized-models
+data/diff-analysis-new/songbird-archive

@@ -702,7 +702,8 @@ songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     slice_max(seeding.effectiveness.scale, n = 20) %>%
     arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
     select(body_site, days, p:s, featureid, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
-    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
+    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3)), across(p:s, ~gsub("^[[:lower:]]_", "", .x)), across(p:s, ~ifelse(.x %in% c("", "-"), "unknown", .x))) %>% 
+    unite("Taxonomy", p:s, sep = ".") %>%
     write.table(file = "../data/diff-analysis-new/songbird-summary-output/songbird_top20_seedingeffectiveness_asv.tsv", sep = "\t", quote = F, row.names = F)
 
 songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
@@ -710,7 +711,8 @@ songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     slice_max(seeding.effectiveness.scale, prop = 0.2) %>%
     arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
     select(body_site, days, p:s, featureid, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
-    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
+    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3)), across(p:s, ~gsub("^[[:lower:]]_", "", .x)), across(p:s, ~ifelse(.x %in% c("", "-"), "unknown", .x))) %>% 
+    unite("Taxonomy", p:s, sep = ".") %>%
     write.table(file = "../data/diff-analysis-new/songbird-summary-output/songbird_top0.2_seedingeffectiveness_asv.tsv", sep = "\t", quote = F, row.names = F)
 
 songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
@@ -718,7 +720,8 @@ songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     filter(seeding.effectiveness.scale>=0.8) %>%
     arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
     select(body_site, days, p:s, featureid, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
-    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
+    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3)), across(p:s, ~gsub("^[[:lower:]]_", "", .x)), across(p:s, ~ifelse(.x %in% c("", "-"), "unknown", .x))) %>% 
+    unite("Taxonomy", p:s, sep = ".") %>%
     write.table(file = "../data/diff-analysis-new/songbird-summary-output/songbird_seedingeffectiveness0.8_asv.tsv", sep = "\t", quote = F, row.names = F)
 
 songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
@@ -726,7 +729,8 @@ songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     filter(seeding.effectiveness.scale>=0.8) %>%
     arrange(body_site, days, Taxon, desc(seeding.effectiveness.scale)) %>%
     select(body_site, days, p:s, VaginaASV, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
-    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3))) %>%
+    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3)), across(p:s, ~gsub("^[[:lower:]]_", "", .x)), across(p:s, ~ifelse(.x %in% c("", "-"), "unknown", .x))) %>% 
+    unite("Taxonomy", p:s, sep = ".") %>%
     group_by(body_site, days, VaginaASV) %>% summarise(N = n()) %>% mutate(Pct = N/sum(N)) %>% filter(VaginaASV)
 
 songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
@@ -735,7 +739,8 @@ songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     data.table::rbindlist(.) %>%
     arrange(body_site, days, Taxon, desc(centered.diff.CS)) %>%
     select(body_site, days, p:s, featureid, VaginaASV, centered.diff.CS, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
-    mutate(across(centered.diff.CS:P.CS, ~round(.x, 3))) %>%
+    mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3)), across(p:s, ~gsub("^[[:lower:]]_", "", .x)), across(p:s, ~ifelse(.x %in% c("", "-"), "unknown", .x))) %>% 
+    unite("Taxonomy", p:s, sep = ".") %>%
     write.table(file = "../data/diff-analysis-new/songbird-summary-output/songbird_topbottom0.2_differential_asv.tsv", sep = "\t", quote = F, row.names = F)
 ```
 ## Summarizing ANCOM results

@@ -84,8 +84,9 @@ mf_all_samples_anal %>% group_by(country, birth_mode_sum) %>% summarise(N_family
 ### by birth mode
 mf_all_samples_anal %>% group_by(country, birth_mode_sum) %>% summarise(N_family = length(unique(familyid_unique)), N_baby = length(unique(subjectid_unique[mom_baby=="Baby"]))) %>% group_by(birth_mode_sum) %>% summarise(across(N_family:N_baby, sum))
 
+mf_all_samples_anal_bb <- mf_all_samples_anal %>% filter(mom_baby=="Baby") %>% mutate(birth_mode_ms = factor(birth_mode_ms, levels = c("Vag", "CSseed", "CS")))
+
 ## baby sex
-mf_all_samples_anal_bb <- mf_all_samples_anal %>% filter(mom_baby=="Baby")
 mf_all_samples_anal_bb %>% group_by(birth_mode_sum) %>% summarise(N_baby = length(unique(subjectid_unique)), N_female = length(unique(subjectid_unique[baby_sex=="F"])), Pct_female = N_female/N_baby)
 
 ## baby length of follow-up
@@ -155,5 +156,12 @@ mom_abx_2 %>% select(birth_mode_sum, abx) %>% table
 ## Table S2
 ```{r}
 mf_all_samples_anal %>% group_by(date_sampling_category_days_continuous, mom_baby, body_site_corrected) %>% summarise(N = n(), N_check = length(unique(subjectid_unique))) %>% pivot_wider(id_cols = date_sampling_category_days_continuous, names_from = c(mom_baby, body_site_corrected), values_from = N) %>% View
+```
+
+
+```{r}
+mf_all_samples_anal_bb %>% group_by(date_sampling_category_days_continuous, body_site_corrected, birth_mode_ms) %>% summarise(N = n(), N_check = length(unique(subjectid_unique))) %>% pivot_wider(id_cols = date_sampling_category_days_continuous, names_from = c(body_site_corrected, birth_mode_ms), values_from = N) %>% View
+
+mf_all_samples_anal_bb %>% filter(country=="USA") %>% group_by(date_sampling_category_days_continuous, body_site_corrected, birth_mode_ms) %>% summarise(N = n(), N_check = length(unique(subjectid_unique))) %>% pivot_wider(id_cols = date_sampling_category_days_continuous, names_from = c(body_site_corrected, birth_mode_ms), values_from = N) %>% View
 ```
 

@@ -104,13 +104,13 @@ phylo_gauze <- merge_phyloseq(otu_table(ft_tbl_gauze, taxa_are_rows = T), taxa_g
 phylo_gauze_5k <- rarefy_even_depth(phylo_gauze, sample.size = 5000, rngseed = 20, replace = F, trimOTUs = T)
 
 phylo_wk <- merge_phyloseq(ss_phylo, phylo_gauze_5k) %>% prune_taxa(taxa_sums(.)>0, .)
-saveRDS(phylo_wk, file = "tmp_phylo_wk_transmission.Rdata")
+saveRDS(phylo_wk, file = "phylo_transmission_analysis.Rdata")
 ```
 ## Analysis
 ```{r}
 ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
 
-phylo_wk = readRDS("tmp_phylo_wk_transmission.Rdata")
+phylo_wk = readRDS("phylo_transmission_analysis.Rdata")
 mf_wk <- sample_data(phylo_wk) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
 ```
 ### Use mothers and babies as a whole

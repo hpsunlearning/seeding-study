@@ -1,0 +1,13 @@
+body-site	metadata-column(s)	Effect Size	Df	AIC	F	Pr(>F)
+Baby-Feces	Birth mode	0.1736	2	948.5121	14.8640	0.0002
+Baby-Feces	Time (days)	0.0996	1	932.4132	18.8050	0.0002
+Baby-Feces	Country of Birth	0.0211	1	929.4562	4.8606	0.0214
+Baby-Feces	Sex	0.0139	1	927.7768	3.5625	0.0490
+Baby-Feces	All Others Aggergated	0.0059	-	-	-	-
+Baby-Mouth	Time (days)	0.1394	1	756.9960	20.9153	0.0002
+Baby-Mouth	All Others Aggergated	0.0229	-	-	-	-
+Baby-Forearm	Birth mode	0.0902	1	825.2568	11.8124	0.0004
+Baby-Forearm	Maternal Prenatal GBS	0.0894	1	814.8584	12.7663	0.0002
+Baby-Forearm	Time (days)	0.0744	1	805.3607	11.6793	0.0002
+Baby-Forearm	Country of Birth	0.0429	1	799.7947	7.4763	0.0018
+Baby-Forearm	All Others Aggergated	0.0054	-	-	-	-

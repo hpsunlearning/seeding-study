@@ -1,0 +1,60 @@
+---
+title: "ExploreVaginalSourceTracking"
+author: "Jincheng Wang"
+date: "12/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+library(ComplexHeatmap)
+data_path = "~/Dropbox/20201108_baby_figures_1/code/temp_output/SourceTrack"
+```
+
+```{r}
+dat_file_path = list.files(data_path, pattern = "*.csv", full.names = T)
+dat = lapply(list.files(data_path, pattern = "*.csv", full.names = T), function(x){read.csv(x, header = T) %>% select(-X)})
+names(dat) = c("HMPself", "MomSelf", "MomHMP")
+
+dat_wk = data.table::rbindlist(dat, use.names = T, idcol = "Set") %>% rename(sink.site = Group.1) %>% mutate(source.dat = case_when(Set=="HMPself" ~ "HMP", Set=="MomSelf" ~ "Current", T ~ "HMP"), sink.dat = case_when(Set=="HMPself" ~ "HMP", Set=="MomSelf" ~ "Current", T ~ "Current")) %>% filter(sink.site!="Gauze")
+```
+
+
+```{r}
+
+plts = list()
+for (dd in c("HMPself", "MomSelf", "MomHMP")){
+    #dd = "HMPself"
+    dat_ = dat_wk %>% filter(Set==dd)
+    dat_mat = dat_ %>% select(sink.site, Fecal:Unknown) %>% column_to_rownames(var = "sink.site")
+    
+
+    col_fun = circlize::colorRamp2(c(0, 1), colors = c("white", "purple"))
+    plts[[dd]] = Heatmap(dat_mat, name = "Proportion of Source",
+            show_heatmap_legend = F,
+                  
+            col = col_fun,
+            rect_gp = gpar(col = "grey", lwd = 1),
+            cluster_rows = F,
+            row_names_side = "left",
+            row_names_gp = gpar(fontsize = 8),
+            cluster_columns = F,
+            column_names_side = "top",
+            column_names_gp = gpar(fontsize = 8),
+            column_title_gp = gpar(fontsize = 8, fontface = "bold"),
+            column_title = paste0("Source: ", dat_$source.dat[1]),
+            row_title_gp = gpar(fontsize = 8, fontface = "bold"),
+            row_title = paste0("Sink: ", dat_$sink.dat[1]), 
+            
+            cell_fun = function(j, i, x, y, width, height, fill){grid.text(sprintf("%.3f", dat_mat[i, j]), x, y, gp = gpar(fontsize = 7, fontface = "bold"))},
+            
+            height = unit(1.8, "in"),
+            width = unit(2, "in"))
+    print(plts[[dd]])
+}
+
+draw(plts[[1]]+plts[[2]]+plts[[3]])
+```
+

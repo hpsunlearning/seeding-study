@@ -13,7 +13,6 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE, cache = TRUE, 
                       warning = FALSE, message = FALSE)
 # Loading library here
-library(conflicted)
 library(tidyverse)
 library(extrafont)
 
@@ -27,7 +26,7 @@ library(phyloseq)
 # library(ggrepel)
 library(fido)
 sessionInfo()
-conflict_prefer("filter", "dplyr")
+
 
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 
@@ -74,13 +73,12 @@ for (ll in c("Phylum", "Class", "Order", "Family", "Genus")){
 save(all_phylo, file = "diff_analysis_all_phylo.Rdata")
 ```
 
+## Analysis
 ```{r}
 load("diff_analysis_all_phylo.Rdata")
-
-
 ```
 
-## fido
+### fido
 ```{r}
 # phyloseq object
 tmp = all_phylo$ASV$`Baby-Feces-120.0`
@@ -107,6 +105,7 @@ priors <- pibble(NULL, X, upsilon, Theta, Gamma, Xi)
 print(priors)
 
 names_covariates(priors) <- rownames(X)
+plot(priors, par="Lambda") + ggplot2::xlim(c(-10, 10))
 
 priors$Y <- Y # remember pibblefit objects are just lists
 posterior <- refit(priors, optim_method="adam")

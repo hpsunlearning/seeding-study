@@ -318,6 +318,8 @@ dict_otu = tax_table(phylo_all) %>% as.matrix() %>% as.data.frame() %>% rownames
 ft_bl_l = ft_all[, c("otu_id", mt_ft_bl$sample_name)] %>%  pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% group_by(sample_name) %>% mutate(rela = count/sum(count)) %>% left_join(., mt_ft_bl, by = "sample_name")
 
 asv_prev_bl_sum = ft_bl_l %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Cat = ifelse(length(unique(Cat_control))>1, "Both", paste0(unique(Cat_control), "-Only")), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
+
+Brady <- asv_prev_bl_sum %>% filter(grepl("Bradyrhizobiaceae", Family))
 ```
 162 control samples, 1804 ASVs identified in total.
 ```{r}
@@ -359,6 +361,11 @@ ft_bb_l = ft_all[, c("otu_id", mt_ft_bb$sample_name)] %>% filter(rowSums(.[, -1]
 # ft_bb_l$otu_id %>% unique %>% length
 
 ft_bb_l_asv_in_bl <- ft_bb_l %>% filter(otu_id %in% ft_bl_l$otu_id)
+ft_bb_l_brady <- ft_bb_l %>% filter(otu_id %in% Brady$otu_id[1:4])
+
+ft_bb_l %>% group_by(date_sampling_category_days, body_site_type, birth_mode_ms) %>% summarise(N = length(unique(sample_name)))
+
+ft_bb_l_brady %>% group_by(date_sampling_category_days, body_site_type, birth_mode_ms, sample_name) %>% summarise(rela = sum(rela), count = sum(count)) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% View
 
 asv_prev_bb_sum <- ft_bb_l_asv_in_bl %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
 ```

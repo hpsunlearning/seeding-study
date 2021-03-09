@@ -129,12 +129,12 @@ tree_all <- ape::keep.tip(tree$data, rownames(otu_table(otu_all)))
 # this object have the otu table, taxa table, metadata and the phylogenetic tree
 phylo_all <- merge_phyloseq(otu_all, taxa_all, sample_data(mt_all), tree_all)
 phylo_all <- filter_taxa(phylo_all, function(x) {sum(x)>0}, prune = T)
-saveRDS(phylo_all, file = "tmp_phyloseq_all.rds")
+saveRDS(phylo_all, file = "phylo_SamplesAndControls.rds")
 ```
 
 ## Analysis of control samples alone
 ```{r}
-phylo_all = readRDS("tmp_phyloseq_all.rds")
+phylo_all = readRDS("phylo_SamplesAndControls.rds")
 ft_all <- otu_table(phylo_all) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "otu_id") %>% filter(rowSums(.[,-1])!=0)
 mt_all = sample_data(phylo_all) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name") %>% mutate(seqcount = as.numeric(seqcount))
 

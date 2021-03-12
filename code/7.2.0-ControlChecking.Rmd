@@ -336,22 +336,6 @@ ggplot(asv_prev_bl_sum, aes(x = N, y = Med_ct)) +
     labs(x = "Prevalance", y = "Median count of a ASV across blank samples in which it appeared", title = "Median abundance of ASVs by their prevalance")
 ```
 
-<!-- 2. -->
-<!-- ```{r} -->
-<!-- ft_bbbl_l = ft_all[, c("otu_id", mt_ft_bl$sample_name, mt_ft_bb$sample_name)] %>% filter(rowSums(.[, -1])>0) %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% group_by(sample_name) %>% mutate(rela = count/sum(count)) -->
-
-<!-- mt_bbbl = rbind(mt_ft_bl, mt_ft_bb) -->
-
-<!-- asv_bbbl_sum <- left_join(ft_bbbl_l, mt_bbbl, by = "sample_name") %>% mutate(Group1 = ifelse(is.na(body_site_type), "Control", body_site_type)) %>% group_by(otu_id, Group1) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela), Prev = case_when(Group1=="Oral" ~ N/926, Group1=="Fecal" ~ N/1391, Group1=="Skin"~N/894, T~N/162)) %>% ungroup %>% complete(otu_id, Group1, fill = list(Prev = 0)) -->
-
-<!-- asv_bbbl_sum$otu_id <- factor(asv_bbbl_sum$otu_id, levels = asv_bbbl_sum[asv_bbbl_sum$Group1=="Fecal", ] %>% arrange(Prev) %>% distinct(otu_id) %>% pull(otu_id)) -->
-
-<!-- ggplot(asv_bbbl_sum, aes(x = otu_id, y = Prev, color = Group1)) + -->
-<!--     geom_point(size = 0.5) + -->
-<!--     theme_bw() + theme(axis.text.x = element_blank()) + -->
-<!--     scale_y_continuous(trans = "log10") -->
-<!-- ``` -->
-
 2. ASV appeared in control samples prevalence in baby samples
 
 ```{r}
@@ -544,6 +528,76 @@ asv_prev_sum_all <- full_join(asv_prev_sum_2_cand, asv_prev_sum_3_cand, by = c("
 write.table(asv_prev_sum_all, file = "../results/candidate_contamination.txt", sep = "\t", quote = F, row.names = F)
 
 ```
+
+### decontam
+
+```{r}
+mt_all = as.data.frame(sample_data(phylo_all))
+mt_all$seqcount <- sample_sums(phylo_all)
+mt_all <- mt_all[order(mt_all$seqcount), ]
+mt_all$Index <- seq(nrow(mt_all))
+
+ggplot(mt_all, aes(Index, seqcount, color = mom_baby)) +
+    geom_point()
+ggplot(mt_all[mt_all$Index<=1000, ], aes(Index, seqcount, color = mom_baby)) +
+    geom_point()
+```
+
+```{r}
+sample_data(phylo_all)$is.neg <- !is.na(sample_data(phylo_all)$Cat_control)
+contam.prev <- isContaminant(phylo_all, method = "prevalence", neg = "is.neg")
+phylo_all.pa <- transform_sample_counts(phylo_all, function(abund)1*(abund>0))
+
+phylo_bl.pa <- prune_samples(!is.na(sample_data(phylo_all.pa)$Cat_control), phylo_all.pa)
+phylo_ss.pa <- prune_samples(is.na(sample_data(phylo_all.pa)$Cat_control), phylo_all.pa)
+
+df.pa <- data.frame(pa.ss = taxa_sums(phylo_ss.pa), pa.neg = taxa_sums(phylo_bl.pa), contaminant = contam.prev$contaminant)
+
+ggplot(data = df.pa, aes(pa.neg, pa.ss, color = contaminant)) + geom_point() + xlab("Prevalence (Negative Controls)") + ylab("Prevalence (True Samples)")
+
+df.pa2 <- merge(df.pa, tax_table(phylo_bl.pa), by = 0)
+df.pa2.contaminant = df.pa2 %>% filter(contaminant)
+
+df.pa2.contaminant.0.1 = df.pa2.contaminant %>% filter(pa.ss>=78 | pa.neg >= 16)
+
+phylo_contam <- prune_taxa(df.pa2.contaminant.0.1$Row.names %>% as.character(), phylo_all)
+
+phylo_contam_bl <- prune_samples(!is.na(sample_data(phylo_contam)$Cat_control), phylo_contam)
+phylo_contam_ss <- prune_samples(is.na(sample_data(phylo_contam)$Cat_control), phylo_contam)
+
+mean_ct_bl <- taxa_sums(phylo_contam_bl)/162
+mean_ct_ss <- taxa_sums(phylo_contam_ss)/7828
+
+df.pa2.contaminant.0.1$mean_ct.bl = mean_ct_bl[df.pa2.contaminant.0.1$Row.names]
+df.pa2.contaminant.0.1$mean_ct.ss = mean_ct_ss[df.pa2.contaminant.0.1$Row.names]
+saveRDS(df.pa2.contaminant.0.1, file = "decontam_result.Rds")
+```
+
+### Check Bradyrhizobiaceae
+```{r}
+phylo_all = readRDS("phylo_SamplesAndControls.rds")
+phylo_Brady = prune_taxa(rownames(tax_table(phylo_all) %>% as.matrix %>% as.data.frame() %>% filter(grepl("Bradyrhizobiaceae", Family))), phylo_all) 
+
+
+mt_Brady = sample_data(phylo_Brady) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
+
+otu_Brady = otu_table(phylo_Brady) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "otu_id") %>% filter(rowSums(.[,-1])!=0)
+
+otu_Brady_l = otu_Brady %>% pivot_longer(-1, names_to = "sample_name", values_to = "seqcount") %>% filter(seqcount>0) %>% merge(., mt_Brady, by = "sample_name", all.y=T)
+
+otu_Brady_l_bb = otu_Brady_l %>% filter(mom_baby=="Baby", seqcount.x > 0)
+
+ggplot(otu_Brady_l_bb, aes(x = date_sampling_category_days_continuous, y = seqcount.x, color = birth_mode_ms)) +
+    geom_point() +
+    facet_wrap(.~body_site_type, ncol = 1) +
+    theme_classic(base_size = 10) + theme(aspect.ratio = 0.6) +
+    labs(x = "Days", y = "Count", color = "Birth Mode")
+otu_Brady_l_bb %>% group_by(body_site_type, birth_mode_ms) %>% summarise(n = length(unique(subjectid_unique)))
+
+otu_Brady_l_bl = otu_Brady_l %>% filter(!is.na(Cat_control), seqcount.x > 0)
+unique(otu_Brady_l_bl$sample_name)
+```
+
 
 ## functions
 ```{r}

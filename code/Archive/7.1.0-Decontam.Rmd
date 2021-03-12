@@ -44,8 +44,9 @@ df.pa <- data.frame(pa.ss = taxa_sums(phylo_ss.pa), pa.neg = taxa_sums(phylo_bl.
 ggplot(data = df.pa, aes(pa.neg, pa.ss, color = contaminant)) + geom_point() + xlab("Prevalence (Negative Controls)") + ylab("Prevalence (True Samples)")
 
 df.pa2 <- merge(df.pa, tax_table(phylo_bl.pa), by = 0)
-df.pa2.contaminatn = df.pa2 %>% filter(contaminant)
-saveRDS(df.pa2, "Tmp.df.pa2")
+df.pa2.contaminant = df.pa2 %>% filter(contaminant)
+
+df.pa2.contaminant.0.1 = df.pa2.contaminant %>% filter(pa.ss>=78 | pa.neg >= 16)
 
 ```
 

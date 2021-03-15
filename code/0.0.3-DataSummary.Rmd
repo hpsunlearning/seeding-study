@@ -93,7 +93,16 @@ mf_all_samples_anal_bb %>% group_by(birth_mode_sum) %>% summarise(N_baby = lengt
 mf_all_samples_anal_bb %>% group_by(birth_mode_sum, subjectid_unique) %>% summarise(Len_followup = max(date_sampling_category_days_continuous)) %>% summarise(Mean_followup = mean(Len_followup)/30, sd_followup = sd(Len_followup)/30)
 
 ## baby anitbiotic use
-mf_all_samples_anal_bb %>% filter(date_sampling_category_days_continuous>7, current_abx=="Yes") %>% group_by(birth_mode_sum) %>% distinct(subjectid_unique, date_sampling_category_days_continuous) %>% group_by(birth_mode_sum, subjectid_unique) %>% summarise(N = n()) %>% group_by(birth_mode_sum, N) %>% summarise(Ct = n()) %>% mutate(Pct = case_when(birth_mode_sum=="CS" ~ Ct/49, birth_mode_sum=="CSseed" ~ Ct/30, T ~ Ct/98)) %>% pivot_wider(id_cols = birth_mode_sum, names_from = N, values_from = Pct) %>% rowwise() %>% mutate(Total = sum(c_across(everything()), na.rm = T))
+mf_all_samples_anal_bb_abx <- mf_all_samples_anal_bb %>% filter(date_sampling_category_days_continuous>7, current_abx=="Yes") %>% group_by(birth_mode_sum) %>% distinct(subjectid_unique, date_sampling_category_days_continuous) %>% group_by(birth_mode_sum, subjectid_unique) %>% summarise(N = n()) %>% group_by(birth_mode_sum, N) %>% summarise(Ct = n()) %>% mutate(Pct = case_when(birth_mode_sum=="CS" ~ Ct/49, birth_mode_sum=="CSseed" ~ Ct/30, T ~ Ct/98)) 
+
+mf_all_samples_anal_bb_abx <- mf_all_samples_anal_bb %>% mutate(current_abx = ifelse(is.na(current_abx), "unknown", current_abx)) %>% filter(date_sampling_category_days_continuous>7) %>% group_by(birth_mode_sum, subjectid_unique, date_sampling_category_days) %>% summarise(current_abx = any(current_abx=="Yes")) %>% summarise(N= sum(current_abx)) %>% group_by(birth_mode_sum, N) %>% summarise(Ct = n()) %>% mutate(Total_N = case_when(birth_mode_sum=="CS" ~ 49, birth_mode_sum=="CSseed" ~ 30, T ~ 98), Pct = Ct/Total_N)
+
+
+
+mf_all_samples_anal_bb_abx_any <- mf_all_samples_anal_bb_abx %>% filter(N>0) %>% group_by(birth_mode_sum) %>% summarise(One = Ct[N==1], One_more = sum(Ct[N>1]), Total_Any = sum(Ct), Total_N = Total_N[1])
+
+prop.test(mf_all_samples_anal_bb_abx_any$Total_Any, mf_all_samples_anal_bb_abx_any$Total_N) # x-squared-test, p = 0.9126
+prop.test(mf_all_samples_anal_bb_abx_any$One_more, mf_all_samples_anal_bb_abx_any$Total_Any) 
 
 ## baby feeding
 baby_feeding <- mf_all_samples_anal_bb  %>% distinct(birth_mode_sum, subjectid_unique, date_sampling_category_days_continuous, exclusive_breastfeed)

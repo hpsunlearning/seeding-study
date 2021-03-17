@@ -199,7 +199,7 @@ for (ss_ in ss){
     mf_wk[[ss_]] <- mf_tmp
 }
 ```
-
+Stats
 ```{r}
 ss <- c("Feces", "Mouth", "Forearm")
 mm <- c("aitchison", "braycurtis", "unifrac", "wunifrac")
@@ -249,3 +249,54 @@ adonis_tbl_out = adonis_tbl %>% pivot_wider(id_cols = c(dist, bodysite, comp), n
 write.table(adonis_tbl_out, file = "../results/beta_diversity_stats_table.txt", sep = "\t", quote = F, row.names = F)
 ```
 
+## Country specific
+```{r}
+ss <- c("Feces", "Mouth", "Forearm")
+mm <- c("aitchison", "braycurtis", "unifrac", "wunifrac")
+TP = c(7, 14, 30, 60, 120, 180, 360)
+
+mf_2 = mf %>% mutate(country = ifelse(country=="PuertoRico", "USA", country))
+cc <- c("Bolivia", "Chile", "USA", "Spain")
+
+mf_wk <- list()
+for (cc_ in cc){
+    for (ss_ in ss){
+        for (mm_ in mm){
+            #break
+            ## mapping file
+            mf_tmp <- mf_2 %>% filter(country==cc_, mom_baby=="Baby", body_site_corrected==ss_, date_sampling_category_days_continuous %in% TP)
+            ## distance matrix 
+            dm_tmp = dm_dat[[paste("Baby", ss_, mm_, sep = "-")]]
+            
+            ## matching dm with mapping data
+            dm_tmp_ = subset_dm_by_names(dm_tmp, mf_tmp$sample_name)
+            mf_tmp = mf_tmp %>% filter(sample_name %in% attr(dm_tmp_, "Labels"))
+            
+            pcoa_tmp = pcoa(dm_tmp_)
+            
+            varPC1 <- round(pcoa_tmp$values$Relative_eig[1]*100, 2)
+            varPC2 <- round(pcoa_tmp$values$Relative_eig[2]*100, 2)
+            varPC3 <- round(pcoa_tmp$values$Relative_eig[3]*100, 2)
+            
+            plot_data = merge(pcoa_tmp$vectors[, 1:3], mf_tmp, by.x = 0, by.y = "sample_name", all = F) %>%
+                mutate(x_trans = date_sampling_category_days_continuous)
+            p = ggplot(data = plot_data %>% filter(date_sampling_category_days_continuous>=7), aes(x = x_trans, y = Axis.1, color = birth_mode_ms)) +
+                geom_path(aes(group = "subjectid_unique"), size = 0.1, alpha = 0.6) +
+                geom_point(size = 1, alpha = 0.5) +
+                stat_summary(fun.data = "mean_cl_boot", geom = "ribbon", aes(fill = birth_mode_ms), color = NA, alpha = 0.4) +
+                stat_summary(fun = "mean", geom = "line", aes(linetype = birth_mode_ms), size = 2/.pt) +
+                theme_Pub(base_size = 14) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), aspect.ratio = 0.6) +
+                labs(x = "Age (Days)", y = paste0("Axis.1 (", varPC1, "%)"), title = paste(cc_, ss_, mm_, sep = "-"), color = "Birth_Mode", fill = "Birth_Mode", linetype = "Birth_Mode") +
+                scale_color_manual(values = clr_bm) +
+                scale_fill_manual(values = clr_bm) +
+                scale_x_continuous(breaks = TP[-2]) +
+                scale_linetype_manual(values = c("dashed", "solid", "longdash")) +
+                scale_y_continuous(n.breaks = 5)
+            print(p)
+            set_panel_size(p, file = paste0(fig_path, "pc1_baby", ss_, "_", mm_, "_", cc_, ".pdf"), width = unit(6, "in"), height = unit(3.6, "in"), useDingbats = F)
+        }
+        mf_wk[[ss_]] <- mf_tmp
+    }
+}
+```
+Stats

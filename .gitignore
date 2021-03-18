@@ -4,3 +4,5 @@ data/diff-analysis-new/songbird-archive
 
 # remove tracking of the betadiversity files because they are too big to host on github
 data/beta-diversity/
+
+**/.Rhistory

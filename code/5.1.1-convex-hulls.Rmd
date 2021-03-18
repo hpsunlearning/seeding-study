@@ -131,42 +131,59 @@ names(clr_bm) = c("CS", "CSseed", "Vag", "Mom")
 ```{r}
 
 ggplot(Convex_all, aes(x = birth_mode, y = convexhull_volume)) +
-    geom_boxplot(outlier.shape = NA) +
+    geom_boxplot(aes(fill = birth_mode), alpha = 0.5, outlier.shape = NA, lwd = 0.2) +
     geom_quasirandom(size = 1, width = 0.2, alpha = 0.5, aes(color = birth_mode), show.legend = F) +
     facet_wrap(.~body_site2, scales = "free_y") +
     scale_x_discrete(labels = c("Mom", "Vaginal", "Cesarean\n-seeded", "Cesarean")) +
     scale_color_manual(values = clr_bm) +
-    theme_Pub(base_size = 10) + theme(aspect.ratio = 0.6) +
+    scale_fill_manual(values = clr_bm) +
+    theme_Pub(base_size = 8) + theme(aspect.ratio = 0.6, panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
     labs(x = "", y = "Convex Hull (Volume)", title = "All")
-set_panel_size(file = "../results/Figure-ConvexHull-R.pdf", width = unit(1.5, "in"), height = unit(0.9, "in"))
+set_panel_size(file = "../results/Figure-ConvexHull-R.pdf", width = unit(2, "in"), height = unit(1.2, "in"))
 
 ggplot(Convex_6mon, aes(x = birth_mode, y = convexhull_volume)) +
-    geom_boxplot(outlier.shape = NA) +
+    geom_boxplot(aes(fill = birth_mode), alpha = 0.5, outlier.shape = NA, lwd = 0.2) +
     geom_quasirandom(size = 1, width = 0.2, alpha = 0.5, aes(color = birth_mode), show.legend = F) +
     facet_wrap(.~body_site2, scales = "free_y") +
     scale_x_discrete(labels = c("Mom", "Vaginal", "Cesarean\n-seeded", "Cesarean")) +
     scale_color_manual(values = clr_bm) +
-    theme_Pub(base_size = 10) + theme(aspect.ratio = 0.6) +
+    scale_fill_manual(values = clr_bm) +
+    theme_Pub(base_size = 8) + theme(aspect.ratio = 0.6, panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
     labs(x = "", y = "Convex Hull (Volume)", title = "First 6 months")
-set_panel_size(file = "../results/Figure-ConvexHull-6mon-R.pdf", width = unit(1.5, "in"), height = unit(0.9, "in"))
+set_panel_size(file = "../results/Figure-ConvexHull-6mon-R.pdf", width = unit(2, "in"), height = unit(1.2, "in"))
 ```
 
 ```{r}
 # By countries
 
-Convex_6mon_2 <- Convex_6mon %>% mutate(country = substr(subjectid_unique, 1, 2), country = case_when(country =="BL" ~ "Bolivia", country %in% c("Ch", "CH") ~ "Chile", country  =="ES" ~ "Spain", T ~ "USA"))
-for (cc in c("Chile", "Spain", "USA")){
-    p = ggplot(Convex_6mon_2 %>% filter(country==cc), aes(x = birth_mode, y = convexhull_volume)) +
-        geom_boxplot(outlier.shape = NA) +
-        #geom_quasirandom(size = 1, width = 0.2, alpha = 0.5, aes(color = birth_mode), show.legend = F) +
-        facet_wrap(.~body_site2, scales = "free_y") +
-        scale_x_discrete(labels = c("Mom", "Vaginal", "Cesarean\n-seeded", "Cesarean")) +
+Convex_6mon_2 <- Convex_6mon %>% mutate(country = substr(subjectid_unique, 1, 2), country = case_when(country =="BL" ~ "Bolivia", country %in% c("Ch", "CH") ~ "Chile", country  =="ES" ~ "Spain", T ~ "USA") %>% factor(levels = c("USA", "Chile", "Spain", "Bolivia")))
+for (bb in c("Feces", "Mouth", "Skin")){
+    p = ggplot(Convex_6mon_2 %>% filter(country!="Bolivia", body_site2==bb), aes(x = birth_mode, y = convexhull_volume)) +
+        geom_boxplot(aes(fill = birth_mode), alpha = 0.5, outlier.shape = NA, lwd = 0.2, show.legend = F) +
+        geom_quasirandom(size = 1, width = 0.2, alpha = 0.5, aes(color = birth_mode), show.legend = F) +
+        facet_grid(.~country) +
+        scale_x_discrete(labels = c("Mom" = "Mom", "Vag" = "Vaginal", "CSseed" = "Cesarean\n-seeded", "CS" = "Cesarean"), drop = F) +
         scale_y_continuous(n.breaks = 4) +
         scale_color_manual(values = clr_bm) +
-        theme_Pub(base_size = 10) + theme(aspect.ratio = 0.6) +
-        labs(x = "", y = "Convex Hull (Volume)", title = "First 6 months")
+        scale_fill_manual(values = clr_bm) +
+        theme_Pub(base_size = 8) + theme(aspect.ratio = 0.6, plot.title = element_text(hjust = 0), plot.title.position = "plot", panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+        labs(x = "", y = "Convex Hull (Volume)", title = paste0(bb, "- First 6 months"))
     print(p)
+    set_panel_size(file = paste0( "../results/Figure-ConvexHull-6mon-R-", bb, ".pdf"), width = unit(2.2, "in"), height = unit(1.2, "in"))
 }
+
+Convex_all_2 <- Convex_all %>% mutate(country = substr(subjectid_unique, 1, 2), country = case_when(country =="BL" ~ "Bolivia", country %in% c("Ch", "CH") ~ "Chile", country  =="ES" ~ "Spain", T ~ "USA"))
+
+ggplot(Convex_6mon_2 %>% filter(country!="Bolivia"), aes(x = birth_mode, y = convexhull_volume)) +
+        geom_boxplot(aes(fill = birth_mode), alpha = 0.5, outlier.shape = NA, lwd = 0.2) +
+        geom_quasirandom(size = 1, width = 0.2, alpha = 0.5, aes(color = birth_mode), show.legend = F) +
+        facet_wrap(.~body_site2+country, scales = "free_y", ncol = 3) +
+        scale_x_discrete(labels = c("Mom" = "Mom", "Vag" = "Vaginal", "CSseed" = "Cesarean\n-seeded", "CS" = "Cesarean"), drop = F) +
+        scale_y_continuous(n.breaks = 4) +
+        scale_color_manual(values = clr_bm) +
+        scale_fill_manual(values = clr_bm) +
+        theme_Pub(base_size = 8) + theme(aspect.ratio = 0.6, plot.title = element_text(hjust = 0), plot.title.position = "plot", panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+        labs(x = "", y = "Convex Hull (Volume)", title = paste0(cc, "- First 6 months"))
 ```
 
 

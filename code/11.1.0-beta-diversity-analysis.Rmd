@@ -256,14 +256,16 @@ mm <- c("aitchison", "braycurtis", "unifrac", "wunifrac")
 TP = c(7, 14, 30, 60, 120, 180, 360)
 
 mf_2 = mf %>% mutate(country = ifelse(country=="PuertoRico", "USA", country))
-cc <- c("Bolivia", "Chile", "USA", "Spain")
+cc <- c("USA", "Spain"，"Bolivia", "Chile")
 
+i = 1
 mf_wk <- list()
 for (cc_ in cc){
     for (ss_ in ss){
         for (mm_ in mm){
             #break
             ## mapping file
+            break
             mf_tmp <- mf_2 %>% filter(country==cc_, mom_baby=="Baby", body_site_corrected==ss_, date_sampling_category_days_continuous %in% TP)
             ## distance matrix 
             dm_tmp = dm_dat[[paste("Baby", ss_, mm_, sep = "-")]]
@@ -284,9 +286,9 @@ for (cc_ in cc){
                 geom_path(aes(group = "subjectid_unique"), size = 0.1, alpha = 0.6) +
                 geom_point(size = 1, alpha = 0.5) +
                 stat_summary(fun.data = "mean_cl_boot", geom = "ribbon", aes(fill = birth_mode_ms), color = NA, alpha = 0.4) +
-                stat_summary(fun = "mean", geom = "line", aes(linetype = birth_mode_ms), size = 2/.pt) +
-                theme_Pub(base_size = 14) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), aspect.ratio = 0.6) +
-                labs(x = "Age (Days)", y = paste0("Axis.1 (", varPC1, "%)"), title = paste(cc_, ss_, mm_, sep = "-"), color = "Birth_Mode", fill = "Birth_Mode", linetype = "Birth_Mode") +
+                stat_summary(fun = "mean", geom = "line", aes(linetype = birth_mode_ms), size = 2) +
+                theme_Pub(base_size = 14) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), aspect.ratio = 0.6, plot.title.position = "plot", plot.title = element_text(hjust = 0)) +
+                labs(x = "Age (Days)", y = paste0("Axis.1 (", varPC1, "%)"), title = paste0(letters[i], ".", " ", cc_, ", ", ss_), color = "Birth_Mode", fill = "Birth_Mode", linetype = "Birth_Mode") +
                 scale_color_manual(values = clr_bm) +
                 scale_fill_manual(values = clr_bm) +
                 scale_x_continuous(breaks = TP[-2]) +

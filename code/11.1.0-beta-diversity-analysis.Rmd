@@ -252,20 +252,19 @@ write.table(adonis_tbl_out, file = "../results/beta_diversity_stats_table.txt", 
 ## Country specific
 ```{r}
 ss <- c("Feces", "Mouth", "Forearm")
-mm <- c("aitchison", "braycurtis", "unifrac", "wunifrac")
+mm <- c("unifrac", "aitchison", "braycurtis", "wunifrac")
 TP = c(7, 14, 30, 60, 120, 180, 360)
 
 mf_2 = mf %>% mutate(country = ifelse(country=="PuertoRico", "USA", country))
-cc <- c("USA", "Spain"，"Bolivia", "Chile")
+cc <- c("USA", "Spain", "Chile", "Bolivia")
 
 i = 1
-mf_wk <- list()
-for (cc_ in cc){
-    for (ss_ in ss){
-        for (mm_ in mm){
-            #break
+p_list = list()
+for (mm_ in mm){
+    for (cc_ in cc){
+        for (ss_ in ss){
             ## mapping file
-            break
+            #break
             mf_tmp <- mf_2 %>% filter(country==cc_, mom_baby=="Baby", body_site_corrected==ss_, date_sampling_category_days_continuous %in% TP)
             ## distance matrix 
             dm_tmp = dm_dat[[paste("Baby", ss_, mm_, sep = "-")]]
@@ -288,7 +287,7 @@ for (cc_ in cc){
                 stat_summary(fun.data = "mean_cl_boot", geom = "ribbon", aes(fill = birth_mode_ms), color = NA, alpha = 0.4) +
                 stat_summary(fun = "mean", geom = "line", aes(linetype = birth_mode_ms), size = 2) +
                 theme_Pub(base_size = 14) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), aspect.ratio = 0.6, plot.title.position = "plot", plot.title = element_text(hjust = 0)) +
-                labs(x = "Age (Days)", y = paste0("Axis.1 (", varPC1, "%)"), title = paste0(letters[i], ".", " ", cc_, ", ", ss_), color = "Birth_Mode", fill = "Birth_Mode", linetype = "Birth_Mode") +
+                labs(x = "Age (Days)", y = paste0("Axis.1 (", varPC1, "%)"), title = paste0(letters[i], ".", " ", cc_, ", ", ifelse(ss_=="Forearm", "Skin", ss_), ", ", mm_), color = "Birth_Mode", fill = "Birth_Mode", linetype = "Birth_Mode") +
                 scale_color_manual(values = clr_bm) +
                 scale_fill_manual(values = clr_bm) +
                 scale_x_continuous(breaks = TP[-2]) +
@@ -296,8 +295,17 @@ for (cc_ in cc){
                 scale_y_continuous(n.breaks = 5)
             print(p)
             set_panel_size(p, file = paste0(fig_path, "pc1_baby", ss_, "_", mm_, "_", cc_, ".pdf"), width = unit(6, "in"), height = unit(3.6, "in"), useDingbats = F)
+            p_list[[i]] = p
+            i = i + 1
         }
-        mf_wk[[ss_]] <- mf_tmp
     }
 }
+
+
 ```
+```{r}
+library(patchwork)
+wrap_plots(p_list[1:24], ncol = 3) + plot_layout(guides = "collect")
+set_panel_size(g = patchworkGrob(last_plot()), file = "../results/beta_diversity_traditional.pdf", width = unit(6, "in"), height = unit(3.6, "in"), useDingbats = F)
+```
+

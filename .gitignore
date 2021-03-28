@@ -6,3 +6,12 @@ data/diff-analysis-new/songbird-archive
 data/beta-diversity/
 
 **/.Rhistory
+
+**/Tmp**
+
+
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+__pycache__/
+

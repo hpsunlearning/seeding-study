@@ -1,0 +1,783 @@
+	formula	min_features	batch_size	traing_size	differential_prior	CV	baseline_CV	q_squared	body_site	days	model	best
+0	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	4	0.25	400.97552795410155	453.03671875	0.11491605126300464	Baby-Mouth	120.0	grid-search-CS-ref	
+1	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	4	0.5	401.0371429443359	453.0389739990234	0.11478445352209277	Baby-Mouth	120.0	grid-search-CS-ref	
+2	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	7	0.25	249.22823486328124	310.6502410888672	0.19772077436764335	Baby-Mouth	120.0	grid-search-CS-ref	Yes
+3	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	7	0.5	249.2653045654297	310.6518218994141	0.19760552813966992	Baby-Mouth	120.0	grid-search-CS-ref	
+4	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	9	0.25	278.30865783691405	312.61962890625	0.10975309256612709	Baby-Mouth	120.0	grid-search-CS-ref	
+5	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	9	0.5	278.33779296875	312.62138671875	0.10966490203961388	Baby-Mouth	120.0	grid-search-CS-ref	
+6	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	7	4	0.25	420.7084045410156	724.7378601074219	0.4195026537199843	Baby-Mouth	120.0	grid-search-CS-ref	
+7	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	7	4	0.5	420.75555114746095	724.7393493652344	0.41943879338691736	Baby-Mouth	120.0	grid-search-CS-ref	
+8	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	7	7	0.25	276.3858917236328	522.2382141113281	0.47076662669362945	Baby-Mouth	120.0	grid-search-CS-ref	
+9	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	7	7	0.5	276.4107177734375	522.2386962890625	0.47071957758480165	Baby-Mouth	120.0	grid-search-CS-ref	
+10	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	7	9	0.25	307.5793518066406	533.2457702636718	0.423194014920075	Baby-Mouth	120.0	grid-search-CS-ref	
+11	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	7	9	0.5	307.5987579345703	533.2463012695313	0.42315819687403067	Baby-Mouth	120.0	grid-search-CS-ref	
+12	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	4	0.25	511.60888671875	883.8127380371094	0.4211342915751587	Baby-Mouth	120.0	grid-search-CS-ref	
+13	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	4	0.5	511.63844909667966	883.8130310058593	0.4211010347806382	Baby-Mouth	120.0	grid-search-CS-ref	
+14	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	7	0.25	317.91868286132814	563.7065246582031	0.43602092763766664	Baby-Mouth	120.0	grid-search-CS-ref	
+15	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	7	0.5	317.938623046875	563.7066345214844	0.43598566421563467	Baby-Mouth	120.0	grid-search-CS-ref	
+16	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	9	0.25	342.5422882080078	574.0658996582031	0.40330493692108116	Baby-Mouth	120.0	grid-search-CS-ref	
+17	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	9	0.5	342.55735168457034	574.0660949707031	0.40327889996350963	Baby-Mouth	120.0	grid-search-CS-ref	
+20	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	7	0.25	413.3727172851562	432.1925933837891	0.04354511480931533	Baby-Mouth	120.0	grid-search-CS-ref	
+21	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	7	0.5	413.4002410888672	432.1939392089844	0.043484409231915766	Baby-Mouth	120.0	grid-search-CS-ref	
+24	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	7	4	0.25	748.15341796875	873.0375305175781	0.14304552574594465	Baby-Mouth	120.0	grid-search-CS-ref	
+25	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	7	4	0.5	748.1817810058594	873.0397827148438	0.14301524876761096	Baby-Mouth	120.0	grid-search-CS-ref	
+26	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	7	7	0.25	519.3613342285156	677.7539001464844	0.23370218287749445	Baby-Mouth	120.0	grid-search-CS-ref	
+27	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	7	7	0.5	519.3782348632812	677.7549682617188	0.23367845433082757	Baby-Mouth	120.0	grid-search-CS-ref	
+28	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	7	9	0.25	531.0933349609375	695.5542053222656	0.2364457997707451	Baby-Mouth	120.0	grid-search-CS-ref	
+29	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	7	9	0.5	531.1072265625	695.5552368164062	0.23642696014567244	Baby-Mouth	120.0	grid-search-CS-ref	
+30	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	4	0.25	1000.0927978515625	1200.5311401367187	0.16695805346817572	Baby-Mouth	120.0	grid-search-CS-ref	
+31	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	4	0.5	1000.1091430664062	1200.5319091796875	0.16694497212508774	Baby-Mouth	120.0	grid-search-CS-ref	
+32	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	7	0.25	616.2103210449219	770.0188537597656	0.1997464503159162	Baby-Mouth	120.0	grid-search-CS-ref	
+33	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	7	0.5	616.2219482421875	770.0193237304687	0.19973183886241686	Baby-Mouth	120.0	grid-search-CS-ref	
+34	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	9	0.25	619.0928894042969	788.7660339355468	0.21511213367627668	Baby-Mouth	120.0	grid-search-CS-ref	
+35	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	9	0.5	619.1026550292969	788.7665710449219	0.21510028726352082	Baby-Mouth	120.0	grid-search-CS-ref	
+42	"C(birth_mode_ms, Treatment(""CS""))"	2	7	4	0.25	676.1073120117187	724.7378601074219	0.06710087988020252	Baby-Mouth	120.0	grid-search-CS-ref	
+43	"C(birth_mode_ms, Treatment(""CS""))"	2	7	4	0.5	676.1073425292968	724.7393493652344	0.06710275477457117	Baby-Mouth	120.0	grid-search-CS-ref	
+44	"C(birth_mode_ms, Treatment(""CS""))"	2	7	7	0.25	476.43488159179685	522.2382141113281	0.08770582328501753	Baby-Mouth	120.0	grid-search-CS-ref	
+45	"C(birth_mode_ms, Treatment(""CS""))"	2	7	7	0.5	476.43878784179685	522.2386962890625	0.08769918577982039	Baby-Mouth	120.0	grid-search-CS-ref	
+46	"C(birth_mode_ms, Treatment(""CS""))"	2	7	9	0.25	461.58139953613284	533.2457702636718	0.1343927598189919	Baby-Mouth	120.0	grid-search-CS-ref	Yes
+47	"C(birth_mode_ms, Treatment(""CS""))"	2	7	9	0.5	461.5848693847656	533.2463012695313	0.13438711476133447	Baby-Mouth	120.0	grid-search-CS-ref	
+48	"C(birth_mode_ms, Treatment(""CS""))"	2	9	4	0.25	864.0106079101563	883.8127380371094	0.02240534592308807	Baby-Mouth	120.0	grid-search-CS-ref	
+49	"C(birth_mode_ms, Treatment(""CS""))"	2	9	4	0.5	864.0129455566406	883.8130310058593	0.02240302502293323	Baby-Mouth	120.0	grid-search-CS-ref	
+50	"C(birth_mode_ms, Treatment(""CS""))"	2	9	7	0.25	535.9778625488282	563.7065246582031	0.04918989030007748	Baby-Mouth	120.0	grid-search-CS-ref	
+51	"C(birth_mode_ms, Treatment(""CS""))"	2	9	7	0.5	535.97958984375	563.7066345214844	0.04918701143418536	Baby-Mouth	120.0	grid-search-CS-ref	
+52	"C(birth_mode_ms, Treatment(""CS""))"	2	9	9	0.25	520.310595703125	574.0658996582031	0.09363960476851829	Baby-Mouth	120.0	grid-search-CS-ref	
+53	"C(birth_mode_ms, Treatment(""CS""))"	2	9	9	0.5	520.3124633789063	574.0660949707031	0.09363665972041102	Baby-Mouth	120.0	grid-search-CS-ref	
+62	"C(birth_mode_ms, Treatment(""CS""))"	4	7	7	0.25	627.0051391601562	677.7539001464844	0.0748778590213347	Baby-Mouth	120.0	grid-search-CS-ref	
+63	"C(birth_mode_ms, Treatment(""CS""))"	4	7	7	0.5	627.0056884765625	677.7549682617188	0.07487850648342165	Baby-Mouth	120.0	grid-search-CS-ref	
+64	"C(birth_mode_ms, Treatment(""CS""))"	4	7	9	0.25	631.0175109863281	695.5542053222656	0.09278456494420328	Baby-Mouth	120.0	grid-search-CS-ref	
+65	"C(birth_mode_ms, Treatment(""CS""))"	4	7	9	0.5	631.018408203125	695.5552368164062	0.0927846203971805	Baby-Mouth	120.0	grid-search-CS-ref	
+66	"C(birth_mode_ms, Treatment(""CS""))"	4	9	4	0.25	1111.0532470703124	1200.5311401367187	0.07453192180938883	Baby-Mouth	120.0	grid-search-CS-ref	
+67	"C(birth_mode_ms, Treatment(""CS""))"	4	9	4	0.5	1111.052783203125	1200.5319091796875	0.07453290103526089	Baby-Mouth	120.0	grid-search-CS-ref	
+68	"C(birth_mode_ms, Treatment(""CS""))"	4	9	7	0.25	678.9829406738281	770.0188537597656	0.11822556375267579	Baby-Mouth	120.0	grid-search-CS-ref	
+69	"C(birth_mode_ms, Treatment(""CS""))"	4	9	7	0.5	678.9834167480469	770.0193237304687	0.11822548366888419	Baby-Mouth	120.0	grid-search-CS-ref	
+70	"C(birth_mode_ms, Treatment(""CS""))"	4	9	9	0.25	700.3472473144532	788.7660339355468	0.11209760919841882	Baby-Mouth	120.0	grid-search-CS-ref	
+71	"C(birth_mode_ms, Treatment(""CS""))"	4	9	9	0.5	700.3482238769532	788.7665710449219	0.11209697572608346	Baby-Mouth	120.0	grid-search-CS-ref	
+72	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	11	0.25	303.5261169433594	524.2075622558593	0.42098104110292867	Baby-Mouth	2.0	grid-search-CS-ref	
+73	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	11	0.5	303.5272644042969	524.2077697753906	0.42097908137769413	Baby-Mouth	2.0	grid-search-CS-ref	
+74	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	15	0.25	326.70070190429686	502.4793273925781	0.34982260145987765	Baby-Mouth	2.0	grid-search-CS-ref	
+75	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	15	0.5	326.7010894775391	502.4794891357422	0.34982203942401613	Baby-Mouth	2.0	grid-search-CS-ref	
+76	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	7	0.25	375.50181579589844	666.4235717773438	0.43654181559868965	Baby-Mouth	2.0	grid-search-CS-ref	
+77	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	7	0.5	375.50316467285154	666.4238342285156	0.43654001344721993	Baby-Mouth	2.0	grid-search-CS-ref	
+78	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	11	0.25	348.06537475585935	569.900634765625	0.38925252311922187	Baby-Mouth	2.0	grid-search-CS-ref	
+79	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	11	0.5	348.06671447753905	569.9007202148438	0.38925026389451955	Baby-Mouth	2.0	grid-search-CS-ref	
+80	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	15	0.25	457.7902801513672	585.2242431640625	0.21775236501432893	Baby-Mouth	2.0	grid-search-CS-ref	
+81	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	15	0.5	457.79111633300784	585.2242126464844	0.21775089539990522	Baby-Mouth	2.0	grid-search-CS-ref	
+82	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	7	0.25	442.73521728515624	722.2297973632812	0.3869884365038727	Baby-Mouth	2.0	grid-search-CS-ref	
+83	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	7	0.5	442.7368591308594	722.2298828125	0.38698623573043234	Baby-Mouth	2.0	grid-search-CS-ref	
+84	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	11	0.25	295.3135650634766	350.7331878662109	0.15801077491381987	Baby-Mouth	2.0	grid-search-CS-ref	
+85	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	11	0.5	295.3134307861328	350.7338470458984	0.15801274022040157	Baby-Mouth	2.0	grid-search-CS-ref	Yes
+86	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	15	0.25	320.7490692138672	353.58380737304685	0.09286267491468447	Baby-Mouth	2.0	grid-search-CS-ref	
+87	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	15	0.5	320.7491180419922	353.5844390869141	0.09286415751132837	Baby-Mouth	2.0	grid-search-CS-ref	
+88	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	7	0.25	358.08857421875	378.25164184570315	0.05330596194788784	Baby-Mouth	2.0	grid-search-CS-ref	
+89	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	7	0.5	358.0910278320313	378.2526916503906	0.0533021027038566	Baby-Mouth	2.0	grid-search-CS-ref	
+90	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	11	0.25	631.6681579589844	1057.7731567382812	0.402832115813207	Baby-Mouth	2.0	grid-search-CS-ref	
+91	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	11	0.5	631.6685363769532	1057.7735961914063	0.40283200615772274	Baby-Mouth	2.0	grid-search-CS-ref	
+92	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	15	0.25	687.8478088378906	1009.1833374023438	0.3184114487973777	Baby-Mouth	2.0	grid-search-CS-ref	
+93	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	15	0.5	687.8481384277344	1009.1836547851562	0.31841133656274934	Baby-Mouth	2.0	grid-search-CS-ref	
+94	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	7	0.25	772.7985107421875	1347.52900390625	0.42650695569299035	Baby-Mouth	2.0	grid-search-CS-ref	
+95	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	7	0.5	772.7989440917969	1347.5294921875	0.4265068419116522	Baby-Mouth	2.0	grid-search-CS-ref	
+96	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	11	0.25	643.1833129882813	1183.924462890625	0.45673619124491327	Baby-Mouth	2.0	grid-search-CS-ref	
+97	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	11	0.5	643.1838623046875	1183.924658203125	0.456735816888158	Baby-Mouth	2.0	grid-search-CS-ref	
+98	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	15	0.25	725.5780822753907	1223.679833984375	0.40705234970419923	Baby-Mouth	2.0	grid-search-CS-ref	
+99	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	15	0.5	725.5785888671875	1223.6798583984375	0.40705194754383645	Baby-Mouth	2.0	grid-search-CS-ref	
+100	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	7	0.25	776.8336303710937	1504.3123168945312	0.4835955129485533	Baby-Mouth	2.0	grid-search-CS-ref	
+101	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	7	0.5	776.833837890625	1504.3124633789062	0.4835954252843573	Baby-Mouth	2.0	grid-search-CS-ref	
+102	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	7	11	0.25	644.163330078125	679.37216796875	0.051825552400675545	Baby-Mouth	2.0	grid-search-CS-ref	
+103	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	7	11	0.5	644.1625061035156	679.3732238769531	0.05182823893544386	Baby-Mouth	2.0	grid-search-CS-ref	
+104	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	7	15	0.25	691.036181640625	711.0168090820313	0.028101483939883987	Baby-Mouth	2.0	grid-search-CS-ref	
+105	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	7	15	0.5	691.0356750488281	711.0175354003907	0.028103189241753812	Baby-Mouth	2.0	grid-search-CS-ref	
+108	"C(birth_mode_ms, Treatment(""CS""))"	3	11	11	0.25	330.7415405273438	524.2075622558593	0.36906377484513886	Baby-Mouth	2.0	grid-search-CS-ref	
+109	"C(birth_mode_ms, Treatment(""CS""))"	3	11	11	0.5	330.7427490234375	524.2077697753906	0.3690617192393921	Baby-Mouth	2.0	grid-search-CS-ref	
+110	"C(birth_mode_ms, Treatment(""CS""))"	3	11	15	0.25	344.42796630859374	502.4793273925781	0.31454301195659273	Baby-Mouth	2.0	grid-search-CS-ref	
+111	"C(birth_mode_ms, Treatment(""CS""))"	3	11	15	0.5	344.42897644042966	502.4794891357422	0.3145412223037347	Baby-Mouth	2.0	grid-search-CS-ref	
+112	"C(birth_mode_ms, Treatment(""CS""))"	3	11	7	0.25	411.50901489257814	666.4235717773438	0.38251131514587866	Baby-Mouth	2.0	grid-search-CS-ref	
+113	"C(birth_mode_ms, Treatment(""CS""))"	3	11	7	0.5	411.51073303222654	666.4238342285156	0.3825089801768401	Baby-Mouth	2.0	grid-search-CS-ref	
+114	"C(birth_mode_ms, Treatment(""CS""))"	3	15	11	0.25	415.37880554199216	569.900634765625	0.27113819462085853	Baby-Mouth	2.0	grid-search-CS-ref	
+115	"C(birth_mode_ms, Treatment(""CS""))"	3	15	11	0.5	415.3802154541016	569.9007202148438	0.27113582994331076	Baby-Mouth	2.0	grid-search-CS-ref	
+116	"C(birth_mode_ms, Treatment(""CS""))"	3	15	15	0.25	503.7178619384766	585.2242431640625	0.13927376074667552	Baby-Mouth	2.0	grid-search-CS-ref	
+117	"C(birth_mode_ms, Treatment(""CS""))"	3	15	15	0.5	503.71849670410154	585.2242126464844	0.13927263120881483	Baby-Mouth	2.0	grid-search-CS-ref	
+118	"C(birth_mode_ms, Treatment(""CS""))"	3	15	7	0.25	537.3976806640625	722.2297973632812	0.2559187081092533	Baby-Mouth	2.0	grid-search-CS-ref	
+119	"C(birth_mode_ms, Treatment(""CS""))"	3	15	7	0.5	537.3990844726562	722.2298828125	0.25591685242941986	Baby-Mouth	2.0	grid-search-CS-ref	
+120	"C(birth_mode_ms, Treatment(""CS""))"	3	7	11	0.25	279.70542602539064	350.7331878662109	0.20251223522056372	Baby-Mouth	2.0	grid-search-CS-ref	Yes
+121	"C(birth_mode_ms, Treatment(""CS""))"	3	7	11	0.5	279.7061828613281	350.7338470458984	0.20251157617894622	Baby-Mouth	2.0	grid-search-CS-ref	
+122	"C(birth_mode_ms, Treatment(""CS""))"	3	7	15	0.25	309.3516021728516	353.58380737304685	0.12509680669151313	Baby-Mouth	2.0	grid-search-CS-ref	
+123	"C(birth_mode_ms, Treatment(""CS""))"	3	7	15	0.5	309.35235900878905	353.5844390869141	0.1250962293260095	Baby-Mouth	2.0	grid-search-CS-ref	
+124	"C(birth_mode_ms, Treatment(""CS""))"	3	7	7	0.25	334.32439880371095	378.25164184570315	0.11613232616161662	Baby-Mouth	2.0	grid-search-CS-ref	
+125	"C(birth_mode_ms, Treatment(""CS""))"	3	7	7	0.5	334.3251922607422	378.2526916503906	0.11613268156264567	Baby-Mouth	2.0	grid-search-CS-ref	
+126	"C(birth_mode_ms, Treatment(""CS""))"	7	11	11	0.25	650.1133972167969	1057.7731567382812	0.3853943134447958	Baby-Mouth	2.0	grid-search-CS-ref	
+127	"C(birth_mode_ms, Treatment(""CS""))"	7	11	11	0.5	650.1141479492187	1057.7735961914063	0.38539385905452384	Baby-Mouth	2.0	grid-search-CS-ref	
+128	"C(birth_mode_ms, Treatment(""CS""))"	7	11	15	0.25	709.7271850585937	1009.1833374023438	0.296731169892832	Baby-Mouth	2.0	grid-search-CS-ref	
+129	"C(birth_mode_ms, Treatment(""CS""))"	7	11	15	0.5	709.7278259277343	1009.1836547851562	0.29673075602990484	Baby-Mouth	2.0	grid-search-CS-ref	
+130	"C(birth_mode_ms, Treatment(""CS""))"	7	11	7	0.25	798.8728332519531	1347.52900390625	0.40715722560615686	Baby-Mouth	2.0	grid-search-CS-ref	
+131	"C(birth_mode_ms, Treatment(""CS""))"	7	11	7	0.5	798.8738586425782	1347.5294921875	0.407156679483331	Baby-Mouth	2.0	grid-search-CS-ref	
+132	"C(birth_mode_ms, Treatment(""CS""))"	7	15	11	0.25	776.9354919433594	1183.924462890625	0.34376261636960925	Baby-Mouth	2.0	grid-search-CS-ref	
+133	"C(birth_mode_ms, Treatment(""CS""))"	7	15	11	0.5	776.9373840332031	1183.924658203125	0.3437611264787894	Baby-Mouth	2.0	grid-search-CS-ref	
+134	"C(birth_mode_ms, Treatment(""CS""))"	7	15	15	0.25	1017.9542602539062	1223.679833984375	0.16812042498127466	Baby-Mouth	2.0	grid-search-CS-ref	
+135	"C(birth_mode_ms, Treatment(""CS""))"	7	15	15	0.5	1017.9551147460937	1223.6798583984375	0.16811974328121904	Baby-Mouth	2.0	grid-search-CS-ref	
+136	"C(birth_mode_ms, Treatment(""CS""))"	7	15	7	0.25	974.4466796875	1504.3123168945312	0.3522311366172113	Baby-Mouth	2.0	grid-search-CS-ref	
+137	"C(birth_mode_ms, Treatment(""CS""))"	7	15	7	0.5	974.4486389160156	1504.3124633789062	0.3522298972865908	Baby-Mouth	2.0	grid-search-CS-ref	
+138	"C(birth_mode_ms, Treatment(""CS""))"	7	7	11	0.25	602.8162475585938	679.37216796875	0.1126862771535817	Baby-Mouth	2.0	grid-search-CS-ref	
+139	"C(birth_mode_ms, Treatment(""CS""))"	7	7	11	0.5	602.8166931152343	679.3732238769531	0.11268700041611379	Baby-Mouth	2.0	grid-search-CS-ref	
+140	"C(birth_mode_ms, Treatment(""CS""))"	7	7	15	0.25	675.6016052246093	711.0168090820313	0.04980923573824547	Baby-Mouth	2.0	grid-search-CS-ref	
+141	"C(birth_mode_ms, Treatment(""CS""))"	7	7	15	0.5	675.6020263671875	711.0175354003907	0.04980961406705653	Baby-Mouth	2.0	grid-search-CS-ref	
+142	"C(birth_mode_ms, Treatment(""CS""))"	7	7	7	0.25	726.9755981445312	768.5069763183594	0.05404164106979237	Baby-Mouth	2.0	grid-search-CS-ref	
+143	"C(birth_mode_ms, Treatment(""CS""))"	7	7	7	0.5	726.9763061523438	768.5079895019531	0.054041966924149754	Baby-Mouth	2.0	grid-search-CS-ref	
+144	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	4	0.25	142.6541778564453	161.74230041503907	0.11801564902695627	Baby-Forearm	180.0	grid-search-CS-ref	
+145	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	4	0.5	142.67679901123046	161.74388427734374	0.1178844279108493	Baby-Forearm	180.0	grid-search-CS-ref	
+146	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	6	0.25	112.69446411132813	134.64110870361327	0.1630010685710892	Baby-Forearm	180.0	grid-search-CS-ref	Yes
+147	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	6	0.5	112.7227996826172	134.64232025146484	0.16279814940733073	Baby-Forearm	180.0	grid-search-CS-ref	
+148	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	8	0.25	131.5121109008789	148.15611267089844	0.11234097243757424	Baby-Forearm	180.0	grid-search-CS-ref	
+149	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	8	0.5	131.19550476074218	148.1568618774414	0.1144824269477982	Baby-Forearm	180.0	grid-search-CS-ref	
+150	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	4	0.25	155.78978881835937	176.70314025878906	0.11835302649291479	Baby-Forearm	180.0	grid-search-CS-ref	
+151	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	4	0.5	155.187939453125	176.70347595214844	0.12176068627450132	Baby-Forearm	180.0	grid-search-CS-ref	
+152	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	6	0.25	120.3480728149414	146.24000396728516	0.17705094673093658	Baby-Forearm	180.0	grid-search-CS-ref	
+153	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	6	0.5	119.9751365661621	146.2403137207031	0.17960285017374567	Baby-Forearm	180.0	grid-search-CS-ref	
+154	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	8	0.25	137.59730529785156	155.88075561523436	0.11729126052296313	Baby-Forearm	180.0	grid-search-CS-ref	
+155	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	8	0.5	137.2750686645508	155.88105010986328	0.11936012383929417	Baby-Forearm	180.0	grid-search-CS-ref	
+156	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	4	0.25	160.63355712890626	182.84525146484376	0.12147810324846309	Baby-Forearm	180.0	grid-search-CS-ref	
+157	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	4	0.5	160.4407516479492	182.84559326171876	0.12253421706313727	Baby-Forearm	180.0	grid-search-CS-ref	
+158	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	6	0.25	126.43633117675782	151.11026611328126	0.16328430603137434	Baby-Forearm	180.0	grid-search-CS-ref	
+159	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	6	0.5	126.35322418212891	151.11053161621095	0.16383575101807202	Baby-Forearm	180.0	grid-search-CS-ref	
+160	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	8	0.25	158.03588409423827	171.409326171875	0.0780205043465777	Baby-Forearm	180.0	grid-search-CS-ref	
+161	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	8	0.5	158.1443344116211	171.40949249267578	0.07738870168827727	Baby-Forearm	180.0	grid-search-CS-ref	
+166	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	8	0.25	230.11525268554686	245.9463668823242	0.06436815634829818	Baby-Forearm	180.0	grid-search-CS-ref	
+167	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	8	0.5	230.08473510742186	245.94843139648438	0.06450009133617618	Baby-Forearm	180.0	grid-search-CS-ref	
+168	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	4	0.25	280.9051239013672	311.2366180419922	0.09745477357851473	Baby-Forearm	180.0	grid-search-CS-ref	
+169	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	4	0.5	280.7142303466797	311.23731384277346	0.09807012892905564	Baby-Forearm	180.0	grid-search-CS-ref	
+170	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	6	0.25	222.06641082763673	257.0977416992188	0.13625685951207445	Baby-Forearm	180.0	grid-search-CS-ref	
+171	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	6	0.5	221.94154510498046	257.09833068847655	0.13674451129009935	Baby-Forearm	180.0	grid-search-CS-ref	
+172	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	8	0.25	235.1192169189453	270.36419677734375	0.130361121326372	Baby-Forearm	180.0	grid-search-CS-ref	
+173	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	8	0.5	235.02134857177734	270.36448364257814	0.1307240307403854	Baby-Forearm	180.0	grid-search-CS-ref	
+174	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	4	0.25	285.2142578125	325.9154113769531	0.12488256812556253	Baby-Forearm	180.0	grid-search-CS-ref	
+175	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	4	0.5	284.84254455566406	325.91572265625	0.12602392350339808	Baby-Forearm	180.0	grid-search-CS-ref	
+176	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	6	0.25	225.29067993164062	268.31043395996096	0.16033574763902037	Baby-Forearm	180.0	grid-search-CS-ref	
+177	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	6	0.5	225.05681610107422	268.310791015625	0.16120848047454006	Baby-Forearm	180.0	grid-search-CS-ref	
+178	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	8	0.25	245.77430725097656	296.5902526855469	0.17133383506182442	Baby-Forearm	180.0	grid-search-CS-ref	
+179	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	8	0.5	245.3503189086914	296.5899658203125	0.1727625773511986	Baby-Forearm	180.0	grid-search-CS-ref	
+180	"C(birth_mode_ms, Treatment(""CS""))"	2	4	4	0.25	106.32679672241211	161.74230041503907	0.3426160228364993	Baby-Forearm	180.0	grid-search-CS-ref	
+181	"C(birth_mode_ms, Treatment(""CS""))"	2	4	4	0.5	106.33503112792968	161.74388427734374	0.34257155005875817	Baby-Forearm	180.0	grid-search-CS-ref	
+182	"C(birth_mode_ms, Treatment(""CS""))"	2	4	6	0.25	96.47789688110352	134.64110870361327	0.2834439807423065	Baby-Forearm	180.0	grid-search-CS-ref	Yes
+183	"C(birth_mode_ms, Treatment(""CS""))"	2	4	6	0.5	96.48490524291992	134.64232025146484	0.28339837680515445	Baby-Forearm	180.0	grid-search-CS-ref	
+184	"C(birth_mode_ms, Treatment(""CS""))"	2	4	8	0.25	121.41580429077149	148.15611267089844	0.1804873784689912	Baby-Forearm	180.0	grid-search-CS-ref	
+185	"C(birth_mode_ms, Treatment(""CS""))"	2	4	8	0.5	121.42137222290039	148.1568618774414	0.18045394128729042	Baby-Forearm	180.0	grid-search-CS-ref	
+186	"C(birth_mode_ms, Treatment(""CS""))"	2	6	4	0.25	150.2298110961914	176.70314025878906	0.1498181024051206	Baby-Forearm	180.0	grid-search-CS-ref	
+187	"C(birth_mode_ms, Treatment(""CS""))"	2	6	4	0.5	150.23724060058595	176.70347595214844	0.1497776725044706	Baby-Forearm	180.0	grid-search-CS-ref	
+188	"C(birth_mode_ms, Treatment(""CS""))"	2	6	6	0.25	126.62970581054688	146.24000396728516	0.13409667412977666	Baby-Forearm	180.0	grid-search-CS-ref	
+189	"C(birth_mode_ms, Treatment(""CS""))"	2	6	6	0.5	126.6383888244629	146.2403137207031	0.13403913324254035	Baby-Forearm	180.0	grid-search-CS-ref	
+190	"C(birth_mode_ms, Treatment(""CS""))"	2	6	8	0.25	141.6240249633789	155.88075561523436	0.09145920928845008	Baby-Forearm	180.0	grid-search-CS-ref	
+191	"C(birth_mode_ms, Treatment(""CS""))"	2	6	8	0.5	141.6287399291992	155.88105010986328	0.09143067852454934	Baby-Forearm	180.0	grid-search-CS-ref	
+192	"C(birth_mode_ms, Treatment(""CS""))"	2	8	4	0.25	165.79973297119142	182.84525146484376	0.09322374170012138	Baby-Forearm	180.0	grid-search-CS-ref	
+193	"C(birth_mode_ms, Treatment(""CS""))"	2	8	4	0.5	165.80271606445314	182.84559326171876	0.09320912193312225	Baby-Forearm	180.0	grid-search-CS-ref	
+194	"C(birth_mode_ms, Treatment(""CS""))"	2	8	6	0.25	138.37315979003907	151.11026611328126	0.08429014553977221	Baby-Forearm	180.0	grid-search-CS-ref	
+195	"C(birth_mode_ms, Treatment(""CS""))"	2	8	6	0.5	138.37558288574218	151.11053161621095	0.08427571919879728	Baby-Forearm	180.0	grid-search-CS-ref	
+196	"C(birth_mode_ms, Treatment(""CS""))"	2	8	8	0.25	162.20191802978516	171.409326171875	0.05371591119177155	Baby-Forearm	180.0	grid-search-CS-ref	
+197	"C(birth_mode_ms, Treatment(""CS""))"	2	8	8	0.5	162.20248565673828	171.40949249267578	0.053713517857425064	Baby-Forearm	180.0	grid-search-CS-ref	
+198	"C(birth_mode_ms, Treatment(""CS""))"	4	4	4	0.25	191.82005767822267	257.8306091308594	0.25602294341682963	Baby-Forearm	180.0	grid-search-CS-ref	
+199	"C(birth_mode_ms, Treatment(""CS""))"	4	4	4	0.5	191.82491607666014	257.83428344726565	0.25601470249826674	Baby-Forearm	180.0	grid-search-CS-ref	
+200	"C(birth_mode_ms, Treatment(""CS""))"	4	4	6	0.25	174.8207534790039	215.9517044067383	0.19046365501364837	Baby-Forearm	180.0	grid-search-CS-ref	
+201	"C(birth_mode_ms, Treatment(""CS""))"	4	4	6	0.5	174.82386322021483	215.95474853515626	0.19046066638467796	Baby-Forearm	180.0	grid-search-CS-ref	
+202	"C(birth_mode_ms, Treatment(""CS""))"	4	4	8	0.25	194.5827667236328	245.9463668823242	0.20884065420355202	Baby-Forearm	180.0	grid-search-CS-ref	
+203	"C(birth_mode_ms, Treatment(""CS""))"	4	4	8	0.5	194.5845748901367	245.94843139648438	0.2088399434576832	Baby-Forearm	180.0	grid-search-CS-ref	
+204	"C(birth_mode_ms, Treatment(""CS""))"	4	6	4	0.25	219.22403717041016	311.2366180419922	0.29563546041092004	Baby-Forearm	180.0	grid-search-CS-ref	
+205	"C(birth_mode_ms, Treatment(""CS""))"	4	6	4	0.5	219.2311233520508	311.23731384277346	0.295614267308582	Baby-Forearm	180.0	grid-search-CS-ref	
+206	"C(birth_mode_ms, Treatment(""CS""))"	4	6	6	0.25	189.64032287597655	257.0977416992188	0.26238044090702806	Baby-Forearm	180.0	grid-search-CS-ref	
+207	"C(birth_mode_ms, Treatment(""CS""))"	4	6	6	0.5	189.6501678466797	257.09833068847655	0.262343838099529	Baby-Forearm	180.0	grid-search-CS-ref	
+208	"C(birth_mode_ms, Treatment(""CS""))"	4	6	8	0.25	207.21847229003907	270.36419677734375	0.23355801263622133	Baby-Forearm	180.0	grid-search-CS-ref	
+209	"C(birth_mode_ms, Treatment(""CS""))"	4	6	8	0.5	207.22293243408203	270.36448364257814	0.2335423290729608	Baby-Forearm	180.0	grid-search-CS-ref	
+210	"C(birth_mode_ms, Treatment(""CS""))"	4	8	4	0.25	251.11362915039064	325.9154113769531	0.22951287240616824	Baby-Forearm	180.0	grid-search-CS-ref	
+211	"C(birth_mode_ms, Treatment(""CS""))"	4	8	4	0.5	251.12118225097657	325.91572265625	0.22949043328038754	Baby-Forearm	180.0	grid-search-CS-ref	
+212	"C(birth_mode_ms, Treatment(""CS""))"	4	8	6	0.25	213.32317810058595	268.31043395996096	0.20493893974909883	Baby-Forearm	180.0	grid-search-CS-ref	
+213	"C(birth_mode_ms, Treatment(""CS""))"	4	8	6	0.5	213.32987365722656	268.310791015625	0.2049150432984138	Baby-Forearm	180.0	grid-search-CS-ref	
+214	"C(birth_mode_ms, Treatment(""CS""))"	4	8	8	0.25	261.92291259765625	296.5902526855469	0.11688630956003099	Baby-Forearm	180.0	grid-search-CS-ref	
+215	"C(birth_mode_ms, Treatment(""CS""))"	4	8	8	0.5	261.9259002685547	296.5899658203125	0.11687538199710656	Baby-Forearm	180.0	grid-search-CS-ref	
+216	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	4	0.25	449.75489196777346	539.6724548339844	0.16661506819700778	Baby-Mouth	180.0	grid-search-CS-ref	
+217	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	4	0.5	449.76731872558594	539.6751586914063	0.16659621722042406	Baby-Mouth	180.0	grid-search-CS-ref	
+218	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	6	0.25	325.502978515625	461.21177673339844	0.29424400040031795	Baby-Mouth	180.0	grid-search-CS-ref	
+219	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	6	0.5	325.51296081542966	461.2140411376953	0.29422582189285973	Baby-Mouth	180.0	grid-search-CS-ref	
+220	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	9	0.25	329.1692169189453	399.1591400146484	0.1753434058734934	Baby-Mouth	180.0	grid-search-CS-ref	
+221	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	9	0.5	329.1805480957031	399.16102600097656	0.17531891479079986	Baby-Mouth	180.0	grid-search-CS-ref	
+222	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	4	0.25	408.15012512207034	816.4299255371094	0.500079416058202	Baby-Mouth	180.0	grid-search-CS-ref	
+223	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	4	0.5	408.14744873046874	816.4310302734375	0.5000833706752024	Baby-Mouth	180.0	grid-search-CS-ref	
+224	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	6	0.25	305.7454559326172	634.9782104492188	0.5184945705202768	Baby-Mouth	180.0	grid-search-CS-ref	
+225	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	6	0.5	305.7320953369141	634.9791687011718	0.518516338162276	Baby-Mouth	180.0	grid-search-CS-ref	Yes
+226	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	9	0.25	324.0804962158203	542.5329284667969	0.40265285439599985	Baby-Mouth	180.0	grid-search-CS-ref	
+227	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	9	0.5	324.10326232910154	542.5337707519532	0.40261181920547806	Baby-Mouth	180.0	grid-search-CS-ref	
+228	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	4	0.25	532.6681274414062	921.2453796386719	0.42179560493391266	Baby-Mouth	180.0	grid-search-CS-ref	
+229	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	4	0.5	532.7268615722656	921.2455444335938	0.4217319532331629	Baby-Mouth	180.0	grid-search-CS-ref	
+230	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	6	0.25	393.3940063476563	714.0892395019531	0.4490968571070587	Baby-Mouth	180.0	grid-search-CS-ref	
+231	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	6	0.5	393.43878784179685	714.089453125	0.44903431058947996	Baby-Mouth	180.0	grid-search-CS-ref	
+232	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	9	0.25	379.2842956542969	609.5494689941406	0.37776289711123867	Baby-Mouth	180.0	grid-search-CS-ref	
+233	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	9	9	0.5	379.30678405761716	609.5496826171875	0.37772622171008274	Baby-Mouth	180.0	grid-search-CS-ref	
+234	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	4	0.25	578.9500671386719	770.692333984375	0.24879223315278287	Baby-Mouth	180.0	grid-search-CS-ref	
+235	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	4	0.5	579.1037170410157	770.6951171875	0.24859558063071607	Baby-Mouth	180.0	grid-search-CS-ref	
+236	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	6	0.25	458.74672546386716	636.9631896972656	0.27979083739219024	Baby-Mouth	180.0	grid-search-CS-ref	
+237	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	6	0.5	458.9035125732422	636.9657287597656	0.2795475614256797	Baby-Mouth	180.0	grid-search-CS-ref	
+238	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	9	0.25	415.96978149414065	555.7490478515625	0.2515150802287225	Baby-Mouth	180.0	grid-search-CS-ref	
+239	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	9	0.5	416.1092163085938	555.7511657714844	0.2512670383138864	Baby-Mouth	180.0	grid-search-CS-ref	
+240	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	4	0.25	653.0414489746094	1156.0975219726563	0.4351329048259521	Baby-Mouth	180.0	grid-search-CS-ref	
+241	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	4	0.5	653.1970947265625	1156.1002807617188	0.4349996227868822	Baby-Mouth	180.0	grid-search-CS-ref	
+242	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	6	0.25	489.11948852539064	903.8370910644531	0.45884109718339583	Baby-Mouth	180.0	grid-search-CS-ref	
+243	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	6	0.5	489.24718017578124	903.8390380859375	0.45870098595004105	Baby-Mouth	180.0	grid-search-CS-ref	
+244	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	9	0.25	456.51539611816406	776.384619140625	0.4119984027717113	Baby-Mouth	180.0	grid-search-CS-ref	
+245	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	9	0.5	456.6984802246094	776.3866455078125	0.4117641218237392	Baby-Mouth	180.0	grid-search-CS-ref	
+246	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	4	0.25	740.8304809570312	1420.7985473632812	0.478581617125197	Baby-Mouth	180.0	grid-search-CS-ref	
+247	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	4	0.5	740.9172119140625	1420.7992309570313	0.47852082421596576	Baby-Mouth	180.0	grid-search-CS-ref	
+248	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	6	0.25	578.0969177246094	1101.6263916015625	0.47523323503155857	Baby-Mouth	180.0	grid-search-CS-ref	
+249	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	6	0.5	578.1606384277344	1101.6269409179688	0.47517565434087694	Baby-Mouth	180.0	grid-search-CS-ref	
+250	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	9	0.25	506.92340698242185	937.9148864746094	0.45952088585796746	Baby-Mouth	180.0	grid-search-CS-ref	
+251	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	9	0.5	506.9491668701172	937.9153198242187	0.4594936705318684	Baby-Mouth	180.0	grid-search-CS-ref	
+252	"C(birth_mode_ms, Treatment(""CS""))"	2	4	4	0.25	474.63270568847656	539.6724548339844	0.12051708135727535	Baby-Mouth	180.0	grid-search-CS-ref	
+253	"C(birth_mode_ms, Treatment(""CS""))"	2	4	4	0.5	474.6378112792969	539.6751586914063	0.1205120272161696	Baby-Mouth	180.0	grid-search-CS-ref	
+254	"C(birth_mode_ms, Treatment(""CS""))"	2	4	6	0.25	404.1821990966797	461.21177673339844	0.1236516075990931	Baby-Mouth	180.0	grid-search-CS-ref	
+255	"C(birth_mode_ms, Treatment(""CS""))"	2	4	6	0.5	404.185888671875	461.2140411376953	0.12364791046939216	Baby-Mouth	180.0	grid-search-CS-ref	
+256	"C(birth_mode_ms, Treatment(""CS""))"	2	4	9	0.25	376.80066833496096	399.1591400146484	0.05601392887775769	Baby-Mouth	180.0	grid-search-CS-ref	Yes
+257	"C(birth_mode_ms, Treatment(""CS""))"	2	4	9	0.5	376.8046112060547	399.16102600097656	0.056008511198854305	Baby-Mouth	180.0	grid-search-CS-ref	
+258	"C(birth_mode_ms, Treatment(""CS""))"	2	6	4	0.25	574.1827453613281	816.4299255371094	0.2967152141274253	Baby-Mouth	180.0	grid-search-CS-ref	
+259	"C(birth_mode_ms, Treatment(""CS""))"	2	6	4	0.5	574.1922607421875	816.4310302734375	0.296704510912722	Baby-Mouth	180.0	grid-search-CS-ref	
+260	"C(birth_mode_ms, Treatment(""CS""))"	2	6	6	0.25	476.5683074951172	634.9782104492188	0.24947297457976325	Baby-Mouth	180.0	grid-search-CS-ref	
+261	"C(birth_mode_ms, Treatment(""CS""))"	2	6	6	0.5	476.5757598876953	634.9791687011718	0.24946237076955657	Baby-Mouth	180.0	grid-search-CS-ref	
+262	"C(birth_mode_ms, Treatment(""CS""))"	2	6	9	0.25	441.61268005371096	542.5329284667969	0.1860168168931008	Baby-Mouth	180.0	grid-search-CS-ref	
+263	"C(birth_mode_ms, Treatment(""CS""))"	2	6	9	0.5	441.6237091064453	542.5337707519532	0.18599775181855738	Baby-Mouth	180.0	grid-search-CS-ref	
+264	"C(birth_mode_ms, Treatment(""CS""))"	2	9	4	0.25	838.4276184082031	921.2453796386719	0.08989761366613458	Baby-Mouth	180.0	grid-search-CS-ref	
+265	"C(birth_mode_ms, Treatment(""CS""))"	2	9	4	0.5	838.4319763183594	921.2455444335938	0.08989304601321069	Baby-Mouth	180.0	grid-search-CS-ref	
+266	"C(birth_mode_ms, Treatment(""CS""))"	2	9	6	0.25	658.1184020996094	714.0892395019531	0.07838073213563757	Baby-Mouth	180.0	grid-search-CS-ref	
+267	"C(birth_mode_ms, Treatment(""CS""))"	2	9	6	0.5	658.1214965820312	714.089453125	0.07837667437607665	Baby-Mouth	180.0	grid-search-CS-ref	
+268	"C(birth_mode_ms, Treatment(""CS""))"	2	9	9	0.25	572.0661987304687	609.5494689941406	0.061493401553651794	Baby-Mouth	180.0	grid-search-CS-ref	
+269	"C(birth_mode_ms, Treatment(""CS""))"	2	9	9	0.5	572.0688659667969	609.5496826171875	0.061489354714223454	Baby-Mouth	180.0	grid-search-CS-ref	
+270	"C(birth_mode_ms, Treatment(""CS""))"	4	4	4	0.25	481.4533386230469	770.692333984375	0.3752976156723937	Baby-Mouth	180.0	grid-search-CS-ref	
+271	"C(birth_mode_ms, Treatment(""CS""))"	4	4	4	0.5	481.4629425048828	770.6951171875	0.3752874103291495	Baby-Mouth	180.0	grid-search-CS-ref	
+272	"C(birth_mode_ms, Treatment(""CS""))"	4	4	6	0.25	431.7329925537109	636.9631896972656	0.3222010321210179	Baby-Mouth	180.0	grid-search-CS-ref	
+273	"C(birth_mode_ms, Treatment(""CS""))"	4	4	6	0.5	431.74065551757815	636.9657287597656	0.32219170353447535	Baby-Mouth	180.0	grid-search-CS-ref	
+274	"C(birth_mode_ms, Treatment(""CS""))"	4	4	9	0.25	411.23662719726565	555.7490478515625	0.2600317917105912	Baby-Mouth	180.0	grid-search-CS-ref	
+275	"C(birth_mode_ms, Treatment(""CS""))"	4	4	9	0.5	411.2461639404297	555.7511657714844	0.260017451570174	Baby-Mouth	180.0	grid-search-CS-ref	
+276	"C(birth_mode_ms, Treatment(""CS""))"	4	6	4	0.25	486.4552947998047	1156.0975219726563	0.579226418572576	Baby-Mouth	180.0	grid-search-CS-ref	
+277	"C(birth_mode_ms, Treatment(""CS""))"	4	6	4	0.5	486.4691192626953	1156.1002807617188	0.5792154648192146	Baby-Mouth	180.0	grid-search-CS-ref	
+278	"C(birth_mode_ms, Treatment(""CS""))"	4	6	6	0.25	449.33692932128906	903.8370910644531	0.5028562848730816	Baby-Mouth	180.0	grid-search-CS-ref	
+279	"C(birth_mode_ms, Treatment(""CS""))"	4	6	6	0.5	449.3476135253906	903.8390380859375	0.5028455348897352	Baby-Mouth	180.0	grid-search-CS-ref	
+280	"C(birth_mode_ms, Treatment(""CS""))"	4	6	9	0.25	443.9131164550781	776.384619140625	0.42823040860025974	Baby-Mouth	180.0	grid-search-CS-ref	
+281	"C(birth_mode_ms, Treatment(""CS""))"	4	6	9	0.5	443.93284606933594	776.3866455078125	0.42820648881850354	Baby-Mouth	180.0	grid-search-CS-ref	
+282	"C(birth_mode_ms, Treatment(""CS""))"	4	9	4	0.25	905.1230834960937	1420.7985473632812	0.3629476288698199	Baby-Mouth	180.0	grid-search-CS-ref	
+283	"C(birth_mode_ms, Treatment(""CS""))"	4	9	4	0.5	905.139501953125	1420.7992309570313	0.36293637958725866	Baby-Mouth	180.0	grid-search-CS-ref	
+284	"C(birth_mode_ms, Treatment(""CS""))"	4	9	6	0.25	749.4414855957032	1101.6263916015625	0.3196954146077121	Baby-Mouth	180.0	grid-search-CS-ref	
+285	"C(birth_mode_ms, Treatment(""CS""))"	4	9	6	0.5	749.4535034179687	1101.6269409179688	0.3196848446775815	Baby-Mouth	180.0	grid-search-CS-ref	
+286	"C(birth_mode_ms, Treatment(""CS""))"	4	9	9	0.25	684.7838134765625	937.9148864746094	0.26988704054960055	Baby-Mouth	180.0	grid-search-CS-ref	
+287	"C(birth_mode_ms, Treatment(""CS""))"	4	9	9	0.5	684.7955017089844	937.9153198242187	0.26987491596008184	Baby-Mouth	180.0	grid-search-CS-ref	
+288	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	4	0.25	35.0105525970459	47.95324478149414	0.26990232346994414	Baby-Forearm	120.0	grid-search-CS-ref	
+289	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	4	0.5	35.00886840820313	47.95451354980469	0.2699567607573883	Baby-Forearm	120.0	grid-search-CS-ref	
+290	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	6	0.25	30.086039543151855	41.291887283325195	0.2713813409225926	Baby-Forearm	120.0	grid-search-CS-ref	
+291	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	6	0.5	30.087144470214845	41.292449188232425	0.27136449734279466	Baby-Forearm	120.0	grid-search-CS-ref	
+292	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	8	0.25	48.32017784118652	58.18375587463379	0.16952460158639338	Baby-Forearm	120.0	grid-search-CS-ref	
+293	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	4	8	0.5	48.32086296081543	58.184716415405276	0.1695265365593196	Baby-Forearm	120.0	grid-search-CS-ref	
+294	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	4	0.25	33.162984466552736	54.90254898071289	0.3959663971484676	Baby-Forearm	120.0	grid-search-CS-ref	
+295	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	4	0.5	33.16329231262207	54.90277633666992	0.3959632913778153	Baby-Forearm	120.0	grid-search-CS-ref	
+296	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	6	0.25	29.7071102142334	45.76856384277344	0.35092762979662595	Baby-Forearm	120.0	grid-search-CS-ref	Yes
+297	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	6	0.5	29.713167190551758	45.76870269775391	0.3507972601545919	Baby-Forearm	120.0	grid-search-CS-ref	
+298	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	8	0.25	51.11900634765625	64.366650390625	0.20581534012679126	Baby-Forearm	120.0	grid-search-CS-ref	
+299	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	6	8	0.5	51.12475318908692	64.3668815612793	0.2057289098212014	Baby-Forearm	120.0	grid-search-CS-ref	
+300	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	4	0.25	40.400069046020505	58.53105697631836	0.3097669658969877	Baby-Forearm	120.0	grid-search-CS-ref	
+301	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	4	0.5	40.40543785095215	58.53121452331543	0.3096770982796372	Baby-Forearm	120.0	grid-search-CS-ref	
+302	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	6	0.25	34.01811294555664	47.300911331176756	0.2808148513803628	Baby-Forearm	120.0	grid-search-CS-ref	
+303	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	6	0.5	34.02166213989258	47.301025390625	0.2807415513948748	Baby-Forearm	120.0	grid-search-CS-ref	
+304	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	8	0.25	55.61034927368164	66.78546752929688	0.16732859211793394	Baby-Forearm	120.0	grid-search-CS-ref	
+305	"C(birth_mode_ms, Treatment(""CS"")) + country"	2	8	8	0.5	55.61309127807617	66.78559112548828	0.16728907626825218	Baby-Forearm	120.0	grid-search-CS-ref	
+306	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	4	0.25	59.26015014648438	69.75487976074218	0.15045154762296942	Baby-Forearm	120.0	grid-search-CS-ref	
+307	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	4	0.5	59.25979461669922	69.75640869140625	0.1504752648769916	Baby-Forearm	120.0	grid-search-CS-ref	
+308	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	6	0.25	49.86314430236816	61.27295684814453	0.18621286017016947	Baby-Forearm	120.0	grid-search-CS-ref	
+309	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	6	0.5	49.86334648132324	61.27394027709961	0.1862226216263252	Baby-Forearm	120.0	grid-search-CS-ref	
+310	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	8	0.25	75.81785354614257	85.51421966552735	0.11338893294367036	Baby-Forearm	120.0	grid-search-CS-ref	
+311	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	4	8	0.5	75.81683807373047	85.51577987670899	0.11341698359018437	Baby-Forearm	120.0	grid-search-CS-ref	
+312	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	4	0.25	58.937889862060544	86.32172317504883	0.31722991972087444	Baby-Forearm	120.0	grid-search-CS-ref	
+313	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	4	0.5	58.93873329162598	86.32228546142578	0.31722459644603007	Baby-Forearm	120.0	grid-search-CS-ref	
+314	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	6	0.25	52.27390899658203	73.49632720947265	0.2887548129092816	Baby-Forearm	120.0	grid-search-CS-ref	
+315	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	6	0.5	52.27895317077637	73.49667510986328	0.28868954830093374	Baby-Forearm	120.0	grid-search-CS-ref	
+316	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	8	0.25	82.35316009521485	102.72297592163086	0.19829853685271448	Baby-Forearm	120.0	grid-search-CS-ref	
+317	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	6	8	0.5	82.35800399780274	102.72353439331054	0.1982557406711858	Baby-Forearm	120.0	grid-search-CS-ref	
+318	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	4	0.25	74.86912307739257	96.92110595703124	0.22752508508740232	Baby-Forearm	120.0	grid-search-CS-ref	
+319	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	4	0.5	74.87497482299804	96.9213264465332	0.22746646617240696	Baby-Forearm	120.0	grid-search-CS-ref	
+320	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	6	0.25	60.26664276123047	77.59778671264648	0.22334585412332997	Baby-Forearm	120.0	grid-search-CS-ref	
+321	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	6	0.5	60.27049522399902	77.5979232788086	0.22329757450534193	Baby-Forearm	120.0	grid-search-CS-ref	
+322	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	8	0.25	91.7166130065918	108.20980300903321	0.15241863069526684	Baby-Forearm	120.0	grid-search-CS-ref	
+323	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	8	0.5	91.72021102905273	108.21002349853515	0.15238710737093264	Baby-Forearm	120.0	grid-search-CS-ref	
+324	"C(birth_mode_ms, Treatment(""CS""))"	2	4	4	0.25	32.899182891845705	47.95324478149414	0.3139320802636909	Baby-Forearm	120.0	grid-search-CS-ref	
+325	"C(birth_mode_ms, Treatment(""CS""))"	2	4	4	0.5	32.89970321655274	47.95451354980469	0.31393938169378566	Baby-Forearm	120.0	grid-search-CS-ref	
+326	"C(birth_mode_ms, Treatment(""CS""))"	2	4	6	0.25	29.58683052062988	41.291887283325195	0.2834711012935982	Baby-Forearm	120.0	grid-search-CS-ref	Yes
+327	"C(birth_mode_ms, Treatment(""CS""))"	2	4	6	0.5	29.588558197021484	41.292449188232425	0.2834390117635921	Baby-Forearm	120.0	grid-search-CS-ref	
+328	"C(birth_mode_ms, Treatment(""CS""))"	2	4	8	0.25	45.24325180053711	58.18375587463379	0.22240750669274545	Baby-Forearm	120.0	grid-search-CS-ref	
+329	"C(birth_mode_ms, Treatment(""CS""))"	2	4	8	0.5	45.246925354003906	58.184716415405276	0.22235720750158883	Baby-Forearm	120.0	grid-search-CS-ref	
+330	"C(birth_mode_ms, Treatment(""CS""))"	2	6	4	0.25	39.673488998413085	54.90254898071289	0.27738347790827955	Baby-Forearm	120.0	grid-search-CS-ref	
+331	"C(birth_mode_ms, Treatment(""CS""))"	2	6	4	0.5	39.673387145996095	54.90277633666992	0.2773883254516224	Baby-Forearm	120.0	grid-search-CS-ref	
+332	"C(birth_mode_ms, Treatment(""CS""))"	2	6	6	0.25	39.055550765991214	45.76856384277344	0.1466730111926413	Baby-Forearm	120.0	grid-search-CS-ref	
+333	"C(birth_mode_ms, Treatment(""CS""))"	2	6	6	0.5	39.05790405273437	45.76870269775391	0.14662418310905867	Baby-Forearm	120.0	grid-search-CS-ref	
+334	"C(birth_mode_ms, Treatment(""CS""))"	2	6	8	0.25	57.77583541870117	64.366650390625	0.10239487268524661	Baby-Forearm	120.0	grid-search-CS-ref	
+335	"C(birth_mode_ms, Treatment(""CS""))"	2	6	8	0.5	57.778585052490236	64.3668815612793	0.10235537824706942	Baby-Forearm	120.0	grid-search-CS-ref	
+336	"C(birth_mode_ms, Treatment(""CS""))"	2	8	4	0.25	52.418439865112305	58.53105697631836	0.10443373871890305	Baby-Forearm	120.0	grid-search-CS-ref	
+337	"C(birth_mode_ms, Treatment(""CS""))"	2	8	4	0.5	52.419970703125	58.53121452331543	0.10440999507632054	Baby-Forearm	120.0	grid-search-CS-ref	
+338	"C(birth_mode_ms, Treatment(""CS""))"	2	8	6	0.25	43.11533546447754	47.300911331176756	0.08848827113274749	Baby-Forearm	120.0	grid-search-CS-ref	
+339	"C(birth_mode_ms, Treatment(""CS""))"	2	8	6	0.5	43.116423797607425	47.301025390625	0.08846746045059217	Baby-Forearm	120.0	grid-search-CS-ref	
+340	"C(birth_mode_ms, Treatment(""CS""))"	2	8	8	0.25	62.41756324768066	66.78546752929688	0.06540201698371195	Baby-Forearm	120.0	grid-search-CS-ref	
+341	"C(birth_mode_ms, Treatment(""CS""))"	2	8	8	0.5	62.41879539489746	66.78559112548828	0.06538529729243148	Baby-Forearm	120.0	grid-search-CS-ref	
+342	"C(birth_mode_ms, Treatment(""CS""))"	4	4	4	0.25	55.63229179382324	69.75487976074218	0.20246021519009327	Baby-Forearm	120.0	grid-search-CS-ref	
+343	"C(birth_mode_ms, Treatment(""CS""))"	4	4	4	0.5	55.633744430541995	69.75640869140625	0.2024568713584608	Baby-Forearm	120.0	grid-search-CS-ref	
+344	"C(birth_mode_ms, Treatment(""CS""))"	4	4	6	0.25	48.52698669433594	61.27295684814453	0.20801950500605826	Baby-Forearm	120.0	grid-search-CS-ref	
+345	"C(birth_mode_ms, Treatment(""CS""))"	4	4	6	0.5	48.52809104919434	61.27394027709961	0.20801419282430056	Baby-Forearm	120.0	grid-search-CS-ref	
+346	"C(birth_mode_ms, Treatment(""CS""))"	4	4	8	0.25	71.10882949829102	85.51421966552735	0.16845607927640904	Baby-Forearm	120.0	grid-search-CS-ref	
+347	"C(birth_mode_ms, Treatment(""CS""))"	4	4	8	0.5	71.11134567260743	85.51577987670899	0.16844182705073762	Baby-Forearm	120.0	grid-search-CS-ref	
+348	"C(birth_mode_ms, Treatment(""CS""))"	4	6	4	0.25	61.25457992553711	86.32172317504883	0.2903920627103207	Baby-Forearm	120.0	grid-search-CS-ref	
+349	"C(birth_mode_ms, Treatment(""CS""))"	4	6	4	0.5	61.2580207824707	86.32228546142578	0.2903568243701722	Baby-Forearm	120.0	grid-search-CS-ref	
+350	"C(birth_mode_ms, Treatment(""CS""))"	4	6	6	0.25	60.01570777893066	73.49632720947265	0.18341895360458949	Baby-Forearm	120.0	grid-search-CS-ref	
+351	"C(birth_mode_ms, Treatment(""CS""))"	4	6	6	0.5	60.01836585998535	73.49667510986328	0.18338665292995182	Baby-Forearm	120.0	grid-search-CS-ref	
+352	"C(birth_mode_ms, Treatment(""CS""))"	4	6	8	0.25	88.02984848022462	102.72297592163086	0.14303642694907792	Baby-Forearm	120.0	grid-search-CS-ref	
+353	"C(birth_mode_ms, Treatment(""CS""))"	4	6	8	0.5	88.03320007324218	102.72353439331054	0.14300845864416645	Baby-Forearm	120.0	grid-search-CS-ref	
+354	"C(birth_mode_ms, Treatment(""CS""))"	4	8	4	0.25	84.0927635192871	96.92110595703124	0.13235860560063595	Baby-Forearm	120.0	grid-search-CS-ref	
+355	"C(birth_mode_ms, Treatment(""CS""))"	4	8	4	0.5	84.09527587890625	96.9213264465332	0.13233465778764864	Baby-Forearm	120.0	grid-search-CS-ref	
+356	"C(birth_mode_ms, Treatment(""CS""))"	4	8	6	0.25	68.51723556518554	77.59778671264648	0.1170207493299682	Baby-Forearm	120.0	grid-search-CS-ref	
+357	"C(birth_mode_ms, Treatment(""CS""))"	4	8	6	0.5	68.51902465820312	77.5979232788086	0.11699924736368361	Baby-Forearm	120.0	grid-search-CS-ref	
+358	"C(birth_mode_ms, Treatment(""CS""))"	4	8	8	0.25	97.66938400268555	108.20980300903321	0.09740724697066272	Baby-Forearm	120.0	grid-search-CS-ref	
+359	"C(birth_mode_ms, Treatment(""CS""))"	4	8	8	0.5	97.67133941650391	108.21002349853515	0.09739101555757357	Baby-Forearm	120.0	grid-search-CS-ref	
+360	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	14	14	0.25	669.8383972167969	673.2889465332031	0.005124916032222426	Baby-Feces	30.0	grid-search-CS-ref	
+361	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	14	14	0.5	669.8380554199218	673.2891296386719	0.005125694247584356	Baby-Feces	30.0	grid-search-CS-ref	
+362	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	14	21	0.25	604.6784545898438	605.6365417480469	0.0015819507116227038	Baby-Feces	30.0	grid-search-CS-ref	
+363	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	14	21	0.5	604.6781005859375	605.6366760253907	0.0015827565888909545	Baby-Feces	30.0	grid-search-CS-ref	
+364	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	14	28	0.25	620.6103881835937	645.6057800292969	0.038716183496016465	Baby-Feces	30.0	grid-search-CS-ref	
+365	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	14	28	0.5	620.6110900878906	645.6059509277344	0.03871535075524979	Baby-Feces	30.0	grid-search-CS-ref	
+366	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	21	14	0.25	694.0110473632812	720.0345947265625	0.03614207921935175	Baby-Feces	30.0	grid-search-CS-ref	
+367	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	21	14	0.5	694.0112060546875	720.0346740722656	0.03614196503954237	Baby-Feces	30.0	grid-search-CS-ref	
+368	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	21	21	0.25	625.4261413574219	655.18125	0.04541507963266356	Baby-Feces	30.0	grid-search-CS-ref	
+369	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	21	21	0.5	625.4261779785156	655.1813903808594	0.04541522826991007	Baby-Feces	30.0	grid-search-CS-ref	
+370	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	21	28	0.25	635.6715454101562	686.8864624023438	0.07456096428668357	Baby-Feces	30.0	grid-search-CS-ref	
+371	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	21	28	0.5	635.6729248046875	686.8865661621094	0.0745590958978446	Baby-Feces	30.0	grid-search-CS-ref	
+372	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	28	14	0.25	706.7684387207031	745.6454406738281	0.052138724160899486	Baby-Feces	30.0	grid-search-CS-ref	
+373	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	28	14	0.5	706.7686096191406	745.6455017089844	0.0521385725532304	Baby-Feces	30.0	grid-search-CS-ref	
+374	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	28	21	0.25	632.8748657226563	680.7827758789062	0.07037180118783082	Baby-Feces	30.0	grid-search-CS-ref	
+375	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	28	21	0.5	632.8749877929688	680.7829040527344	0.07037179690407525	Baby-Feces	30.0	grid-search-CS-ref	
+376	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	28	28	0.25	660.7361755371094	742.1413208007813	0.10968954696638444	Baby-Feces	30.0	grid-search-CS-ref	
+377	"C(birth_mode_ms, Treatment(""CS"")) + country"	14	28	28	0.5	660.7364013671875	742.1413024902344	0.10968922070486442	Baby-Feces	30.0	grid-search-CS-ref	
+378	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	14	14	0.25	374.1029418945312	387.00763549804685	0.03334480361584691	Baby-Feces	30.0	grid-search-CS-ref	
+379	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	14	14	0.5	374.101806640625	387.0077209472656	0.033347950462205955	Baby-Feces	30.0	grid-search-CS-ref	
+380	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	14	21	0.25	339.84096374511716	348.40459594726565	0.02457956152634877	Baby-Feces	30.0	grid-search-CS-ref	
+381	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	14	21	0.5	339.83995666503904	348.40477294921874	0.024582947620605755	Baby-Feces	30.0	grid-search-CS-ref	Yes
+382	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	14	28	0.25	354.57969055175784	375.6568969726562	0.0561075986911338	Baby-Feces	30.0	grid-search-CS-ref	
+383	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	14	28	0.5	354.5798828125	375.65708312988284	0.05610755463938755	Baby-Feces	30.0	grid-search-CS-ref	
+384	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	21	14	0.25	382.0494781494141	416.4812835693359	0.08267311588370485	Baby-Feces	30.0	grid-search-CS-ref	
+385	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	21	14	0.5	382.0483734130859	416.48138122558595	0.08267598352457795	Baby-Feces	30.0	grid-search-CS-ref	
+386	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	21	21	0.25	348.40073852539064	377.8235137939453	0.07787438895240673	Baby-Feces	30.0	grid-search-CS-ref	
+387	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	21	21	0.5	348.40070190429685	377.82362365722656	0.07787475401385469	Baby-Feces	30.0	grid-search-CS-ref	
+388	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	21	28	0.25	362.2082885742187	400.44187622070314	0.0954784949249714	Baby-Feces	30.0	grid-search-CS-ref	
+389	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	21	28	0.5	362.208544921875	400.4419921875	0.09547811670990503	Baby-Feces	30.0	grid-search-CS-ref	
+390	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	28	14	0.25	390.18528442382814	433.7532165527344	0.10044405543586188	Baby-Feces	30.0	grid-search-CS-ref	
+391	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	28	14	0.5	390.18543701171876	433.75331115722656	0.10044389985005864	Baby-Feces	30.0	grid-search-CS-ref	
+392	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	28	21	0.25	354.97644958496096	394.0052093505859	0.0990564562076568	Baby-Feces	30.0	grid-search-CS-ref	
+393	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	28	21	0.5	354.97658386230466	394.0052764892578	0.09905626892795494	Baby-Feces	30.0	grid-search-CS-ref	
+394	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	28	28	0.25	394.47581787109374	435.28700561523436	0.09375696314770099	Baby-Feces	30.0	grid-search-CS-ref	
+395	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	28	28	0.5	394.4759796142578	435.2870391845703	0.09375666145898676	Baby-Feces	30.0	grid-search-CS-ref	
+396	"C(birth_mode_ms, Treatment(""CS""))"	14	14	14	0.25	644.8451049804687	673.2889465332031	0.042246113944381714	Baby-Feces	30.0	grid-search-CS-ref	
+397	"C(birth_mode_ms, Treatment(""CS""))"	14	14	14	0.5	644.8455505371094	673.2891296386719	0.042245712650710754	Baby-Feces	30.0	grid-search-CS-ref	
+398	"C(birth_mode_ms, Treatment(""CS""))"	14	14	21	0.25	582.5914978027344	605.6365417480469	0.0380509469900836	Baby-Feces	30.0	grid-search-CS-ref	
+399	"C(birth_mode_ms, Treatment(""CS""))"	14	14	21	0.5	582.5919128417969	605.6366760253907	0.03805047497260161	Baby-Feces	30.0	grid-search-CS-ref	
+400	"C(birth_mode_ms, Treatment(""CS""))"	14	14	28	0.25	612.8116638183594	645.6057800292969	0.050795883843309575	Baby-Feces	30.0	grid-search-CS-ref	
+401	"C(birth_mode_ms, Treatment(""CS""))"	14	14	28	0.5	612.8120239257812	645.6059509277344	0.05079557732519102	Baby-Feces	30.0	grid-search-CS-ref	
+402	"C(birth_mode_ms, Treatment(""CS""))"	14	21	14	0.25	674.3301696777344	720.0345947265625	0.06347531824659713	Baby-Feces	30.0	grid-search-CS-ref	
+403	"C(birth_mode_ms, Treatment(""CS""))"	14	21	14	0.5	674.3305969238281	720.0346740722656	0.06347482808008553	Baby-Feces	30.0	grid-search-CS-ref	
+404	"C(birth_mode_ms, Treatment(""CS""))"	14	21	21	0.25	606.9312866210937	655.18125	0.0736436877259633	Baby-Feces	30.0	grid-search-CS-ref	
+405	"C(birth_mode_ms, Treatment(""CS""))"	14	21	21	0.5	606.9317932128906	655.1813903808594	0.07364311300099824	Baby-Feces	30.0	grid-search-CS-ref	
+406	"C(birth_mode_ms, Treatment(""CS""))"	14	21	28	0.25	630.99521484375	686.8864624023438	0.08136897524973419	Baby-Feces	30.0	grid-search-CS-ref	
+407	"C(birth_mode_ms, Treatment(""CS""))"	14	21	28	0.5	630.9955688476563	686.8865661621094	0.08136859864174795	Baby-Feces	30.0	grid-search-CS-ref	
+408	"C(birth_mode_ms, Treatment(""CS""))"	14	28	14	0.25	698.9726867675781	745.6454406738281	0.06259376288021368	Baby-Feces	30.0	grid-search-CS-ref	
+409	"C(birth_mode_ms, Treatment(""CS""))"	14	28	14	0.5	698.9731384277344	745.6455017089844	0.06259323388162219	Baby-Feces	30.0	grid-search-CS-ref	
+410	"C(birth_mode_ms, Treatment(""CS""))"	14	28	21	0.25	627.3957397460938	680.7827758789062	0.07842007469106216	Baby-Feces	30.0	grid-search-CS-ref	
+411	"C(birth_mode_ms, Treatment(""CS""))"	14	28	21	0.5	627.3962158203125	680.7829040527344	0.07841954889673097	Baby-Feces	30.0	grid-search-CS-ref	
+412	"C(birth_mode_ms, Treatment(""CS""))"	14	28	28	0.25	689.5650085449219	742.1413208007813	0.07084407077499577	Baby-Feces	30.0	grid-search-CS-ref	
+413	"C(birth_mode_ms, Treatment(""CS""))"	14	28	28	0.5	689.5652954101563	742.1413024902344	0.07084366131309594	Baby-Feces	30.0	grid-search-CS-ref	
+414	"C(birth_mode_ms, Treatment(""CS""))"	7	14	14	0.25	365.4591827392578	387.00763549804685	0.055679657924727954	Baby-Feces	30.0	grid-search-CS-ref	
+415	"C(birth_mode_ms, Treatment(""CS""))"	7	14	14	0.5	365.45946044921874	387.0077209472656	0.055679148843087556	Baby-Feces	30.0	grid-search-CS-ref	
+416	"C(birth_mode_ms, Treatment(""CS""))"	7	14	21	0.25	330.1269805908203	348.40459594726565	0.05246089049643832	Baby-Feces	30.0	grid-search-CS-ref	Yes
+417	"C(birth_mode_ms, Treatment(""CS""))"	7	14	21	0.5	330.1272827148438	348.40477294921874	0.05246050471598729	Baby-Feces	30.0	grid-search-CS-ref	
+418	"C(birth_mode_ms, Treatment(""CS""))"	7	14	28	0.25	350.1016845703125	375.6568969726562	0.06802806659025318	Baby-Feces	30.0	grid-search-CS-ref	
+419	"C(birth_mode_ms, Treatment(""CS""))"	7	14	28	0.5	350.10191040039064	375.65708312988284	0.06802792726965978	Baby-Feces	30.0	grid-search-CS-ref	
+420	"C(birth_mode_ms, Treatment(""CS""))"	7	21	14	0.25	376.8982421875	416.4812835693359	0.09504158516464556	Baby-Feces	30.0	grid-search-CS-ref	
+421	"C(birth_mode_ms, Treatment(""CS""))"	7	21	14	0.5	376.8986480712891	416.48138122558595	0.09504082280416992	Baby-Feces	30.0	grid-search-CS-ref	
+422	"C(birth_mode_ms, Treatment(""CS""))"	7	21	21	0.25	344.19276733398436	377.8235137939453	0.08901178786427322	Baby-Feces	30.0	grid-search-CS-ref	
+423	"C(birth_mode_ms, Treatment(""CS""))"	7	21	21	0.5	344.1931945800781	377.82362365722656	0.08901092195245852	Baby-Feces	30.0	grid-search-CS-ref	
+424	"C(birth_mode_ms, Treatment(""CS""))"	7	21	28	0.25	365.08087463378905	400.44187622070314	0.0883049543185761	Baby-Feces	30.0	grid-search-CS-ref	
+425	"C(birth_mode_ms, Treatment(""CS""))"	7	21	28	0.5	365.0812713623047	400.4419921875	0.0883042276161643	Baby-Feces	30.0	grid-search-CS-ref	
+426	"C(birth_mode_ms, Treatment(""CS""))"	7	28	14	0.25	393.65331115722654	433.7532165527344	0.09244866404496765	Baby-Feces	30.0	grid-search-CS-ref	
+427	"C(birth_mode_ms, Treatment(""CS""))"	7	28	14	0.5	393.65374450683595	433.75331115722656	0.09244786291868867	Baby-Feces	30.0	grid-search-CS-ref	
+428	"C(birth_mode_ms, Treatment(""CS""))"	7	28	21	0.25	359.31829833984375	394.0052093505859	0.08803668121016583	Baby-Feces	30.0	grid-search-CS-ref	
+429	"C(birth_mode_ms, Treatment(""CS""))"	7	28	21	0.5	359.3186859130859	394.0052764892578	0.08803585293385685	Baby-Feces	30.0	grid-search-CS-ref	
+430	"C(birth_mode_ms, Treatment(""CS""))"	7	28	28	0.25	409.8979248046875	435.28700561523436	0.058327219703381616	Baby-Feces	30.0	grid-search-CS-ref	
+431	"C(birth_mode_ms, Treatment(""CS""))"	7	28	28	0.5	409.8982177734375	435.2870391845703	0.05832661927792293	Baby-Feces	30.0	grid-search-CS-ref	
+432	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	12	0.25	259.6537780761719	271.1871673583984	0.04252925901535798	Baby-Feces	120.0	grid-search-CS-ref	
+433	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	12	0.5	259.6536346435547	271.18738708496096	0.042530563701300816	Baby-Feces	120.0	grid-search-CS-ref	
+434	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	16	0.25	255.016552734375	276.5218780517578	0.07777079147913779	Baby-Feces	120.0	grid-search-CS-ref	Yes
+435	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	16	0.5	255.01663055419922	276.5221221923828	0.07777132428927958	Baby-Feces	120.0	grid-search-CS-ref	
+436	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	8	0.25	309.61546936035154	311.47705078125	0.005976624654141394	Baby-Feces	120.0	grid-search-CS-ref	
+437	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	8	0.5	309.6158782958984	311.4773468017578	0.005976256459652274	Baby-Feces	120.0	grid-search-CS-ref	
+438	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	16	12	0.25	263.0337310791016	283.7294189453125	0.07294163553128019	Baby-Feces	120.0	grid-search-CS-ref	
+439	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	16	12	0.5	263.0340881347656	283.7294982910156	0.07294063634872083	Baby-Feces	120.0	grid-search-CS-ref	
+440	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	16	16	0.25	258.76401672363284	290.3118499755859	0.10866877550677356	Baby-Feces	120.0	grid-search-CS-ref	
+441	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	16	16	0.5	258.76445922851565	290.3119720458984	0.10866762605434366	Baby-Feces	120.0	grid-search-CS-ref	
+442	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	16	8	0.25	319.5995239257812	345.33587646484375	0.07452556856392112	Baby-Feces	120.0	grid-search-CS-ref	
+443	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	16	8	0.5	319.5999359130859	345.3359741210937	0.07452463727101699	Baby-Feces	120.0	grid-search-CS-ref	
+452	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	12	16	0.25	437.17327880859375	463.84425659179686	0.05749985561786253	Baby-Feces	120.0	grid-search-CS-ref	
+453	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	12	16	0.5	437.1724365234375	463.84454956054685	0.05750226678825676	Baby-Feces	120.0	grid-search-CS-ref	
+456	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	16	12	0.25	453.8786254882813	469.42527770996094	0.03311848117238658	Baby-Feces	120.0	grid-search-CS-ref	
+457	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	16	12	0.5	453.87891845703126	469.4253387451172	0.033117982786453615	Baby-Feces	120.0	grid-search-CS-ref	
+458	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	16	16	0.25	438.4719696044922	489.0906127929687	0.10349542981292781	Baby-Feces	120.0	grid-search-CS-ref	
+459	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	16	16	0.5	438.4724395751953	489.09080200195314	0.10349481572658092	Baby-Feces	120.0	grid-search-CS-ref	
+460	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	16	8	0.25	576.428369140625	589.7338256835938	0.02256179985529172	Baby-Feces	120.0	grid-search-CS-ref	
+461	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	16	8	0.5	576.4285522460938	589.7339599609375	0.022561711921295857	Baby-Feces	120.0	grid-search-CS-ref	
+468	"C(birth_mode_ms, Treatment(""CS""))"	4	12	12	0.25	263.40452575683594	271.1871673583984	0.028698414004513007	Baby-Feces	120.0	grid-search-CS-ref	
+469	"C(birth_mode_ms, Treatment(""CS""))"	4	12	12	0.5	263.4050689697266	271.18738708496096	0.028697197900270477	Baby-Feces	120.0	grid-search-CS-ref	
+470	"C(birth_mode_ms, Treatment(""CS""))"	4	12	16	0.25	259.26533203125	276.5218780517578	0.06240571683546081	Baby-Feces	120.0	grid-search-CS-ref	Yes
+471	"C(birth_mode_ms, Treatment(""CS""))"	4	12	16	0.5	259.26612548828126	276.5221221923828	0.062403675218781096	Baby-Feces	120.0	grid-search-CS-ref	
+472	"C(birth_mode_ms, Treatment(""CS""))"	4	12	8	0.25	309.0407318115234	311.47705078125	0.007821824958261892	Baby-Feces	120.0	grid-search-CS-ref	
+473	"C(birth_mode_ms, Treatment(""CS""))"	4	12	8	0.5	309.0417022705078	311.4773468017578	0.007819652235577013	Baby-Feces	120.0	grid-search-CS-ref	
+474	"C(birth_mode_ms, Treatment(""CS""))"	4	16	12	0.25	270.3098388671875	283.7294189453125	0.04729710485436667	Baby-Feces	120.0	grid-search-CS-ref	
+475	"C(birth_mode_ms, Treatment(""CS""))"	4	16	12	0.5	270.3102691650391	283.7294982910156	0.047295854702469775	Baby-Feces	120.0	grid-search-CS-ref	
+476	"C(birth_mode_ms, Treatment(""CS""))"	4	16	16	0.25	265.3999084472656	290.3118499755859	0.08581097027357065	Baby-Feces	120.0	grid-search-CS-ref	
+477	"C(birth_mode_ms, Treatment(""CS""))"	4	16	16	0.5	265.40044860839845	290.3119720458984	0.08580949404856597	Baby-Feces	120.0	grid-search-CS-ref	
+478	"C(birth_mode_ms, Treatment(""CS""))"	4	16	8	0.25	326.8277557373047	345.33587646484375	0.05359454950642306	Baby-Feces	120.0	grid-search-CS-ref	
+479	"C(birth_mode_ms, Treatment(""CS""))"	4	16	8	0.5	326.8282836914062	345.3359741210937	0.05359328832390242	Baby-Feces	120.0	grid-search-CS-ref	
+488	"C(birth_mode_ms, Treatment(""CS""))"	8	12	16	0.25	450.74815368652344	463.84425659179686	0.028233836506891485	Baby-Feces	120.0	grid-search-CS-ref	
+489	"C(birth_mode_ms, Treatment(""CS""))"	8	12	16	0.5	450.74853515625	463.84454956054685	0.02823362787533934	Baby-Feces	120.0	grid-search-CS-ref	
+494	"C(birth_mode_ms, Treatment(""CS""))"	8	16	16	0.25	462.2061431884766	489.0906127929687	0.05496827970376994	Baby-Feces	120.0	grid-search-CS-ref	
+495	"C(birth_mode_ms, Treatment(""CS""))"	8	16	16	0.5	462.20647888183595	489.09080200195314	0.05496795893538364	Baby-Feces	120.0	grid-search-CS-ref	
+504	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	11	0.25	287.9785583496094	352.86717224121094	0.1838896304223091	Baby-Feces	2.0	grid-search-CS-ref	
+505	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	11	0.5	287.9915832519531	352.8672821044922	0.18385297289570723	Baby-Feces	2.0	grid-search-CS-ref	
+506	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	15	0.25	339.0885864257813	404.2156158447266	0.16111952845474153	Baby-Feces	2.0	grid-search-CS-ref	
+507	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	15	0.5	339.1011962890625	404.215771484375	0.1610886555865857	Baby-Feces	2.0	grid-search-CS-ref	
+508	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	7	0.25	314.09913024902346	379.20473022460936	0.17168984136095233	Baby-Feces	2.0	grid-search-CS-ref	
+509	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	11	7	0.5	314.1002655029297	379.2049499511719	0.17168732754312777	Baby-Feces	2.0	grid-search-CS-ref	
+510	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	11	0.25	293.63209228515626	360.74407653808595	0.1860376610947464	Baby-Feces	2.0	grid-search-CS-ref	
+511	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	11	0.5	293.6415588378906	360.7441467285156	0.18601157773219323	Baby-Feces	2.0	grid-search-CS-ref	
+512	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	15	0.25	359.0602600097656	420.56883239746094	0.14625090508268168	Baby-Feces	2.0	grid-search-CS-ref	
+513	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	15	0.5	359.06224060058594	420.5688415527344	0.14624621435355722	Baby-Feces	2.0	grid-search-CS-ref	
+514	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	7	0.25	315.42539367675784	397.80132751464845	0.20707807676900536	Baby-Feces	2.0	grid-search-CS-ref	
+515	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	15	7	0.5	315.4239440917969	397.80133666992185	0.2070817390100378	Baby-Feces	2.0	grid-search-CS-ref	
+516	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	11	0.25	271.6831878662109	328.29485473632815	0.17244152947686375	Baby-Feces	2.0	grid-search-CS-ref	Yes
+517	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	11	0.5	271.70470275878904	328.29514465332034	0.1723767250785594	Baby-Feces	2.0	grid-search-CS-ref	
+518	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	15	0.25	323.5708374023437	378.6108917236328	0.145373668651523	Baby-Feces	2.0	grid-search-CS-ref	
+519	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	15	0.5	323.589990234375	378.6112823486328	0.1453239633350204	Baby-Feces	2.0	grid-search-CS-ref	
+520	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	7	0.25	313.2145965576172	357.3605133056641	0.12353328111068385	Baby-Feces	2.0	grid-search-CS-ref	
+521	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	7	7	0.5	313.21631774902346	357.36061401367186	0.12352871170900648	Baby-Feces	2.0	grid-search-CS-ref	
+522	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	11	0.25	605.4378601074219	686.4871154785156	0.11806376775855199	Baby-Feces	2.0	grid-search-CS-ref	
+523	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	11	0.5	605.4435241699218	686.4873413085937	0.11805580709497832	Baby-Feces	2.0	grid-search-CS-ref	
+524	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	15	0.25	595.8224548339844	686.085595703125	0.13156250682778992	Baby-Feces	2.0	grid-search-CS-ref	
+525	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	15	0.5	595.8293579101562	686.0858337402344	0.1315527465973756	Baby-Feces	2.0	grid-search-CS-ref	
+526	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	7	0.25	614.1621765136719	723.1851989746094	0.1507539460369477	Baby-Feces	2.0	grid-search-CS-ref	
+527	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	11	7	0.5	614.1630126953125	723.1855590820312	0.15075321266799824	Baby-Feces	2.0	grid-search-CS-ref	
+528	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	11	0.25	610.1119567871094	704.314111328125	0.13375020182880992	Baby-Feces	2.0	grid-search-CS-ref	
+529	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	11	0.5	610.1149169921875	704.3141906738281	0.1337460964566377	Baby-Feces	2.0	grid-search-CS-ref	
+530	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	15	0.25	629.9901794433594	721.2994567871094	0.12658997103709158	Baby-Feces	2.0	grid-search-CS-ref	
+531	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	15	0.5	629.9888488769532	721.2995422363281	0.126591919185577	Baby-Feces	2.0	grid-search-CS-ref	
+532	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	7	0.25	622.8811279296875	770.0077819824219	0.19107164563187884	Baby-Feces	2.0	grid-search-CS-ref	
+533	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	15	7	0.5	622.8779663085937	770.0079223632813	0.19107589906753353	Baby-Feces	2.0	grid-search-CS-ref	
+534	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	7	11	0.25	591.0555114746094	642.1373718261718	0.07954973903214968	Baby-Feces	2.0	grid-search-CS-ref	
+535	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	7	11	0.5	591.0747253417969	642.1376770019531	0.07952025475060365	Baby-Feces	2.0	grid-search-CS-ref	
+536	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	7	15	0.25	578.3584594726562	638.641357421875	0.0943924117169207	Baby-Feces	2.0	grid-search-CS-ref	
+537	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	7	15	0.5	578.3796203613281	638.6416198730469	0.0943596496634499	Baby-Feces	2.0	grid-search-CS-ref	
+538	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	7	7	0.25	605.8556335449218	693.4451843261719	0.1263107059664157	Baby-Feces	2.0	grid-search-CS-ref	
+539	"C(birth_mode_ms, Treatment(""CS"")) + country"	7	7	7	0.5	605.8597839355468	693.4453918457032	0.12630498225250997	Baby-Feces	2.0	grid-search-CS-ref	
+540	"C(birth_mode_ms, Treatment(""CS""))"	3	11	11	0.25	315.18333435058594	352.86717224121094	0.10679326629133212	Baby-Feces	2.0	grid-search-CS-ref	
+541	"C(birth_mode_ms, Treatment(""CS""))"	3	11	11	0.5	315.1835540771484	352.8672821044922	0.10679292169735566	Baby-Feces	2.0	grid-search-CS-ref	
+542	"C(birth_mode_ms, Treatment(""CS""))"	3	11	15	0.25	361.4896301269531	404.2156158447266	0.10570097750549556	Baby-Feces	2.0	grid-search-CS-ref	
+543	"C(birth_mode_ms, Treatment(""CS""))"	3	11	15	0.5	361.4899047851562	404.215771484375	0.10570064236316012	Baby-Feces	2.0	grid-search-CS-ref	
+544	"C(birth_mode_ms, Treatment(""CS""))"	3	11	7	0.25	323.01068115234375	379.20473022460936	0.14818920913507838	Baby-Feces	2.0	grid-search-CS-ref	
+545	"C(birth_mode_ms, Treatment(""CS""))"	3	11	7	0.5	323.01097106933594	379.2049499511719	0.14818893816937717	Baby-Feces	2.0	grid-search-CS-ref	
+546	"C(birth_mode_ms, Treatment(""CS""))"	3	15	11	0.25	319.1281768798828	360.74407653808595	0.11536128342722629	Baby-Feces	2.0	grid-search-CS-ref	
+547	"C(birth_mode_ms, Treatment(""CS""))"	3	15	11	0.5	319.12843933105466	360.7441467285156	0.11536072802528263	Baby-Feces	2.0	grid-search-CS-ref	
+548	"C(birth_mode_ms, Treatment(""CS""))"	3	15	15	0.25	384.4786712646484	420.56883239746094	0.08581273349972185	Baby-Feces	2.0	grid-search-CS-ref	
+549	"C(birth_mode_ms, Treatment(""CS""))"	3	15	15	0.5	384.47911376953124	420.5688415527344	0.08581170124244197	Baby-Feces	2.0	grid-search-CS-ref	
+550	"C(birth_mode_ms, Treatment(""CS""))"	3	15	7	0.25	331.4914581298828	397.80132751464845	0.16669092031203414	Baby-Feces	2.0	grid-search-CS-ref	
+551	"C(birth_mode_ms, Treatment(""CS""))"	3	15	7	0.5	331.4917724609375	397.80133666992185	0.1666901493194456	Baby-Feces	2.0	grid-search-CS-ref	
+552	"C(birth_mode_ms, Treatment(""CS""))"	3	7	11	0.25	310.79912109375	328.29485473632815	0.05329274397745265	Baby-Feces	2.0	grid-search-CS-ref	Yes
+553	"C(birth_mode_ms, Treatment(""CS""))"	3	7	11	0.5	310.7993988037109	328.29514465332034	0.05329273409780377	Baby-Feces	2.0	grid-search-CS-ref	
+554	"C(birth_mode_ms, Treatment(""CS""))"	3	7	15	0.25	356.0813323974609	378.6108917236328	0.059505840478084604	Baby-Feces	2.0	grid-search-CS-ref	
+555	"C(birth_mode_ms, Treatment(""CS""))"	3	7	15	0.5	356.0817504882813	378.6112823486328	0.059505706540477266	Baby-Feces	2.0	grid-search-CS-ref	
+556	"C(birth_mode_ms, Treatment(""CS""))"	3	7	7	0.25	323.0773681640625	357.3605133056641	0.09593434043530691	Baby-Feces	2.0	grid-search-CS-ref	
+557	"C(birth_mode_ms, Treatment(""CS""))"	3	7	7	0.5	323.0765380859375	357.36061401367186	0.09593691801308224	Baby-Feces	2.0	grid-search-CS-ref	
+558	"C(birth_mode_ms, Treatment(""CS""))"	7	11	11	0.25	618.7425170898438	686.4871154785156	0.09868298597483582	Baby-Feces	2.0	grid-search-CS-ref	
+559	"C(birth_mode_ms, Treatment(""CS""))"	7	11	11	0.5	618.742626953125	686.4873413085937	0.09868312243942134	Baby-Feces	2.0	grid-search-CS-ref	
+560	"C(birth_mode_ms, Treatment(""CS""))"	7	11	15	0.25	608.5364501953125	686.085595703125	0.11303129812591017	Baby-Feces	2.0	grid-search-CS-ref	
+561	"C(birth_mode_ms, Treatment(""CS""))"	7	11	15	0.5	608.536865234375	686.0858337402344	0.11303100092170248	Baby-Feces	2.0	grid-search-CS-ref	
+562	"C(birth_mode_ms, Treatment(""CS""))"	7	11	7	0.25	631.523583984375	723.1851989746094	0.1267470837624991	Baby-Feces	2.0	grid-search-CS-ref	
+563	"C(birth_mode_ms, Treatment(""CS""))"	7	11	7	0.5	631.52353515625	723.1855590820312	0.12674758611348869	Baby-Feces	2.0	grid-search-CS-ref	
+564	"C(birth_mode_ms, Treatment(""CS""))"	7	15	11	0.25	627.8593994140625	704.314111328125	0.10855200923050068	Baby-Feces	2.0	grid-search-CS-ref	
+565	"C(birth_mode_ms, Treatment(""CS""))"	7	15	11	0.5	627.8598815917969	704.3141906738281	0.10855142505205828	Baby-Feces	2.0	grid-search-CS-ref	
+566	"C(birth_mode_ms, Treatment(""CS""))"	7	15	15	0.25	661.8304565429687	721.2994567871094	0.08244703317680846	Baby-Feces	2.0	grid-search-CS-ref	
+567	"C(birth_mode_ms, Treatment(""CS""))"	7	15	15	0.5	661.8310302734375	721.2995422363281	0.08244634646309845	Baby-Feces	2.0	grid-search-CS-ref	
+568	"C(birth_mode_ms, Treatment(""CS""))"	7	15	7	0.25	649.6411071777344	770.0077819824219	0.15631877705806785	Baby-Feces	2.0	grid-search-CS-ref	
+569	"C(birth_mode_ms, Treatment(""CS""))"	7	15	7	0.5	649.6416198730469	770.0079223632813	0.15631826503915747	Baby-Feces	2.0	grid-search-CS-ref	
+570	"C(birth_mode_ms, Treatment(""CS""))"	7	7	11	0.25	612.1885986328125	642.1373718261718	0.04663919981512388	Baby-Feces	2.0	grid-search-CS-ref	
+571	"C(birth_mode_ms, Treatment(""CS""))"	7	7	11	0.5	612.188525390625	642.1376770019531	0.04663976695956584	Baby-Feces	2.0	grid-search-CS-ref	
+572	"C(birth_mode_ms, Treatment(""CS""))"	7	7	15	0.25	599.1146606445312	638.641357421875	0.06189185263057295	Baby-Feces	2.0	grid-search-CS-ref	
+573	"C(birth_mode_ms, Treatment(""CS""))"	7	7	15	0.5	599.1151611328125	638.6416198730469	0.06189145447190192	Baby-Feces	2.0	grid-search-CS-ref	
+574	"C(birth_mode_ms, Treatment(""CS""))"	7	7	7	0.25	630.8453063964844	693.4451843261719	0.09027372219841212	Baby-Feces	2.0	grid-search-CS-ref	
+575	"C(birth_mode_ms, Treatment(""CS""))"	7	7	7	0.5	630.8451354980468	693.4453918457032	0.09027424089016856	Baby-Feces	2.0	grid-search-CS-ref	
+576	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	12	0.25	108.36783828735352	117.22743530273438	0.07557613959992693	Baby-Feces	180.0	grid-search-CS-ref	
+577	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	12	0.5	108.36899261474609	117.22754364013672	0.07556714702292544	Baby-Feces	180.0	grid-search-CS-ref	
+578	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	17	0.25	125.79097900390624	136.58614807128907	0.07903560661033104	Baby-Feces	180.0	grid-search-CS-ref	
+579	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	17	0.5	125.7919677734375	136.58626708984374	0.0790291699626432	Baby-Feces	180.0	grid-search-CS-ref	
+580	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	8	0.25	124.54563751220704	131.2613952636719	0.05116323606018769	Baby-Feces	180.0	grid-search-CS-ref	
+581	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	12	8	0.5	124.54663619995117	131.2615768432617	0.05115694024709749	Baby-Feces	180.0	grid-search-CS-ref	
+582	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	12	0.25	112.46184158325195	121.68263320922851	0.07577738402588452	Baby-Feces	180.0	grid-search-CS-ref	
+583	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	12	0.5	112.46282196044922	121.68267211914062	0.07576962272544574	Baby-Feces	180.0	grid-search-CS-ref	
+584	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	17	0.25	137.12228240966797	146.12225799560548	0.06159209219315631	Baby-Feces	180.0	grid-search-CS-ref	
+585	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	17	0.5	137.12271118164062	146.1222702026367	0.061589236250681356	Baby-Feces	180.0	grid-search-CS-ref	
+586	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	8	0.25	131.4834716796875	141.80992584228517	0.07281898006266707	Baby-Feces	180.0	grid-search-CS-ref	
+587	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	8	0.5	131.48453521728516	141.81000213623048	0.0728119791509918	Baby-Feces	180.0	grid-search-CS-ref	
+588	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	12	0.25	103.60314483642578	108.58621139526367	0.0458904173449709	Baby-Feces	180.0	grid-search-CS-ref	Yes
+589	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	12	0.5	103.6042495727539	108.58633346557617	0.04588131612715041	Baby-Feces	180.0	grid-search-CS-ref	
+590	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	17	0.25	122.40766067504883	127.73015060424805	0.041669800779379984	Baby-Feces	180.0	grid-search-CS-ref	
+591	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	17	0.5	122.40886077880859	127.73030242919921	0.04166154427873758	Baby-Feces	180.0	grid-search-CS-ref	
+592	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	8	0.25	121.39189682006835	125.01499786376954	0.02898133108516565	Baby-Feces	180.0	grid-search-CS-ref	
+593	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	8	0.5	121.39301452636718	125.01517028808594	0.02897372977512913	Baby-Feces	180.0	grid-search-CS-ref	
+594	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	12	12	0.25	174.10364685058593	193.61121215820313	0.10075638228883776	Baby-Feces	180.0	grid-search-CS-ref	
+595	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	12	12	0.5	174.10458221435547	193.61131286621094	0.1007520188933122	Baby-Feces	180.0	grid-search-CS-ref	
+596	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	12	17	0.25	211.53591613769532	226.45753021240233	0.06589144578549233	Baby-Feces	180.0	grid-search-CS-ref	
+597	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	12	17	0.5	211.5365966796875	226.4576446533203	0.06588891267713726	Baby-Feces	180.0	grid-search-CS-ref	
+598	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	12	8	0.25	202.06722106933594	216.50081634521484	0.0666676251828272	Baby-Feces	180.0	grid-search-CS-ref	
+599	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	12	8	0.5	202.06836395263673	216.5009796142578	0.06666305015033103	Baby-Feces	180.0	grid-search-CS-ref	
+600	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	12	0.25	175.02544555664062	201.70211029052734	0.13225773739036362	Baby-Feces	180.0	grid-search-CS-ref	
+601	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	12	0.5	175.02615966796876	201.7021911621094	0.13225454488345612	Baby-Feces	180.0	grid-search-CS-ref	
+602	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	17	0.25	221.25453033447266	245.83273620605468	0.0999793853776284	Baby-Feces	180.0	grid-search-CS-ref	
+603	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	17	0.5	221.25509796142578	245.8327667236328	0.09997718810949818	Baby-Feces	180.0	grid-search-CS-ref	
+604	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	8	0.25	199.0729949951172	233.29535369873048	0.14669112848173926	Baby-Feces	180.0	grid-search-CS-ref	
+605	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	8	0.5	199.07388305664062	233.29546203613282	0.1466877181442644	Baby-Feces	180.0	grid-search-CS-ref	
+606	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	8	12	0.25	175.46233673095702	183.115771484375	0.04179560663386672	Baby-Feces	180.0	grid-search-CS-ref	
+607	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	8	12	0.5	175.46415252685546	183.11587524414062	0.041786233482397184	Baby-Feces	180.0	grid-search-CS-ref	
+608	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	8	17	0.25	210.2375503540039	215.42344360351564	0.02407302177870818	Baby-Feces	180.0	grid-search-CS-ref	
+609	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	8	17	0.5	210.2388931274414	215.42357177734374	0.024067369262919303	Baby-Feces	180.0	grid-search-CS-ref	
+610	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	8	8	0.25	203.50475006103517	210.82095336914062	0.034703397319786444	Baby-Feces	180.0	grid-search-CS-ref	
+611	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	8	8	0.5	203.50645904541017	210.82107849121093	0.03469586389629298	Baby-Feces	180.0	grid-search-CS-ref	
+612	"C(birth_mode_ms, Treatment(""CS""))"	4	12	12	0.25	117.0312889099121	117.22743530273438	0.0016732123526863596	Baby-Feces	180.0	grid-search-CS-ref	Yes
+613	"C(birth_mode_ms, Treatment(""CS""))"	4	12	12	0.5	117.03146896362304	117.22754364013672	0.001672599036243394	Baby-Feces	180.0	grid-search-CS-ref	
+614	"C(birth_mode_ms, Treatment(""CS""))"	4	12	17	0.25	132.91432342529296	136.58614807128907	0.026882847915731922	Baby-Feces	180.0	grid-search-CS-ref	
+615	"C(birth_mode_ms, Treatment(""CS""))"	4	12	17	0.5	132.9145294189453	136.58626708984374	0.02688218771278994	Baby-Feces	180.0	grid-search-CS-ref	
+618	"C(birth_mode_ms, Treatment(""CS""))"	4	17	12	0.25	120.39023818969727	121.68263320922851	0.010621031000446979	Baby-Feces	180.0	grid-search-CS-ref	
+619	"C(birth_mode_ms, Treatment(""CS""))"	4	17	12	0.5	120.39038467407227	121.68267211914062	0.010620143546840155	Baby-Feces	180.0	grid-search-CS-ref	
+620	"C(birth_mode_ms, Treatment(""CS""))"	4	17	17	0.25	140.7801025390625	146.12225799560548	0.036559491550586576	Baby-Feces	180.0	grid-search-CS-ref	
+621	"C(birth_mode_ms, Treatment(""CS""))"	4	17	17	0.5	140.7801940917969	146.1222702026367	0.03655894548744443	Baby-Feces	180.0	grid-search-CS-ref	
+622	"C(birth_mode_ms, Treatment(""CS""))"	4	17	8	0.25	140.7714065551758	141.80992584228517	0.007323318737676887	Baby-Feces	180.0	grid-search-CS-ref	
+623	"C(birth_mode_ms, Treatment(""CS""))"	4	17	8	0.5	140.7715301513672	141.81000213623048	0.007322981237005255	Baby-Feces	180.0	grid-search-CS-ref	
+630	"C(birth_mode_ms, Treatment(""CS""))"	8	12	12	0.25	188.9377899169922	193.61121215820313	0.02413817975269017	Baby-Feces	180.0	grid-search-CS-ref	
+631	"C(birth_mode_ms, Treatment(""CS""))"	8	12	12	0.5	188.93798217773437	193.61131286621094	0.02413769432835744	Baby-Feces	180.0	grid-search-CS-ref	
+632	"C(birth_mode_ms, Treatment(""CS""))"	8	12	17	0.25	220.44295654296874	226.45753021240233	0.02655938914370526	Baby-Feces	180.0	grid-search-CS-ref	
+633	"C(birth_mode_ms, Treatment(""CS""))"	8	12	17	0.5	220.44311065673827	226.4576446533203	0.02655920053301608	Baby-Feces	180.0	grid-search-CS-ref	
+634	"C(birth_mode_ms, Treatment(""CS""))"	8	12	8	0.25	216.31145324707032	216.50081634521484	0.0008746530444605494	Baby-Feces	180.0	grid-search-CS-ref	
+635	"C(birth_mode_ms, Treatment(""CS""))"	8	12	8	0.5	216.31158447265625	216.5009796142578	0.0008748003909220259	Baby-Feces	180.0	grid-search-CS-ref	
+636	"C(birth_mode_ms, Treatment(""CS""))"	8	17	12	0.25	192.3383758544922	201.70211029052734	0.04642358189781859	Baby-Feces	180.0	grid-search-CS-ref	
+637	"C(birth_mode_ms, Treatment(""CS""))"	8	17	12	0.5	192.33855438232422	201.7021911621094	0.04642307912391275	Baby-Feces	180.0	grid-search-CS-ref	
+638	"C(birth_mode_ms, Treatment(""CS""))"	8	17	17	0.25	233.58477630615235	245.83273620605468	0.04982233078037335	Baby-Feces	180.0	grid-search-CS-ref	
+639	"C(birth_mode_ms, Treatment(""CS""))"	8	17	17	0.5	233.58490753173828	245.8327667236328	0.049821914934812805	Baby-Feces	180.0	grid-search-CS-ref	
+640	"C(birth_mode_ms, Treatment(""CS""))"	8	17	8	0.25	220.8491958618164	233.29535369873048	0.05334936011193181	Baby-Feces	180.0	grid-search-CS-ref	
+641	"C(birth_mode_ms, Treatment(""CS""))"	8	17	8	0.5	220.849462890625	233.29546203613282	0.0533486551212049	Baby-Feces	180.0	grid-search-CS-ref	
+648	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	10	10	0.25	90.58830642700195	112.95083160400391	0.19798459966548176	Baby-Forearm	2.0	grid-search-CS-ref	
+649	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	10	10	0.5	90.59136581420898	112.95125732421874	0.19796053660409674	Baby-Forearm	2.0	grid-search-CS-ref	
+650	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	10	13	0.25	138.78423309326172	175.87693939208984	0.21090147706138884	Baby-Forearm	2.0	grid-search-CS-ref	
+651	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	10	13	0.5	138.78763427734376	175.87723846435546	0.21088348049385908	Baby-Forearm	2.0	grid-search-CS-ref	
+652	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	10	6	0.25	39.88664016723633	53.475735092163085	0.2541170289946748	Baby-Forearm	2.0	grid-search-CS-ref	Yes
+653	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	10	6	0.5	39.8913688659668	53.476022720336914	0.2540326143066709	Baby-Forearm	2.0	grid-search-CS-ref	
+654	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	13	10	0.25	91.27680969238281	120.23147888183594	0.2408243619618945	Baby-Forearm	2.0	grid-search-CS-ref	
+655	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	13	10	0.5	91.28093490600585	120.2317123413086	0.24079152555956718	Baby-Forearm	2.0	grid-search-CS-ref	
+656	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	13	13	0.25	158.04867706298828	182.5326675415039	0.13413484176989043	Baby-Forearm	2.0	grid-search-CS-ref	
+657	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	13	13	0.5	158.05127716064453	182.5327362060547	0.13412092293282618	Baby-Forearm	2.0	grid-search-CS-ref	
+658	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	13	6	0.25	41.78179092407227	57.513526916503906	0.2735310601846834	Baby-Forearm	2.0	grid-search-CS-ref	
+659	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	13	6	0.5	41.786915969848636	57.51368179321289	0.2734439064414087	Baby-Forearm	2.0	grid-search-CS-ref	
+660	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	6	10	0.25	90.48455581665038	97.66726531982422	0.07354264993140858	Baby-Forearm	2.0	grid-search-CS-ref	
+661	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	6	10	0.5	90.48599166870117	97.6680061340332	0.07353497577779877	Baby-Forearm	2.0	grid-search-CS-ref	
+662	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	6	13	0.25	131.31263427734376	153.50760803222656	0.14458549670204812	Baby-Forearm	2.0	grid-search-CS-ref	
+663	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	6	13	0.5	131.3139617919922	153.5085235595703	0.1445819505844268	Baby-Forearm	2.0	grid-search-CS-ref	
+664	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	6	6	0.25	39.93115005493164	43.77307357788086	0.08776910572920316	Baby-Forearm	2.0	grid-search-CS-ref	
+665	"C(birth_mode_ms, Treatment(""CS"")) + country"	3	6	6	0.5	39.93356285095215	43.77346267700195	0.08772209442017109	Baby-Forearm	2.0	grid-search-CS-ref	
+666	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	10	10	0.25	155.43143615722656	185.34223327636718	0.1613814433461589	Baby-Forearm	2.0	grid-search-CS-ref	
+667	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	10	10	0.5	155.43445892333983	185.3429916381836	0.16136856565491053	Baby-Forearm	2.0	grid-search-CS-ref	
+668	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	10	13	0.25	251.49856262207032	307.45151977539064	0.1819895286066462	Baby-Forearm	2.0	grid-search-CS-ref	
+669	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	10	13	0.5	251.5022186279297	307.4520660400391	0.1819790907009976	Baby-Forearm	2.0	grid-search-CS-ref	
+670	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	10	6	0.25	72.04127883911133	90.16547164916992	0.20101034773687054	Baby-Forearm	2.0	grid-search-CS-ref	
+671	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	10	6	0.5	72.04720993041992	90.1657958984375	0.20094744118297692	Baby-Forearm	2.0	grid-search-CS-ref	
+672	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	13	10	0.25	152.90267944335938	202.34820404052735	0.24435860368330609	Baby-Forearm	2.0	grid-search-CS-ref	
+673	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	13	10	0.5	152.90524444580078	202.3486587524414	0.24434762558585066	Baby-Forearm	2.0	grid-search-CS-ref	
+674	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	13	13	0.25	268.7858459472656	324.11961975097654	0.17072022312695623	Baby-Forearm	2.0	grid-search-CS-ref	
+675	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	13	13	0.5	268.7872833251953	324.11989135742186	0.170716483337361	Baby-Forearm	2.0	grid-search-CS-ref	
+676	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	13	6	0.25	72.11247177124024	98.19542083740234	0.2656228655443288	Baby-Forearm	2.0	grid-search-CS-ref	
+677	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	13	6	0.5	72.11686859130859	98.19564056396484	0.2655797326936168	Baby-Forearm	2.0	grid-search-CS-ref	
+678	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	6	10	0.25	155.74140472412108	159.2490447998047	0.022026129450843146	Baby-Forearm	2.0	grid-search-CS-ref	
+679	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	6	10	0.5	155.7457015991211	159.24984130859374	0.022004038940813375	Baby-Forearm	2.0	grid-search-CS-ref	
+680	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	6	13	0.25	225.7098175048828	253.1568817138672	0.10841919059505034	Baby-Forearm	2.0	grid-search-CS-ref	
+681	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	6	13	0.5	225.7136032104492	253.15828857421874	0.10840919141276129	Baby-Forearm	2.0	grid-search-CS-ref	
+682	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	6	6	0.25	68.11965103149414	78.18873291015625	0.12877919239632785	Baby-Forearm	2.0	grid-search-CS-ref	
+683	"C(birth_mode_ms, Treatment(""CS"")) + country"	6	6	6	0.5	68.12393341064453	78.18904113769531	0.1287278572623184	Baby-Forearm	2.0	grid-search-CS-ref	
+684	"C(birth_mode_ms, Treatment(""CS""))"	3	10	10	0.25	97.74644165039062	112.95083160400391	0.1346106950935837	Baby-Forearm	2.0	grid-search-CS-ref	
+685	"C(birth_mode_ms, Treatment(""CS""))"	3	10	10	0.5	97.74766998291015	112.95125732421874	0.13460308190875425	Baby-Forearm	2.0	grid-search-CS-ref	
+686	"C(birth_mode_ms, Treatment(""CS""))"	3	10	13	0.25	162.23822784423828	175.87693939208984	0.07754690066243541	Baby-Forearm	2.0	grid-search-CS-ref	
+687	"C(birth_mode_ms, Treatment(""CS""))"	3	10	13	0.5	162.23948669433594	175.87723846435546	0.07754131170750356	Baby-Forearm	2.0	grid-search-CS-ref	
+688	"C(birth_mode_ms, Treatment(""CS""))"	3	10	6	0.25	45.14695053100586	53.475735092163085	0.15574885594004328	Baby-Forearm	2.0	grid-search-CS-ref	
+689	"C(birth_mode_ms, Treatment(""CS""))"	3	10	6	0.5	45.14777145385742	53.476022720336914	0.15573804562904148	Baby-Forearm	2.0	grid-search-CS-ref	
+690	"C(birth_mode_ms, Treatment(""CS""))"	3	13	10	0.25	108.95309753417969	120.23147888183594	0.09380556117704164	Baby-Forearm	2.0	grid-search-CS-ref	
+691	"C(birth_mode_ms, Treatment(""CS""))"	3	13	10	0.5	108.95407257080078	120.2317123413086	0.09379921113069856	Baby-Forearm	2.0	grid-search-CS-ref	
+692	"C(birth_mode_ms, Treatment(""CS""))"	3	13	13	0.25	173.48560180664063	182.5326675415039	0.049564090947206374	Baby-Forearm	2.0	grid-search-CS-ref	
+693	"C(birth_mode_ms, Treatment(""CS""))"	3	13	13	0.5	173.48599853515626	182.5327362060547	0.04956227501397825	Baby-Forearm	2.0	grid-search-CS-ref	
+694	"C(birth_mode_ms, Treatment(""CS""))"	3	13	6	0.25	50.032016372680665	57.513526916503906	0.13008262481771693	Baby-Forearm	2.0	grid-search-CS-ref	
+695	"C(birth_mode_ms, Treatment(""CS""))"	3	13	6	0.5	50.03258857727051	57.51368179321289	0.1300750183728494	Baby-Forearm	2.0	grid-search-CS-ref	
+696	"C(birth_mode_ms, Treatment(""CS""))"	3	6	10	0.25	91.35215835571289	97.66726531982422	0.06465940193402253	Baby-Forearm	2.0	grid-search-CS-ref	
+697	"C(birth_mode_ms, Treatment(""CS""))"	3	6	10	0.5	91.35221099853516	97.6680061340332	0.06466595751766102	Baby-Forearm	2.0	grid-search-CS-ref	
+698	"C(birth_mode_ms, Treatment(""CS""))"	3	6	13	0.25	133.50165252685548	153.50760803222656	0.1303254982721842	Baby-Forearm	2.0	grid-search-CS-ref	
+699	"C(birth_mode_ms, Treatment(""CS""))"	3	6	13	0.5	133.50254516601564	153.5085235595703	0.13032487010919092	Baby-Forearm	2.0	grid-search-CS-ref	
+700	"C(birth_mode_ms, Treatment(""CS""))"	3	6	6	0.25	42.2376205444336	43.77307357788086	0.035077569563749966	Baby-Forearm	2.0	grid-search-CS-ref	Yes
+701	"C(birth_mode_ms, Treatment(""CS""))"	3	6	6	0.5	42.23842544555664	43.77346267700195	0.03506775881022084	Baby-Forearm	2.0	grid-search-CS-ref	
+702	"C(birth_mode_ms, Treatment(""CS""))"	6	10	10	0.25	159.1278274536133	185.34223327636718	0.1414378437086442	Baby-Forearm	2.0	grid-search-CS-ref	
+703	"C(birth_mode_ms, Treatment(""CS""))"	6	10	10	0.5	159.12864532470704	185.3429916381836	0.14143694391558526	Baby-Forearm	2.0	grid-search-CS-ref	
+704	"C(birth_mode_ms, Treatment(""CS""))"	6	10	13	0.25	273.4142242431641	307.45151977539064	0.1107078460925891	Baby-Forearm	2.0	grid-search-CS-ref	
+705	"C(birth_mode_ms, Treatment(""CS""))"	6	10	13	0.5	273.4154113769531	307.4520660400391	0.11070556494049855	Baby-Forearm	2.0	grid-search-CS-ref	
+706	"C(birth_mode_ms, Treatment(""CS""))"	6	10	6	0.25	75.86065521240235	90.16547164916992	0.15865071379459994	Baby-Forearm	2.0	grid-search-CS-ref	
+707	"C(birth_mode_ms, Treatment(""CS""))"	6	10	6	0.5	75.8615592956543	90.1657958984375	0.15864371251040077	Baby-Forearm	2.0	grid-search-CS-ref	
+708	"C(birth_mode_ms, Treatment(""CS""))"	6	13	10	0.25	167.46761627197264	202.34820404052735	0.17237903313225666	Baby-Forearm	2.0	grid-search-CS-ref	
+709	"C(birth_mode_ms, Treatment(""CS""))"	6	13	10	0.5	167.46849975585937	202.3486587524414	0.1723765267910934	Baby-Forearm	2.0	grid-search-CS-ref	
+710	"C(birth_mode_ms, Treatment(""CS""))"	6	13	13	0.25	294.11562194824216	324.11961975097654	0.0925707546670167	Baby-Forearm	2.0	grid-search-CS-ref	
+711	"C(birth_mode_ms, Treatment(""CS""))"	6	13	13	0.5	294.11655883789064	324.11989135742186	0.09256862451075298	Baby-Forearm	2.0	grid-search-CS-ref	
+712	"C(birth_mode_ms, Treatment(""CS""))"	6	13	6	0.25	79.1357032775879	98.19542083740234	0.19409986124887257	Baby-Forearm	2.0	grid-search-CS-ref	
+713	"C(birth_mode_ms, Treatment(""CS""))"	6	13	6	0.5	79.13648300170898	98.19564056396484	0.19409372404715552	Baby-Forearm	2.0	grid-search-CS-ref	
+714	"C(birth_mode_ms, Treatment(""CS""))"	6	6	10	0.25	158.7263168334961	159.2490447998047	0.00328245589771492	Baby-Forearm	2.0	grid-search-CS-ref	
+715	"C(birth_mode_ms, Treatment(""CS""))"	6	6	10	0.5	158.72661590576172	159.24984130859374	0.003285563103438971	Baby-Forearm	2.0	grid-search-CS-ref	
+716	"C(birth_mode_ms, Treatment(""CS""))"	6	6	13	0.25	233.47234954833985	253.1568817138672	0.07775625940825093	Baby-Forearm	2.0	grid-search-CS-ref	
+717	"C(birth_mode_ms, Treatment(""CS""))"	6	6	13	0.5	233.47409362792968	253.15828857421874	0.07775449524939504	Baby-Forearm	2.0	grid-search-CS-ref	
+718	"C(birth_mode_ms, Treatment(""CS""))"	6	6	6	0.25	75.21630630493163	78.18873291015625	0.0380160477679069	Baby-Forearm	2.0	grid-search-CS-ref	
+719	"C(birth_mode_ms, Treatment(""CS""))"	6	6	6	0.5	75.21759719848633	78.18904113769531	0.0380033300827427	Baby-Forearm	2.0	grid-search-CS-ref	
+720	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	13	0.25	386.31036987304685	582.17236328125	0.33643299778828795	Baby-Mouth	30.0	grid-search-CS-ref	
+721	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	13	0.5	386.3139587402344	582.172509765625	0.33642700014166027	Baby-Mouth	30.0	grid-search-CS-ref	
+722	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	18	0.25	361.5677490234375	584.4933288574218	0.3813996992399611	Baby-Mouth	30.0	grid-search-CS-ref	
+723	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	18	0.5	361.5732452392578	584.4935424804687	0.38139052194688694	Baby-Mouth	30.0	grid-search-CS-ref	
+724	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	9	0.25	324.91834716796876	523.2071044921875	0.37898712693642245	Baby-Mouth	30.0	grid-search-CS-ref	
+725	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	9	0.5	324.92177734375	523.2075073242188	0.3789810490192298	Baby-Mouth	30.0	grid-search-CS-ref	
+726	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	18	13	0.25	489.27911376953125	634.5097595214844	0.22888638602104228	Baby-Mouth	30.0	grid-search-CS-ref	
+727	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	18	13	0.5	489.2805877685547	634.5098083496093	0.22888412230979194	Baby-Mouth	30.0	grid-search-CS-ref	
+728	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	18	18	0.25	477.6881378173828	635.9822021484375	0.24889700340090504	Baby-Mouth	30.0	grid-search-CS-ref	
+729	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	18	18	0.5	477.6898498535156	635.9822937011719	0.24889441957016645	Baby-Mouth	30.0	grid-search-CS-ref	
+730	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	18	9	0.25	469.94407653808594	642.7239379882812	0.26882437581365703	Baby-Mouth	30.0	grid-search-CS-ref	
+731	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	18	9	0.5	469.94597778320315	642.7240478515625	0.2688215426914641	Baby-Mouth	30.0	grid-search-CS-ref	
+732	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	13	0.25	343.8731384277344	400.3961151123047	0.14116764511742708	Baby-Mouth	30.0	grid-search-CS-ref	
+733	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	13	0.5	343.8759368896484	400.3967224121094	0.1411619585244427	Baby-Mouth	30.0	grid-search-CS-ref	
+734	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	18	0.25	318.4763122558594	387.5291778564453	0.17818752637553803	Baby-Mouth	30.0	grid-search-CS-ref	Yes
+735	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	18	0.5	318.4790435791016	387.5298370361328	0.1781818762269729	Baby-Mouth	30.0	grid-search-CS-ref	
+736	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	9	0.25	320.3217529296875	352.12245178222656	0.09031147741810719	Baby-Mouth	30.0	grid-search-CS-ref	
+737	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	9	9	0.5	320.323974609375	352.1228271484375	0.09030613776612018	Baby-Mouth	30.0	grid-search-CS-ref	
+738	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	13	13	0.25	642.9275329589843	1024.3846862792968	0.37237686040174645	Baby-Mouth	30.0	grid-search-CS-ref	
+739	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	13	13	0.5	642.9276062011719	1024.3848999023437	0.3723769197862412	Baby-Mouth	30.0	grid-search-CS-ref	
+740	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	13	18	0.25	569.3002685546875	1031.9693603515625	0.44833607427962485	Baby-Mouth	30.0	grid-search-CS-ref	
+741	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	13	18	0.5	569.3004638671875	1031.9696411132813	0.4483360351056157	Baby-Mouth	30.0	grid-search-CS-ref	
+742	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	13	9	0.25	627.1059509277344	910.6968444824219	0.3113998860025272	Baby-Mouth	30.0	grid-search-CS-ref	
+743	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	13	9	0.5	627.1063354492187	910.6972351074219	0.3113997591359241	Baby-Mouth	30.0	grid-search-CS-ref	
+744	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	18	13	0.25	673.0913635253906	1136.245166015625	0.4076178419436861	Baby-Mouth	30.0	grid-search-CS-ref	
+745	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	18	13	0.5	673.093115234375	1136.24521484375	0.4076163257356953	Baby-Mouth	30.0	grid-search-CS-ref	
+746	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	18	18	0.25	589.4015686035157	1147.0724975585938	0.48616886041816343	Baby-Mouth	30.0	grid-search-CS-ref	
+747	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	18	18	0.5	589.4031066894531	1147.0725219726562	0.48616753047502326	Baby-Mouth	30.0	grid-search-CS-ref	
+748	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	18	9	0.25	657.0090881347656	1172.4136108398438	0.4396098082961307	Baby-Mouth	30.0	grid-search-CS-ref	
+749	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	18	9	0.5	657.0104431152344	1172.41376953125	0.4396087284287715	Baby-Mouth	30.0	grid-search-CS-ref	
+750	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	9	13	0.25	625.9772399902344	703.4999633789063	0.11019577459013752	Baby-Mouth	30.0	grid-search-CS-ref	
+751	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	9	13	0.5	625.9782104492188	703.5002624511719	0.11019477339190586	Baby-Mouth	30.0	grid-search-CS-ref	
+752	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	9	18	0.25	570.8023559570313	671.6514892578125	0.15015098591119236	Baby-Mouth	30.0	grid-search-CS-ref	
+753	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	9	18	0.5	570.8035400390625	671.6519836425781	0.15014984852212165	Baby-Mouth	30.0	grid-search-CS-ref	
+754	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	9	9	0.25	621.6341186523438	666.8630798339843	0.0678234596416708	Baby-Mouth	30.0	grid-search-CS-ref	
+755	"C(birth_mode_ms, Treatment(""CS"")) + country"	9	9	9	0.5	621.6361633300781	666.86337890625	0.06782081158865083	Baby-Mouth	30.0	grid-search-CS-ref	
+756	"C(birth_mode_ms, Treatment(""CS""))"	4	13	13	0.25	482.1219787597656	582.17236328125	0.1718569805642759	Baby-Mouth	30.0	grid-search-CS-ref	
+757	"C(birth_mode_ms, Treatment(""CS""))"	4	13	13	0.5	482.122900390625	582.172509765625	0.17185560585002324	Baby-Mouth	30.0	grid-search-CS-ref	
+758	"C(birth_mode_ms, Treatment(""CS""))"	4	13	18	0.25	460.13958740234375	584.4933288574218	0.21275476607777033	Baby-Mouth	30.0	grid-search-CS-ref	
+759	"C(birth_mode_ms, Treatment(""CS""))"	4	13	18	0.5	460.1412841796875	584.4935424804687	0.2127521508159973	Baby-Mouth	30.0	grid-search-CS-ref	
+760	"C(birth_mode_ms, Treatment(""CS""))"	4	13	9	0.25	356.34693603515626	523.2071044921875	0.3189180097601728	Baby-Mouth	30.0	grid-search-CS-ref	
+761	"C(birth_mode_ms, Treatment(""CS""))"	4	13	9	0.5	356.3476165771484	523.2075073242188	0.3189172334327218	Baby-Mouth	30.0	grid-search-CS-ref	
+762	"C(birth_mode_ms, Treatment(""CS""))"	4	18	13	0.25	569.3784484863281	634.5097595214844	0.10264824150896446	Baby-Mouth	30.0	grid-search-CS-ref	
+763	"C(birth_mode_ms, Treatment(""CS""))"	4	18	13	0.5	569.3789123535156	634.5098083496093	0.10264757949999592	Baby-Mouth	30.0	grid-search-CS-ref	
+764	"C(birth_mode_ms, Treatment(""CS""))"	4	18	18	0.25	561.2595642089843	635.9822021484375	0.11749171232627198	Baby-Mouth	30.0	grid-search-CS-ref	
+765	"C(birth_mode_ms, Treatment(""CS""))"	4	18	18	0.5	561.260595703125	635.9822937011719	0.1174902174763317	Baby-Mouth	30.0	grid-search-CS-ref	
+766	"C(birth_mode_ms, Treatment(""CS""))"	4	18	9	0.25	562.8312622070313	642.7239379882812	0.12430325223503136	Baby-Mouth	30.0	grid-search-CS-ref	
+767	"C(birth_mode_ms, Treatment(""CS""))"	4	18	9	0.5	562.8317443847657	642.7240478515625	0.12430265171165344	Baby-Mouth	30.0	grid-search-CS-ref	
+768	"C(birth_mode_ms, Treatment(""CS""))"	4	9	13	0.25	372.6907440185547	400.3961151123047	0.06919490486559565	Baby-Mouth	30.0	grid-search-CS-ref	
+769	"C(birth_mode_ms, Treatment(""CS""))"	4	9	13	0.5	372.69122009277345	400.3967224121094	0.06919512765346758	Baby-Mouth	30.0	grid-search-CS-ref	
+770	"C(birth_mode_ms, Treatment(""CS""))"	4	9	18	0.25	332.5633209228516	387.5291778564453	0.14183669275595823	Baby-Mouth	30.0	grid-search-CS-ref	
+771	"C(birth_mode_ms, Treatment(""CS""))"	4	9	18	0.5	332.5643646240234	387.5298370361328	0.14183545925777186	Baby-Mouth	30.0	grid-search-CS-ref	
+772	"C(birth_mode_ms, Treatment(""CS""))"	4	9	9	0.25	325.1935516357422	352.12245178222656	0.07647595320942158	Baby-Mouth	30.0	grid-search-CS-ref	Yes
+773	"C(birth_mode_ms, Treatment(""CS""))"	4	9	9	0.5	325.1940979003906	352.1228271484375	0.07647538634777318	Baby-Mouth	30.0	grid-search-CS-ref	
+774	"C(birth_mode_ms, Treatment(""CS""))"	9	13	13	0.25	780.9418762207031	1024.3846862792968	0.2376478419867939	Baby-Mouth	30.0	grid-search-CS-ref	
+775	"C(birth_mode_ms, Treatment(""CS""))"	9	13	13	0.5	780.942431640625	1024.3848999023437	0.23764745876762383	Baby-Mouth	30.0	grid-search-CS-ref	
+776	"C(birth_mode_ms, Treatment(""CS""))"	9	13	18	0.25	704.6846557617188	1031.9693603515625	0.3171457575817437	Baby-Mouth	30.0	grid-search-CS-ref	
+777	"C(birth_mode_ms, Treatment(""CS""))"	9	13	18	0.5	704.6859130859375	1031.9696411132813	0.31714472498849144	Baby-Mouth	30.0	grid-search-CS-ref	
+778	"C(birth_mode_ms, Treatment(""CS""))"	9	13	9	0.25	652.9854248046875	910.6968444824219	0.282982664581648	Baby-Mouth	30.0	grid-search-CS-ref	
+779	"C(birth_mode_ms, Treatment(""CS""))"	9	13	9	0.5	652.9860412597657	910.6972351074219	0.2829822952270825	Baby-Mouth	30.0	grid-search-CS-ref	
+780	"C(birth_mode_ms, Treatment(""CS""))"	9	18	13	0.25	909.0720764160156	1136.245166015625	0.1999331626608526	Baby-Mouth	30.0	grid-search-CS-ref	
+781	"C(birth_mode_ms, Treatment(""CS""))"	9	18	13	0.5	909.0727966308593	1136.24521484375	0.19993256318719033	Baby-Mouth	30.0	grid-search-CS-ref	
+782	"C(birth_mode_ms, Treatment(""CS""))"	9	18	18	0.25	845.852294921875	1147.0724975585938	0.2625990975093814	Baby-Mouth	30.0	grid-search-CS-ref	
+783	"C(birth_mode_ms, Treatment(""CS""))"	9	18	18	0.5	845.853662109375	1147.0725219726562	0.2625979213112575	Baby-Mouth	30.0	grid-search-CS-ref	
+784	"C(birth_mode_ms, Treatment(""CS""))"	9	18	9	0.25	870.2497253417969	1172.4136108398438	0.2577280600500669	Baby-Mouth	30.0	grid-search-CS-ref	
+785	"C(birth_mode_ms, Treatment(""CS""))"	9	18	9	0.5	870.2507263183594	1172.41376953125	0.25772730674572364	Baby-Mouth	30.0	grid-search-CS-ref	
+786	"C(birth_mode_ms, Treatment(""CS""))"	9	9	13	0.25	696.1429992675781	703.4999633789063	0.010457660972706617	Baby-Mouth	30.0	grid-search-CS-ref	
+787	"C(birth_mode_ms, Treatment(""CS""))"	9	9	13	0.5	696.1432861328125	703.5002624511719	0.010457673878792706	Baby-Mouth	30.0	grid-search-CS-ref	
+788	"C(birth_mode_ms, Treatment(""CS""))"	9	9	18	0.25	620.2077514648438	671.6514892578125	0.07659290363491189	Baby-Mouth	30.0	grid-search-CS-ref	
+789	"C(birth_mode_ms, Treatment(""CS""))"	9	9	18	0.5	620.2088806152344	671.6519836425781	0.07659190217581391	Baby-Mouth	30.0	grid-search-CS-ref	
+790	"C(birth_mode_ms, Treatment(""CS""))"	9	9	9	0.25	635.8818420410156	666.8630798339843	0.04645816919521395	Baby-Mouth	30.0	grid-search-CS-ref	
+791	"C(birth_mode_ms, Treatment(""CS""))"	9	9	9	0.5	635.8821716308594	666.86337890625	0.04645810259697292	Baby-Mouth	30.0	grid-search-CS-ref	
+792	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	13	0.25	109.01870422363281	137.44756164550782	0.2068342070352337	Baby-Forearm	30.0	grid-search-CS-ref	
+793	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	13	0.5	109.01939086914062	137.44773864746094	0.20683023277113388	Baby-Forearm	30.0	grid-search-CS-ref	
+794	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	17	0.25	94.05317001342773	118.84150924682618	0.20858317426712125	Baby-Forearm	30.0	grid-search-CS-ref	
+795	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	17	0.5	94.05397109985351	118.84166793823242	0.20857749027270667	Baby-Forearm	30.0	grid-search-CS-ref	
+796	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	8	0.25	138.7799850463867	153.0344665527344	0.0931455627444272	Baby-Forearm	30.0	grid-search-CS-ref	
+797	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	13	8	0.5	138.78019256591796	153.0346252441406	0.0931451470899618	Baby-Forearm	30.0	grid-search-CS-ref	
+798	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	13	0.25	111.82175521850586	142.8513641357422	0.21721604903787228	Baby-Forearm	30.0	grid-search-CS-ref	
+799	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	13	0.5	111.82250289916992	142.85138397216798	0.217210923760063	Baby-Forearm	30.0	grid-search-CS-ref	
+800	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	17	0.25	104.71021347045898	128.6521774291992	0.18609839675598294	Baby-Forearm	30.0	grid-search-CS-ref	
+801	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	17	0.5	104.71064071655273	128.65215759277345	0.18609495032336354	Baby-Forearm	30.0	grid-search-CS-ref	
+802	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	8	0.25	139.88308410644532	159.11322631835938	0.12085822566024595	Baby-Forearm	30.0	grid-search-CS-ref	
+803	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	17	8	0.5	139.88339538574218	159.11321868896485	0.12085622716748134	Baby-Forearm	30.0	grid-search-CS-ref	
+804	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	13	0.25	108.27805023193359	121.89425048828124	0.11170502465706289	Baby-Forearm	30.0	grid-search-CS-ref	
+805	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	13	0.5	108.2783317565918	121.89489440917968	0.11170740758738829	Baby-Forearm	30.0	grid-search-CS-ref	
+806	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	17	0.25	92.47969970703124	104.98230590820313	0.11909250890435008	Baby-Forearm	30.0	grid-search-CS-ref	Yes
+807	"C(birth_mode_ms, Treatment(""CS"")) + country"	4	8	17	0.5	92.48043975830078	104.98287963867188	0.11909027379894477	Baby-Forearm	30.0	grid-search-CS-ref	
+810	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	13	13	0.25	172.75515594482422	196.97384643554688	0.12295383843584229	Baby-Forearm	30.0	grid-search-CS-ref	
+811	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	13	13	0.5	172.75558013916014	196.97419128417968	0.12295322035402456	Baby-Forearm	30.0	grid-search-CS-ref	
+812	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	13	17	0.25	147.8435852050781	169.94866943359375	0.13006918090143116	Baby-Forearm	30.0	grid-search-CS-ref	
+813	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	13	17	0.5	147.8444351196289	169.94896240234374	0.13006567954433113	Baby-Forearm	30.0	grid-search-CS-ref	
+814	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	13	8	0.25	221.8817886352539	226.7800033569336	0.02159897102554631	Baby-Forearm	30.0	grid-search-CS-ref	
+815	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	13	8	0.5	221.88214569091798	226.78013916015624	0.021597982466088905	Baby-Forearm	30.0	grid-search-CS-ref	
+816	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	13	0.25	173.1768585205078	207.18533172607422	0.1641451782432649	Baby-Forearm	30.0	grid-search-CS-ref	
+817	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	13	0.5	173.17711029052734	207.18551788330078	0.16414471407180586	Baby-Forearm	30.0	grid-search-CS-ref	
+818	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	17	0.25	152.56375274658203	190.1225555419922	0.19755048362536132	Baby-Forearm	30.0	grid-search-CS-ref	
+819	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	17	0.5	152.56462860107422	190.12262420654298	0.19754616665014568	Baby-Forearm	30.0	grid-search-CS-ref	
+820	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	8	0.25	223.09525451660156	234.92267456054688	0.050346013070343365	Baby-Forearm	30.0	grid-search-CS-ref	
+821	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	17	8	0.5	223.0957000732422	234.92272186279297	0.0503443076760296	Baby-Forearm	30.0	grid-search-CS-ref	
+822	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	8	13	0.25	173.2056686401367	178.5253433227539	0.029797868378831915	Baby-Forearm	30.0	grid-search-CS-ref	
+823	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	8	13	0.5	173.20538635253905	178.5258773803711	0.02980235193857128	Baby-Forearm	30.0	grid-search-CS-ref	
+824	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	8	17	0.25	148.23202056884764	153.78287200927736	0.03609538154609859	Baby-Forearm	30.0	grid-search-CS-ref	
+825	"C(birth_mode_ms, Treatment(""CS"")) + country"	8	8	17	0.5	148.2321044921875	153.78334045410156	0.036097772005225126	Baby-Forearm	30.0	grid-search-CS-ref	
+828	"C(birth_mode_ms, Treatment(""CS""))"	4	13	13	0.25	119.78214111328126	137.44756164550782	0.12852480117317466	Baby-Forearm	30.0	grid-search-CS-ref	
+829	"C(birth_mode_ms, Treatment(""CS""))"	4	13	13	0.5	119.78282089233399	137.44773864746094	0.12852097771092197	Baby-Forearm	30.0	grid-search-CS-ref	
+830	"C(birth_mode_ms, Treatment(""CS""))"	4	13	17	0.25	102.38190994262695	118.84150924682618	0.13850042302991705	Baby-Forearm	30.0	grid-search-CS-ref	
+831	"C(birth_mode_ms, Treatment(""CS""))"	4	13	17	0.5	102.38237991333008	118.84166793823242	0.13849761881040745	Baby-Forearm	30.0	grid-search-CS-ref	
+832	"C(birth_mode_ms, Treatment(""CS""))"	4	13	8	0.25	142.01836395263672	153.0344665527344	0.07198445453659685	Baby-Forearm	30.0	grid-search-CS-ref	
+833	"C(birth_mode_ms, Treatment(""CS""))"	4	13	8	0.5	142.01854705810547	153.0346252441406	0.07198422035837226	Baby-Forearm	30.0	grid-search-CS-ref	
+834	"C(birth_mode_ms, Treatment(""CS""))"	4	17	13	0.25	127.87536239624023	142.8513641357422	0.10483625291300158	Baby-Forearm	30.0	grid-search-CS-ref	
+835	"C(birth_mode_ms, Treatment(""CS""))"	4	17	13	0.5	127.87560195922852	142.85138397216798	0.10483470020743535	Baby-Forearm	30.0	grid-search-CS-ref	
+836	"C(birth_mode_ms, Treatment(""CS""))"	4	17	17	0.25	118.9421890258789	128.6521774291992	0.07547473037262797	Baby-Forearm	30.0	grid-search-CS-ref	
+837	"C(birth_mode_ms, Treatment(""CS""))"	4	17	17	0.5	118.94253692626953	128.65215759277345	0.07547188362932922	Baby-Forearm	30.0	grid-search-CS-ref	
+838	"C(birth_mode_ms, Treatment(""CS""))"	4	17	8	0.25	146.7148910522461	159.11322631835938	0.07792146230072827	Baby-Forearm	30.0	grid-search-CS-ref	
+839	"C(birth_mode_ms, Treatment(""CS""))"	4	17	8	0.5	146.71484832763673	159.11321868896485	0.07792168660458376	Baby-Forearm	30.0	grid-search-CS-ref	
+840	"C(birth_mode_ms, Treatment(""CS""))"	4	8	13	0.25	107.59295043945312	121.89425048828124	0.1173254685232511	Baby-Forearm	30.0	grid-search-CS-ref	
+841	"C(birth_mode_ms, Treatment(""CS""))"	4	8	13	0.5	107.59336700439454	121.89489440917968	0.11732671392107241	Baby-Forearm	30.0	grid-search-CS-ref	
+842	"C(birth_mode_ms, Treatment(""CS""))"	4	8	17	0.25	92.88621520996094	104.98230590820313	0.11522028015672525	Baby-Forearm	30.0	grid-search-CS-ref	Yes
+843	"C(birth_mode_ms, Treatment(""CS""))"	4	8	17	0.5	92.88671035766602	104.98287963867188	0.11522039900827852	Baby-Forearm	30.0	grid-search-CS-ref	
+846	"C(birth_mode_ms, Treatment(""CS""))"	8	13	13	0.25	171.9572311401367	196.97384643554688	0.12700475595167915	Baby-Forearm	30.0	grid-search-CS-ref	
+847	"C(birth_mode_ms, Treatment(""CS""))"	8	13	13	0.5	171.95728759765626	196.97419128417968	0.1270059977067295	Baby-Forearm	30.0	grid-search-CS-ref	
+848	"C(birth_mode_ms, Treatment(""CS""))"	8	13	17	0.25	149.34449615478516	169.94866943359375	0.1212376263225734	Baby-Forearm	30.0	grid-search-CS-ref	
+849	"C(birth_mode_ms, Treatment(""CS""))"	8	13	17	0.5	149.3449737548828	169.94896240234374	0.12123633093259056	Baby-Forearm	30.0	grid-search-CS-ref	
+850	"C(birth_mode_ms, Treatment(""CS""))"	8	13	8	0.25	223.07207336425782	226.7800033569336	0.016350339261790192	Baby-Forearm	30.0	grid-search-CS-ref	
+851	"C(birth_mode_ms, Treatment(""CS""))"	8	13	8	0.5	223.07158508300782	226.78013916015624	0.016353081406874748	Baby-Forearm	30.0	grid-search-CS-ref	
+852	"C(birth_mode_ms, Treatment(""CS""))"	8	17	13	0.25	175.7873992919922	207.18533172607422	0.1515451512542122	Baby-Forearm	30.0	grid-search-CS-ref	
+853	"C(birth_mode_ms, Treatment(""CS""))"	8	17	13	0.5	175.7878387451172	207.18551788330078	0.15154379253413175	Baby-Forearm	30.0	grid-search-CS-ref	
+854	"C(birth_mode_ms, Treatment(""CS""))"	8	17	17	0.25	166.1027084350586	190.1225555419922	0.1263387557486748	Baby-Forearm	30.0	grid-search-CS-ref	
+855	"C(birth_mode_ms, Treatment(""CS""))"	8	17	17	0.5	166.1033187866211	190.12262420654298	0.12633586097479965	Baby-Forearm	30.0	grid-search-CS-ref	
+856	"C(birth_mode_ms, Treatment(""CS""))"	8	17	8	0.25	224.8626937866211	234.92267456054688	0.04282251933639136	Baby-Forearm	30.0	grid-search-CS-ref	
+857	"C(birth_mode_ms, Treatment(""CS""))"	8	17	8	0.5	224.86251831054688	234.92272186279297	0.04282345901867157	Baby-Forearm	30.0	grid-search-CS-ref	
+858	"C(birth_mode_ms, Treatment(""CS""))"	8	8	13	0.25	171.01417236328126	178.5253433227539	0.04207341557043409	Baby-Forearm	30.0	grid-search-CS-ref	
+859	"C(birth_mode_ms, Treatment(""CS""))"	8	8	13	0.5	171.01394653320312	178.5258773803711	0.042077546165270485	Baby-Forearm	30.0	grid-search-CS-ref	
+860	"C(birth_mode_ms, Treatment(""CS""))"	8	8	17	0.25	147.067822265625	153.78287200927736	0.04366578446556291	Baby-Forearm	30.0	grid-search-CS-ref	
+861	"C(birth_mode_ms, Treatment(""CS""))"	8	8	17	0.5	147.06814422607422	153.78334045410156	0.04366660399103217	Baby-Forearm	30.0	grid-search-CS-ref	

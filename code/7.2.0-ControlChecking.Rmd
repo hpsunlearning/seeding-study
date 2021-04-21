@@ -565,6 +565,12 @@ phylo_contam <- prune_taxa(df.pa2.contaminant.0.1$Row.names %>% as.character(), 
 phylo_contam_bl <- prune_samples(!is.na(sample_data(phylo_contam)$Cat_control), phylo_contam)
 phylo_contam_ss <- prune_samples(is.na(sample_data(phylo_contam)$Cat_control), phylo_contam)
 
+otu_contam_bl <- otu_table(phylo_contam_bl) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "ASV") %>% pivot_longer(cols = -1, names_to = "sample_names", values_to = "counts") 
+otu_contam_ss <- otu_table(phylo_contam_ss) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "ASV") %>% pivot_longer(cols = -1, names_to = "sample_names", values_to = "counts") 
+
+otu_contam_bl %>% group_by(ASV) %>% summarise(Med = median(counts), Mean = mean(counts))
+otu_contam_ss %>% group_by(ASV) %>% summarise(Med = median(counts), Mean = mean(counts))
+
 mean_ct_bl <- taxa_sums(phylo_contam_bl)/162
 mean_ct_ss <- taxa_sums(phylo_contam_ss)/7828
 

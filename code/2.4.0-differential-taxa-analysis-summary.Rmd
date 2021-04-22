@@ -225,7 +225,7 @@ plot_ternary = function(bb, dd, color_fun){
 
 
 for (bb in c("Feces", "Forearm", "Mouth")){
-    pdf(file = paste0(fig_path, "songbird_ternary_plot_", bb, ".pdf"), width = 6, height = 4, useDingbats = F, pointsize = 12)
+    pdf(file = paste0(fig_path, "songbird_ternary_plot_", bb, ".pdf"), width = 6.6, height = 4.4, useDingbats = F, pointsize = 12)
     par(mfrow = c(1, 3), mar = rep(0.1, 4))
     for (dd in c(2, 30, 180)){
         color_fun = circlize::colorRamp2(seq(0, 1, 0.1), colors = sequential_hcl(11, palette = "Inferno"))
@@ -246,7 +246,7 @@ for (bb in c("Feces", "Forearm", "Mouth")){
           axes = FALSE, xlab = "", ylab = "")
     axis(1, at = seq(0.1, 0.9, 0.2), cex.axis = 1)
     dev.off()
-}
+    }
 ```
 
 ### Plots
@@ -301,7 +301,7 @@ for (bb in c("Feces", "Forearm", "Mouth")){
     }
     p = wrap_plots(p_list) + plot_layout(guides = "collect")
     p
-    set_panel_size(g = patchworkGrob(p), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g_CSref.pdf"), width = unit(2.1, "in"), height = unit(min(0.1*max_n, 4),"in"), useDingbats = F)
+    set_panel_size(g = patchworkGrob(p), file = paste0(fig_path, "songbird_diff_", bb, "_top", pct, "-g_CSref.pdf"), width = unit(2.2, "in"), height = unit(min(0.1*max_n, 4),"in"), useDingbats = F)
     
 }
 ```

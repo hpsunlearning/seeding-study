@@ -283,7 +283,7 @@ for (bb in c("Feces", "Forearm", "Mouth")){
     max_n = 0
     for (dd in c(2, 30, 180)){
         #dd=2
-        dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd, !featureid %in% decontam$Row.names, !featureid %in% decontam$Row.names) %>% mutate(x = paste(p, c, o, f, g, sep = ";"))
+        dat <- songbird_wk2 %>% filter(body_site==bb, days ==dd, !featureid %in% decontam$Row.names) %>% mutate(x = paste(p, c, o, f, g, sep = ";"))
         x.order = dat %>% group_by(x) %>% summarise(MM = median(centered.diff.CSseed)) %>% ungroup() %>% arrange(MM) 
         x.order2 = head(x.order, n = round(nrow(x.order)*pct)) %>%
             rbind(., tail(x.order, n = round(nrow(x.order)*pct)))

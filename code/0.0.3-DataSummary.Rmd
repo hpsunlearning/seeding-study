@@ -253,7 +253,7 @@ ggplot(sc_dat_bb, aes(x = x_trans, y = subject_seq, color = birth_mode_sum)) +
     scale_color_manual(values = clr_bm) +
     labs(x = "Days", y = "Individuals", color = "Birth Mode")
 set_panel_size(file = "../results/sample_distributions_babies.pdf", width = unit(7, "in"), height = unit(2.1, "in"))
-sc_dat_bb %>% group_by(birth_mode_sum, subjectid_unique) %>% summarise(N_samples = n()) %>% summarise(Mean_n_samples = mean(N_samples))
+sc_dat_bb %>% group_by(birth_mode_sum, subjectid_unique) %>% summarise(N_samples = n()) %>% summarise(Mean_n_samples = mean(N_samples), Range_n = range(N_samples) %>% paste(collapse = ","))
 
 sc_dat_mm <- mf_all_samples_anal_mm %>% filter(date_sampling_category_days_continuous<=30, date_sampling_category_days_continuous>=0) %>% ungroup() %>% arrange(body_site_corrected, subjectid_unique) %>% mutate(subject_seq = seq(nrow(.)), x_trans = ifelse(date_sampling_category_days_continuous==0, 2-2^0.25, date_sampling_category_days_continuous^0.25))
 
@@ -266,6 +266,6 @@ ggplot(sc_dat_mm, aes(x = x_trans, y = subject_seq, color = body_site_corrected)
     labs(x = "Days", y = "Individuals")
 set_panel_size(file = "../results/sample_distributions_mothers.pdf", width = unit(3.5, "in"), height = unit(2.8, "in"))
 
-sc_dat_mm %>% group_by(subjectid_unique) %>% summarise(N_samples = n()) %>% summarise(Mean_n_samples = mean(N_samples))
+sc_dat_mm %>% group_by(subjectid_unique) %>% summarise(N_samples = n()) %>% summarise(Mean_n_samples = mean(N_samples), Range_n = range(N_samples) %>% paste(collapse = ","))
 ```
 

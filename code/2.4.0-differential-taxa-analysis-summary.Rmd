@@ -345,10 +345,10 @@ songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
 
 songbird_wk2 %>% mutate(x = paste(p, c, o, f, g, sep = ";")) %>%
     split(., f = list(.$body_site, .$days)) %>%
-    lapply(., function(x){rbind(slice_max(x, centered.diff.CS, prop = 0.2), slice_min(x, centered.diff.CS, prop = 0.2))}) %>%
+    lapply(., function(x){rbind(slice_max(x, centered.diff.CSseed, prop = 0.2), slice_min(x, centered.diff.CSseed, prop = 0.2))}) %>%
     data.table::rbindlist(.) %>%
-    arrange(body_site, days, Taxon, desc(centered.diff.CS)) %>%
-    select(body_site, days, p:s, featureid, VaginaASV, centered.diff.CS, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
+    arrange(body_site, days, Taxon, desc(centered.diff.CSseed)) %>%
+    select(body_site, days, p:s, featureid, VaginaASV, centered.diff.CSseed, seeding.effectiveness.scale, feature.frequency, P.VD, P.CSR, P.CS) %>%
     mutate(across(seeding.effectiveness.scale:P.CS, ~round(.x, 3)), across(p:s, ~gsub("^[[:lower:]]_", "", .x)), across(p:s, ~ifelse(.x %in% c("", "-"), "unknown", .x))) %>% 
     unite("Taxonomy", p:s, sep = ".") %>%
     write.table(file = "../data/diff-analysis-new/songbird-summary-output/songbird_topbottom0.2_differential_asv.tsv", sep = "\t", quote = F, row.names = F)

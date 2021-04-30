@@ -1,0 +1,12 @@
+5a7118c14fd1bacc957ddf01e61491b7  VERSION
+840db198be44c201448e48c770051ef8  metadata.yaml
+8ab3a6253157235d90a69e676263f690  data/trajectory.tsv
+5a7118c14fd1bacc957ddf01e61491b7  provenance/VERSION
+fc3b8f03fdd67fdecdad60758233a5b2  provenance/citations.bib
+840db198be44c201448e48c770051ef8  provenance/metadata.yaml
+0ea44287d4ba24fa16b4127ccd52a0c6  provenance/action/action.yaml
+ae0b7450666e7f8702fffd84d4f4e81d  provenance/action/sample_metadata.tsv
+5a7118c14fd1bacc957ddf01e61491b7  provenance/artifacts/2c458731-3983-45a7-8303-9938fafc3995/VERSION
+db8251cc900fd70937a230db53d3e8a9  provenance/artifacts/2c458731-3983-45a7-8303-9938fafc3995/citations.bib
+de5d02f5c3cada38cad3ac108ae20a20  provenance/artifacts/2c458731-3983-45a7-8303-9938fafc3995/metadata.yaml
+0a35ed45daef3ca88564ce518bcc2c0e  provenance/artifacts/2c458731-3983-45a7-8303-9938fafc3995/action/action.yaml

@@ -1,2 +1,0 @@
-model_checkpoint_path: "/home/cmartino/seeding-songbird-run/songbird-results/oral/Baby-Mouth-2-4/C(birth_mode, Treatment(\"CS\")) + host_subject_id-8-35-0.25/model.ckpt-0"
-all_model_checkpoint_paths: "/home/cmartino/seeding-songbird-run/songbird-results/oral/Baby-Mouth-2-4/C(birth_mode, Treatment(\"CS\")) + host_subject_id-8-35-0.25/model.ckpt-0"

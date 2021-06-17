@@ -1,0 +1,206 @@
+---
+title: "Differential taxa analysis"
+author: "Jincheng Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, 
+                      warning = FALSE, message = FALSE)
+# Loading library here
+library(conflicted)
+library(tidyverse)
+library(extrafont)
+
+devtools::source_url("https://raw.githubusercontent.com/sidhujyatha/ANCOM/master/ANCOM_updated_code_06_06_2020.R", sha1 = "c38079a8387079d5218605142578c8d7767925d5") 
+
+# library(biomformat)
+# library(ape)
+library(qiime2R)
+library(phyloseq)
+# library(patchwork)
+# library(ggrepel)
+sessionInfo()
+conflict_prefer("filter", "dplyr")
+
+np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
+
+fig_path = "tmp_figs/"
+```
+## Import 
+```{r eval=FALSE}
+dat_path = list.dirs(path = "../data/split-data/",
+                     full.names = T, recursive = F) %>%
+    .[grepl(pattern = "Baby*.0", .)]
+
+dat_files = lapply(dat_path, function(x){
+    list(ft = read_qza(paste0(x, "/table.qza")), 
+         mf = read.table(file = paste0(x, "/metadata.tsv"), header = T, sep = "\t",
+                         stringsAsFactors = F))})
+names(dat_files) = (dat_path %>% str_split(pattern = "/", simplify = T))[, 5]
+
+taxa_qza <- read_qza("../data/processed-data/taxonomy.qza")
+taxa_tbl <- taxa_qza$data %>% mutate(Taxon = gsub(pattern = "__", replacement = "_", Taxon)) %>% separate(Taxon, into = c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "; ", remove = T)
+taxa_tbl$Domain[is.na(taxa_tbl$Domain)] <- "k_"
+taxa_tbl$Phylum[is.na(taxa_tbl$Phylum)] <- "p_"
+taxa_tbl$Class[is.na(taxa_tbl$Class)] <- "c_"
+taxa_tbl$Order[is.na(taxa_tbl$Order)] <- "o_"
+taxa_tbl$Family[is.na(taxa_tbl$Family)] <- "f_"
+taxa_tbl$Genus[is.na(taxa_tbl$Genus)] <- "g_"
+taxa_tbl$Species[is.na(taxa_tbl$Species)] <- "s_"
+
+```
+
+## Create phylo object
+```{r eval=FALSE}
+asv_phylo <- parallel::mclapply(dat_files, function(x){
+    merge_phyloseq(otu_table(x$ft$data %>% as.data.frame() %>% filter(rowSums(.)>0), taxa_are_rows = T), sample_data(x$mf %>% column_to_rownames(var = "sample_name")), tax_table(taxa_tbl %>%  filter(Feature.ID %in% rownames(x$ft$data)) %>% select(Feature.ID, Domain:Species) %>% column_to_rownames(var = "Feature.ID") %>% as.matrix()))}, mc.cores = np)
+
+all_phylo = list(ASV = asv_phylo)
+
+for (ll in c("Phylum", "Class", "Order", "Family", "Genus")){
+    glom_phylo = parallel::mclapply(asv_phylo, function(x){
+        tax_glom(x, taxrank = ll, NArm = F)}, mc.cores = np)
+    all_phylo[[ll]] = glom_phylo
+    rm(glom_phylo)
+}
+
+save(all_phylo, file = "diff_analysis_all_phylo.Rdata")
+```
+
+```{r}
+load("diff_analysis_all_phylo.Rdata")
+tmp = all_phylo$ASV$`Baby-Feces-120.0`
+ft_tmp = otu_table(tmp)  %>% as.matrix() %>% as.data.frame() %>% t() %>% as.data.frame() %>% rownames_to_column(var = "Sample.ID")
+head(ft_tmp)
+```
+
+
+## ANCOM
+```{r eval=FALSE}
+#!/usr/bin/env Rscript
+
+library(tidyverse)
+devtools::source_url("https://raw.githubusercontent.com/sidhujyatha/ANCOM/master/ANCOM_updated_code_06_06_2020.R", sha1 = "c38079a8387079d5218605142578c8d7767925d5")
+
+ancom_wrap_phyloseq <- function(phylo_obj, rarefy = NULL, ...){
+    require(phyloseq)
+    if(!is.null(rarefy)){
+        phylo_obj = rarefy_even_depth(phylo_obj, rarefy, 
+                                      replace = F, 
+                                      trimOTUs = T,
+                                      rngseed = 20)
+    } else {
+        phylo_obj = prune_samples(sample_sums(phylo_obj)>=1000, phylo_obj)
+    }
+    ft <- phylo_obj %>% otu_table() %>% as.matrix() %>% as.data.frame() %>%t() # feature table is in a format that a column of taxa with additional columns of counts from each samples
+    tax_tbl <- tax_table(phylo_obj) %>% as.matrix() %>% 
+        as.data.frame() %>% rownames_to_column(var = "Taxa_id") %>% 
+        mutate(tax_ind = paste0("Taxa", seq(n())))
+    colnames(ft) <- tax_tbl$tax_ind[match(colnames(ft), tax_tbl$Taxa_id)]
+    
+    ft <- ft %>% as.data.frame %>% rownames_to_column(var = "Sample.ID")
+    mf <- sample_data(phylo_obj) %>% as.matrix() %>% as.data.frame() %>%
+        rownames_to_column(var = "Sample.ID")
+    
+    ancom_mod <- ANCOM.main(OTUdat = ft, Vardat = mf, ...)
+    ancom_mod$W.taxa <- ancom_mod$W.taxa %>% merge(., tax_tbl, by.x = 1, by.y = "tax_ind", all.x = T)
+    ancom_mod$ft <- ft
+    ancom_mod$mf <- mf
+    return(ancom_mod)
+}
+
+args = commandArgs(trailingOnly=TRUE)
+# test if there is at least one argument: if not, return an error
+if (length(args)==0) {
+    stop("At least one argument must be supplied (input file).n", call.=FALSE)
+} else if (length(args)==2) {
+    # default output file
+    args[3] = 8
+}
+np.2 = as.numeric(args[3])
+
+load(args[1])
+ll = args[2]
+ancom_rsl = parallel::mclapply(all_phylo[[ll]], function(x){ancom_wrap_phyloseq(x, rarefy = NULL, adjusted = T, main.var = "birth_mode_ms", adj.formula = "country", repeated = F, repeat.var = NULL, longitudinal = F, random.formula = NULL, multcorr = 2, sig = 0.05, prev.cut = 0.9)}, mc.cores = np.2)
+saveRDS(ancom_rsl, file = paste0("ancom_rsl_", ll, ".rds"))
+
+```
+
+
+## Pairwise Ancom
+```{r， eval=FALSE}
+#!/usr/bin/env Rscript
+library(tidyverse)
+library(phyloseq)
+source("assets/ANCOM_updated_code_06_06_2020.R")
+ancom_wrap_phyloseq <- function(phylo_obj, rarefy = NULL, ...){
+    require(phyloseq)
+    if(!is.null(rarefy)){
+        phylo_obj = rarefy_even_depth(phylo_obj, rarefy, 
+                                      replace = F, 
+                                      trimOTUs = T,
+                                      rngseed = 20)
+    } else {
+        phylo_obj = prune_samples(sample_sums(phylo_obj)>=1000, phylo_obj)
+    }
+    ft <- phylo_obj %>% otu_table() %>% as.matrix() %>% as.data.frame() %>% t() # feature table is in a format that a column of taxa with additional columns of counts from each samples
+    tax_tbl <- tax_table(phylo_obj) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "Taxa_id") %>% mutate(tax_ind = paste0("Taxa", seq(n()))) 
+    colnames(ft) <- tax_tbl$tax_ind[match(colnames(ft), tax_tbl$Taxa_id)]
+    
+    ft <- ft %>% as.data.frame %>% rownames_to_column(var = "Sample.ID")
+    mf <- sample_data(phylo_obj) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "Sample.ID")
+    ancom_mod <- ANCOM.main(OTUdat = ft, Vardat = mf, ...)
+    ancom_mod$W.taxa <- ancom_mod$W.taxa %>% merge(., tax_tbl, by.x = 1, by.y = "tax_ind", all.x = T)
+    ancom_mod$ft <- ft
+    ancom_mod$mf <- mf
+    return(ancom_mod)
+}
+
+generate_pairwise_phylo = function(phylo_obj, main_var, min_n){
+    mf_tmp = sample_data(phylo_obj) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "Sample.ID")
+    mf_tmp_ = mf_tmp %>% ungroup() %>% group_by(across(main_var)) %>% filter(n()>=min_n)
+    levels = unique(mf_tmp_[[main_var]])
+    if (length(levels)>3){
+        stop("There are too many levels in main variable")
+    }
+    
+    if (length(levels)==1){
+        return(NULL)
+    } else if (length(levels)==2){
+        phylo_obj_ = list(prune_samples(mf_tmp_$Sample.ID, phylo_obj) %>% filter_taxa(., function(x)sum(x)>0, T))
+        names(phylo_obj_) = sort(levels) %>% paste(., collapse = "-")
+        return(phylo_obj_)
+    } else {
+        phylo_obj_ = list()
+        for (ll in levels){
+            mf_tmp__ = mf_tmp_ %>% filter(get(main_var)!=ll)
+            ll_nm = mf_tmp__[[main_var]] %>% unique() %>% sort() %>% paste(., collapse = "-")
+            phylo_obj_[[ll_nm]] = prune_samples(mf_tmp__$Sample.ID, phylo_obj) %>% filter_taxa(., function(x)sum(x)>0, T)
+        }
+        return(phylo_obj_)
+    }
+}
+
+args = commandArgs(trailingOnly=TRUE)
+# test if there is at least one argument: if not, return an error
+if (length(args)==0) {
+    stop("At least one argument must be supplied (input file).n", call.=FALSE)
+} else if (length(args)==2) {
+    # default output file
+    args[3] = 8
+}
+np.2 = as.numeric(args[3])
+
+load(args[1])
+ll = args[2]
+
+ancom_rsl = parallel::mclapply(all_phylo[[ll]], function(x){parallel::mclapply(generate_pairwise_phylo(x, "birth_mode_ms", 5),  function(x){ancom_wrap_phyloseq(x, rarefy = NULL, adjusted = T, main.var = "birth_mode_ms", adj.formula = "country", repeated = F, repeat.var = NULL, longitudinal = F, random.formula = NULL, multcorr = 2, sig = 0.05, prev.cut = 0.9)}, mc.cores = np.2)}, mc.cores = 4)
+
+saveRDS(ancom_rsl, file = paste0("ancom_rsl_pairwise_", ll, ".rds"))
+```

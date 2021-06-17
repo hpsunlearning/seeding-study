@@ -1,0 +1,10 @@
+sample_site	comp	7	14	30	60	120	180	360
+Baby-Feces	CSseed-Vag	NS	NS	NS	NS	NS	NS	NS
+Baby-Feces	CS-Vag	*	*	*	*	*	*	NS
+Baby-Feces	CS-CSseed	NS	NS	NS	NS	NS	NS	NS
+Baby-Mouth	CS-CSseed	NS	NS	NS	NS	NS	NS	NS
+Baby-Mouth	CS-Vag	NS	NS	NS	NS	NS	NS	NS
+Baby-Mouth	CSseed-Vag	*	*	*	*	*	*	NS
+Baby-Forearm	CS-CSseed	NS	NS	NS	NS	NS	NS	NS
+Baby-Forearm	CSseed-Vag	NS	NS	NS	NS	NS	NS	NS
+Baby-Forearm	CS-Vag	NS	NS	NS	NS	NS	NS	NS

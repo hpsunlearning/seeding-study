@@ -1,0 +1,167 @@
+---
+title: "Sample Size Count"
+author: "Jincheng Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, message = FALSE)
+# Loading library here
+library(conflicted)
+library(tidyverse)
+library(extrafont)
+options(stringsAsFactors = F)
+conflict_prefer("filter", "dplyr")
+
+sessionInfo()
+```
+
+## import metadata
+```{r}
+mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+
+controls <- read.delim("../data/processed-data/Metadata_controls.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+
+# all body sites to use for now
+ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
+mf$body_site_corrected[mf$body_site_corrected=="Right_Forearm"] = "Forearm"
+```
+
+## Figure 1
+### Total recruited
+```{r}
+subject_check <- mf %>% filter(!sample_name %in% controls$sample_name, !is.na(country), !is.na(birth_mode)) %>% mutate(birth_mode_sum = ifelse(birth_mode %in% "CSself", "CSseed", birth_mode)) %>% group_by(country, birth_mode_sum, familyid_unique, mom_baby, subjectid_unique) %>% summarise(N = n())
+
+subject_check  %>% group_by(country, birth_mode_sum) %>% summarise(N_family = length(unique(familyid_unique)), N_baby = length(unique(subjectid_unique[mom_baby=="Baby"]))) %>% mutate(N = paste0(N_family, "(", N_baby, ")")) %>% pivot_wider(id_cols = country, names_from = birth_mode_sum, values_from  = N)
+
+## total number of samples
+mf_all_samples <- mf %>% filter(!sample_name %in% controls$sample_name, !is.na(country), !is.na(birth_mode)) %>% mutate(birth_mode_sum = ifelse(birth_mode %in% "CSself", "CSseed", birth_mode)) %>% filter((body_site_corrected %in% c("Feces", "Mouth", "Forearm") & mom_baby=="Baby")|(body_site_corrected %in% c("Feces", "Mouth", "Forearm", "Right_Areola", "Nose", "Vagina") & mom_baby=="Mom"), as.numeric(date_sampling_category_days_continuous) <= 360)
+nrow(mf_all_samples)
+```
+
+### Check family pair, to see if there is lost to follow-up
+```{r}
+FP = subject_check %>% pivot_wider(id_cols = c(country, birth_mode_sum, familyid_unique), names_from = mom_baby, values_from = subjectid_unique, values_fn = length) %>% ungroup
+
+FP %>% filter(!is.na(Baby)) %>% nrow # number of families
+FP %>% filter(!is.na(Baby)) %>% summarise(Total = sum(Baby)) # number of babies
+FP %>% filter(!is.na(Baby)) %>% group_by(country, birth_mode_sum) %>% summarise(N_family = n(), N_baby = sum(Baby)) %>% mutate(N = paste0(N_family, "(", N_baby, ")")) %>% pivot_wider(id_cols = country, names_from = birth_mode_sum, values_from  = N)
+
+FP %>% filter(!is.na(Baby)) %>% group_by(country, birth_mode_sum) %>% summarise(N_family = n(), N_baby = sum(Baby)) %>% mutate(N = paste0(N_family, "(", N_baby, ")")) %>% group_by(birth_mode_sum) %>% summarise(across(N_family:N_baby, sum))
+
+mf_all_samples_aval <- mf_all_samples %>% filter(familyid_unique %in% (FP %>% filter(!is.na(Baby)) %>% pull(familyid_unique)))
+```
+
+### Samples available for data analysis
+```{r}
+#mf_all_samples_aval %>% filter(manuscript_use %in% "No-misc") %>% View
+
+subject_check2 <-  mf_all_samples_aval %>% filter(manuscript_use %in% c("No-misc", "Possible")) %>% group_by(country, birth_mode_sum, familyid_unique, mom_baby, subjectid_unique) %>% summarise(N = n())
+
+FP2 = subject_check2 %>% pivot_wider(id_cols = c(country, birth_mode_sum, familyid_unique), names_from = mom_baby, values_from = subjectid_unique, values_fn = length) %>% ungroup
+
+FP2 %>% filter(!is.na(Baby)) %>% nrow # number of families
+FP2 %>% filter(!is.na(Baby)) %>% summarise(Total = sum(Baby)) # number of babies
+
+mf_all_samples_aval %>% filter(familyid_unique %in% (FP2 %>% filter(is.na(Baby)) %>% pull(familyid_unique))) %>% nrow() # number of samples that would be excluded
+
+## final metadata that include samples enter the analysis
+mf_all_samples_anal <- mf_all_samples_aval %>% 
+    filter(manuscript_use %in% c("No-misc", "Possible"), # Here No-misc are all pre-natal samples
+           familyid_unique %in% (FP2 %>% filter(!is.na(Baby)) %>% pull(familyid_unique))) # remove those without baby samples
+
+```
+
+## Table S1
+```{r}
+## subject count
+### by country and birth mode
+mf_all_samples_anal %>% group_by(country, birth_mode_sum) %>% summarise(N_family = length(unique(familyid_unique)), N_baby = length(unique(subjectid_unique[mom_baby=="Baby"]))) %>% mutate(N = paste0(N_family, "(", N_baby, ")")) %>% pivot_wider(id_cols = country, names_from = birth_mode_sum, values_from  = N)
+
+### by birth mode
+mf_all_samples_anal %>% group_by(country, birth_mode_sum) %>% summarise(N_family = length(unique(familyid_unique)), N_baby = length(unique(subjectid_unique[mom_baby=="Baby"]))) %>% group_by(birth_mode_sum) %>% summarise(across(N_family:N_baby, sum))
+
+mf_all_samples_anal_bb <- mf_all_samples_anal %>% filter(mom_baby=="Baby") %>% mutate(birth_mode_ms = factor(birth_mode_ms, levels = c("Vag", "CSseed", "CS")))
+
+## baby sex
+mf_all_samples_anal_bb %>% group_by(birth_mode_sum) %>% summarise(N_baby = length(unique(subjectid_unique)), N_female = length(unique(subjectid_unique[baby_sex=="F"])), Pct_female = N_female/N_baby)
+
+## baby length of follow-up
+mf_all_samples_anal_bb %>% group_by(birth_mode_sum, subjectid_unique) %>% summarise(Len_followup = max(date_sampling_category_days_continuous)) %>% summarise(Mean_followup = mean(Len_followup)/30, sd_followup = sd(Len_followup)/30)
+
+## baby anitbiotic use
+mf_all_samples_anal_bb %>% filter(date_sampling_category_days_continuous>7, current_abx=="Yes") %>% group_by(birth_mode_sum) %>% distinct(subjectid_unique, date_sampling_category_days_continuous) %>% group_by(birth_mode_sum, subjectid_unique) %>% summarise(N = n()) %>% group_by(birth_mode_sum, N) %>% summarise(Ct = n()) %>% mutate(Pct = case_when(birth_mode_sum=="CS" ~ Ct/49, birth_mode_sum=="CSseed" ~ Ct/30, T ~ Ct/98)) %>% pivot_wider(id_cols = birth_mode_sum, names_from = N, values_from = Pct) %>% rowwise() %>% mutate(Total = sum(c_across(everything()), na.rm = T))
+
+## baby feeding
+baby_feeding <- mf_all_samples_anal_bb  %>% distinct(birth_mode_sum, subjectid_unique, date_sampling_category_days_continuous, exclusive_breastfeed)
+
+baby_feeding %>% filter(date_sampling_category_days_continuous<=120) %>%
+    mutate(feeding = case_when(exclusive_breastfeed %in% "" ~ "unknown",
+                               is.na(exclusive_breastfeed) ~ "unknown",
+                               exclusive_breastfeed %in% c("Yes", "eb", "fd") ~ "bd", 
+                               T ~ "No")) %>% 
+    group_by(birth_mode_sum, subjectid_unique, feeding) %>% 
+    summarise(N = n()) %>% mutate(Pct = N/sum(N)) %>% 
+    pivot_wider(id_cols = c(birth_mode_sum, subjectid_unique), names_from = feeding, values_from = Pct) %>%
+    group_by(birth_mode_sum) %>% 
+    summarise(Pct_bd = sum(bd>=0.6, na.rm = T)/n())
+
+# mother gbs
+mf_all_samples_anal_mm <- mf_all_samples_anal %>% filter(mom_baby=="Mom")
+
+mom_abx <- mf_all_samples_anal_mm %>% distinct(birth_mode_sum, familyid_unique, mother_prenatal_gbs, mother_abx_perinatal, mother_abx_1st_trimester, mother_abx_2nd_trimester, mother_abx_3rd_trimester)
+mom_abx[mom_abx=="unknown"] <- ""
+mom_abx[is.na(mom_abx)] <- ""
+
+fix_mt <- function(x){
+    if (any(x=="")){
+        uni_v <- unique(x)
+        if (length(uni_v)==2){
+            x[x==""] <- unique(x[x!=""])
+        } else {
+            x[x==""] <- "unknown"
+        }
+    }
+    return(x)
+}
+
+mom_abx <- mom_abx %>% group_by(birth_mode_sum, familyid_unique) %>% mutate(across(everything(), ~fix_mt(.x))) %>% ungroup() %>% distinct(birth_mode_sum, familyid_unique, mother_prenatal_gbs, mother_abx_perinatal, mother_abx_1st_trimester, mother_abx_2nd_trimester, mother_abx_3rd_trimester)
+
+mom_abx_ambiguous <- mom_abx %>% group_by(familyid_unique) %>% filter(n()>1)
+mom_abx <- mom_abx %>% group_by(familyid_unique) %>% filter(n()==1) %>% ungroup
+
+### Mom gbs status
+mom_abx %>% select(birth_mode_sum, mother_prenatal_gbs) %>% table
+
+### Mom perinatal antibiotics
+mom_abx %>% select(birth_mode_sum, mother_abx_perinatal) %>% table
+
+### Mom abx during pregnancy
+mom_abx_2 <- mom_abx %>% select(-c(mother_prenatal_gbs, mother_abx_perinatal))
+mom_abx_2[mom_abx_2=="Yes"|mom_abx_2=="Maybe"] <- "1"
+mom_abx_2[mom_abx_2=="No"|mom_abx_2=="unknown"] <- "0"
+
+mom_abx_2$mother_abx_1st_trimester <- as.numeric(mom_abx_2$mother_abx_1st_trimester)
+mom_abx_2$mother_abx_2nd_trimester <- as.numeric(mom_abx_2$mother_abx_2nd_trimester)
+mom_abx_2$mother_abx_3rd_trimester <- as.numeric(mom_abx_2$mother_abx_3rd_trimester)
+mom_abx_2$abx <- mom_abx_2$mother_abx_1st_trimester + mom_abx_2$mother_abx_2nd_trimester + mom_abx_2$mother_abx_3rd_trimester
+
+mom_abx_2 %>% select(birth_mode_sum, abx) %>% table
+
+```
+
+## Table S2
+```{r}
+mf_all_samples_anal %>% group_by(date_sampling_category_days_continuous, mom_baby, body_site_corrected) %>% summarise(N = n(), N_check = length(unique(subjectid_unique))) %>% pivot_wider(id_cols = date_sampling_category_days_continuous, names_from = c(mom_baby, body_site_corrected), values_from = N) %>% View
+```
+
+
+```{r}
+mf_all_samples_anal_bb %>% group_by(date_sampling_category_days_continuous, body_site_corrected, birth_mode_ms) %>% summarise(N = n(), N_check = length(unique(subjectid_unique))) %>% pivot_wider(id_cols = date_sampling_category_days_continuous, names_from = c(body_site_corrected, birth_mode_ms), values_from = N) %>% View
+
+mf_all_samples_anal_bb %>% filter(country=="USA") %>% group_by(date_sampling_category_days_continuous, body_site_corrected, birth_mode_ms) %>% summarise(N = n(), N_check = length(unique(subjectid_unique))) %>% pivot_wider(id_cols = date_sampling_category_days_continuous, names_from = c(body_site_corrected, birth_mode_ms), values_from = N) %>% View
+```
+

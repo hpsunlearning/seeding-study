@@ -13,11 +13,10 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE, cache = TRUE, 
                       warning = FALSE, message = FALSE)
 # Loading library here
-library(conflicted)
 library(tidyverse)
 library(extrafont)
 
-devtools::source_url("https://raw.githubusercontent.com/sidhujyatha/ANCOM/master/ANCOM_updated_code_06_06_2020.R", sha1 = "c38079a8387079d5218605142578c8d7767925d5") 
+#devtools::source_url("https://raw.githubusercontent.com/sidhujyatha/ANCOM/master/ANCOM_updated_code_06_06_2020.R", sha1 = "c38079a8387079d5218605142578c8d7767925d5") 
 
 # library(biomformat)
 # library(ape)
@@ -25,8 +24,9 @@ library(qiime2R)
 library(phyloseq)
 # library(patchwork)
 # library(ggrepel)
+library(fido)
 sessionInfo()
-conflict_prefer("filter", "dplyr")
+
 
 np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
 
@@ -73,13 +73,50 @@ for (ll in c("Phylum", "Class", "Order", "Family", "Genus")){
 save(all_phylo, file = "diff_analysis_all_phylo.Rdata")
 ```
 
+## Analysis
 ```{r}
 load("diff_analysis_all_phylo.Rdata")
-tmp = all_phylo$ASV$`Baby-Feces-120.0`
-ft_tmp = otu_table(tmp)  %>% as.matrix() %>% as.data.frame() %>% t() %>% as.data.frame() %>% rownames_to_column(var = "Sample.ID")
-head(ft_tmp)
 ```
 
+### fido
+```{r}
+# phyloseq object
+tmp = all_phylo$ASV$`Baby-Feces-120.0`
+# filter the object
+dat_phylo = tmp %>% prune_samples(sample_sums(.) >= 5000,.) %>% # remove the samples with less than 5000 reads
+    filter_taxa(function(x) sum(x > 3) > 0.10*length(x), TRUE) # filter feature to remove those with more than 3 reads in at least 10% of samples
+
+# Create design matrix and OTU Table
+sample_dat = as.data.frame(as(sample_data(dat_phylo),"matrix")) %>% select(birth_mode_ms, country)
+sample_dat$birth_mode_ms = relevel(factor(sample_dat$birth_mode_ms), "Vag")
+X <- t(model.matrix(~birth_mode_ms + country, data = sample_dat))
+Y <- otu_table(dat_phylo)
+
+# generate model parameters
+upsilon <- ntaxa(dat_phylo)+3
+Omega <- diag(ntaxa(dat_phylo))
+G <- cbind(diag(ntaxa(dat_phylo)-1), -1)
+Xi <- (upsilon-ntaxa(dat_phylo))*G%*%Omega%*%t(G)
+
+Theta <- matrix(0, ntaxa(dat_phylo)-1, nrow(X))
+Gamma <- diag(nrow(X))
+
+priors <- pibble(NULL, X, upsilon, Theta, Gamma, Xi)
+print(priors)
+
+names_covariates(priors) <- rownames(X)
+plot(priors, par="Lambda") + ggplot2::xlim(c(-10, 10))
+
+priors$Y <- Y # remember pibblefit objects are just lists
+posterior <- refit(priors, optim_method="adam")
+
+ppc(posterior) + ggplot2::coord_cartesian(ylim=c(0, 30000))
+
+posterior_summary <- summary(posterior, pars="Lambda")$Lambda
+focus <- posterior_summary[sign(posterior_summary$p2.5) == sign(posterior_summary$p97.5),]
+focus <- unique(focus$coord)
+plot(posterior, par="Lambda", focus.coord = focus, focus.cov = rownames(X)[2:4])
+```
 
 ## ANCOM
 ```{r eval=FALSE}

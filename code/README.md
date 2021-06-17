@@ -18,24 +18,29 @@ here.
 
 #### Analysis (split by method)
 
-* Compositional Tensor Factorization (CTF). This step performs the CTF dimensionality reduction used in `Figure 1a`, `Extended Data Figure 2`, `Extended Data Figure 3.pdf`, and `Extended Data Table 3.tsv`.
+* Compositional Tensor Factorization (CTF). This step performs the CTF dimensionality reduction.
     * 1.1.0-infant-ctf-analysis.ipynb
-    * 1.1.1-ctf-ordination-plotting-stats.ipynb
+    * 1.1.2-ctf-ordination-plotting-stats.ipynb
 
-* UniFrac & Convex Hulls. This step performs the convex hull analysis on the ordination from UniFrac distances. `Figure 1b` & `Extended Data Table 4`. 
-    * 5.0.0-convex-hulls.ipynb
+* Songbird. This step will produce stats on the quality of the Songbird models and plot the songbird differentials.
+    * 2.1.5-songbird-analysis-TP-model-with-training
+    * 2.2.1-differential-taxa-analysis-preprocessing.Rmd
+    * 2.4.0-differential-taxa-analysis-summary.Rmd
 
-* Alpha Diversity Analysis. This step will perform alpha diversity analysis. `Extended Data Figure 1`.
+* Alpha Diversity Analysis. This step will perform alpha diversity analysis.
     * 3.0.0-alpha-diversity.ipynb
+    * 3.1.0-alpha-diversity-supp-analysis.Rmd
 
-* Songbird. This step will produce stats on the quality of the Songbird models and plot the songbird differentials. `Figure 1c` & `Extended Data Table 6`.
-    * 2.1.0-songbird-models.ipynb
-    * 2.2.0-differentials-plotting.ipynb
+* UniFrac & Convex Hulls. This step performs the convex hull analysis on the ordination from UniFrac distances. 
+    * 5.0.2-convex-hulls.ipynb
+    * 5.1.1-convex-hulls.Rmd
 
-* maturity index z-scores (MAZ). This step will produce, plot, and test the MAZ scores. `Extended Data Table 5` & `Extended Data Figure 4`.
-    * 4.0.0-MAZ-scores.ipynb
+* FEAST (microbial source tracking). This step will perform microbial source tracking across time with mothers as sources and infants as sinks.
+    * 6.1.0-SourceTracking.Rmd
 
-* FEAST (microbial source tracking). This step will perform microbial source tracking across time with mothers as sources and infants as sinks. `Extended Data Figure 5`
-    * 6.0.0-SourceTracking.Rmd
-
-`Note: Extended Data Tables 1 & 2 are also produced and save in these notebooks.` 
+* Misc. Additional notebooks for quality control and generating supplementary data and plots
+    * 7.2.0-ContrlChecking.Rmd
+    * 8.0.0-GauzeChecking.Rmd
+    * 11.0.0-beta-diversity.sh
+    * 11.1.0-beta-diversity-analysis.Rmd
+    * Other \*.Rdata/\*.Rds that may be needed for the analysis

@@ -4,3 +4,16 @@ data/diff-analysis-new/songbird-archive
 
 # remove tracking of the betadiversity files because they are too big to host on github
 data/beta-diversity/
+
+**/.Rhistory
+
+
+
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+__pycache__/
+
+
+# Trash folders
+**/Trash/*

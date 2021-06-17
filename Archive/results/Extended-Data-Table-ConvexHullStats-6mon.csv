@@ -1,0 +1,19 @@
+,body_type,compare,test-stat,P
+0,Feces,Mom vs. Vag,735,6.70e-17
+1,Feces,Mom vs. CSseed,331,2.33e-05
+2,Feces,Mom vs. CS,108,3.55e-16
+3,Feces,Vag vs. CSseed,740,0.083
+4,Feces,Vag vs. CS,832,4.11e-05
+5,Feces,CSseed vs. CS,264,0.014
+6,Mouth,Mom vs. Vag,2026,3.01e-05
+7,Mouth,Mom vs. CSseed,687,0.0
+8,Mouth,Mom vs. CS,524,4.13e-06
+9,Mouth,Vag vs. CSseed,634,0.042
+10,Mouth,Vag vs. CS,513,0.005
+11,Mouth,CSseed vs. CS,224,0.032
+12,Forearm,Mom vs. Vag,1994,0.005
+13,Forearm,Mom vs. CSseed,448,0.011
+14,Forearm,Mom vs. CS,793,0.07
+15,Forearm,Vag vs. CSseed,227,0.001
+16,Forearm,Vag vs. CS,419,0.012
+17,Forearm,CSseed vs. CS,99,0.019

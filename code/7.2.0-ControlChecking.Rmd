@@ -1,0 +1,653 @@
+---
+title: "Blank Control Analysis"
+author: "Jincheng Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, message = FALSE)
+# Loading library here
+library(tidyverse)
+library(extrafont)
+# library(biomformat)
+library(qiime2R)
+library(phyloseq)
+library(patchwork)
+sessionInfo()
+np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
+```
+
+## Preprocessing (no need to run)
+### Identify blank samples
+```{r, eval=FALSE}
+# import metadata
+mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+
+BL = mf %>% filter(body_site_corrected=="Control" | is.na(body_site_corrected))
+
+BL <- BL[BL$sample_name!="1718.11.14.I01.DM.800P", ] # remove the miss labeled stool samples (from diaper materials)
+PC <- BL %>% filter(grepl("CONTROL A", orig_sampleid)) # these 2 are positive controls
+BL <- BL %>% filter(!sample_name%in% PC$sample_name) # remove the 2 positive controls
+BL <- BL[!(grepl("10894\\.CH|10894\\.NY", BL$sample_name) & is.na(BL$body_site_corrected)), ] # remove samplesBaby with no metadata info
+
+Lib_blank_control <- BL %>% filter(grepl("dna|pcr|blank", sample_name, ignore.case = T) | grepl("dna|ext|pcr", orig_sampleid, ignore.case = T)) %>% mutate(Cat_control = "Lib_BL")
+BL <- BL %>% filter(! sample_name %in% Lib_blank_control$sample_name) %>% mutate(Cat_control = "Field_BL")
+
+BL_new <- rbind(Lib_blank_control, BL)
+BL_new$seqcount[is.na(BL_new$seqcount)] <- 0
+#write.table(BL_new, file = "../data/processed-data/Metadata_controls.txt", quote = F, sep = "\t", row.names = F)
+```
+### Filter feature table in qiime
+```{qiime}
+qiime feature-table filter-samples \
+    --i-table ../data/processed-data/table.qza \
+    --m-metadata-file ../data/processed-data/Metadata_controls.txt \
+    --o-filtered-table ../data/processed-data/table-controls.qza &
+```
+### Import feature table with only control samples
+```{r, eval=FALSE}
+# filtered feature table contain only control samples
+ft_qza <- read_qza("../data/processed-data/table-controls.qza")
+## feature table in dataframe
+ft_bl <- ft_qza$data %>% as.data.frame() %>% rownames_to_column(var = "otu_id") %>% filter(rowSums(.[,-1])!=0)
+
+# actual sequencing count
+seqcount <- ft_bl[, -1] %>% colSums()
+## update BL_new seq count
+BL_new$seqcount[match(names(seqcount), BL_new$sample_name)] <- seqcount
+#BL_new$seqcount[!BL_new$sample_name %in% names(seqcount)]
+
+## Metadata only with samples that have sequences
+mt_ft_bl <- BL_new %>% filter(sample_name %in% colnames(ft_bl))
+# write.table(BL_new, file = "../data/processed-data/Metadata_controls.txt", quote = F, sep = "\t", row.names = F)
+```
+2. Import samples feature tables (no need to run)
+```{r, eval=FALSE}
+# import metadata
+mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+
+# all body sites to use for now
+ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
+
+# baby qza address
+bb_qza_dirs <- paste0("../data/split-data/Baby-", ss[1:3])
+# mom qza address
+mm_qza_dirs <- paste0("../data/split-data/Mom-", ss)
+
+# import qza tables
+bb_qza <- parallel::mclapply(bb_qza_dirs, FUN = function(x){read_qza(paste0(x, "/table.qza"))}, mc.cores = np)
+names(bb_qza) <- paste0("Baby-", ss[1:3])
+#lapply(bb_qza, function(x){x$data %>% dim})
+
+mm_qza <- parallel::mclapply(mm_qza_dirs, FUN = function(x){read_qza(paste0(x, "/table.qza"))}, mc.cores = np )
+names(mm_qza) <- paste0("Mom-", ss)
+
+#lapply(mm_qza, function(x){x$data %>% dim})
+
+
+## extract metadata for to match the imported feature table
+mt_ss <- mf %>% filter(sample_name %in% (sapply(c(bb_qza, mm_qza), FUN = function(x)colnames(x$data)) %>% unlist()))
+mt_ss$body_site_corrected[mt_ss$body_site_corrected=="Right_Forearm"] = "Forearm"
+```
+3. Merge all things into a phyloseq object (no need to run)
+```{r, eval=FALSE}
+otu_bl <- otu_table(ft_bl %>% column_to_rownames(var = "otu_id"), taxa_are_rows = T)
+otu_bbs <- parallel::mclapply(bb_qza, function(x){otu_table(x$data, taxa_are_rows = T)})
+otu_mms <- parallel::mclapply(mm_qza, function(x){otu_table(x$data, taxa_are_rows = T)})
+otu_all_lst <- c(list(otu_bl), otu_bbs, otu_mms)
+names(otu_all_lst)[1] <- "BL"
+for (i in seq(length(otu_all_lst))){
+    if (i==1){
+        otu_all = otu_all_lst[[i]]
+    } else {
+        otu_all = merge_phyloseq(otu_all, otu_all_lst[[i]])
+    }
+}
+
+mt_all <- plyr::rbind.fill(mt_ft_bl, mt_ss) %>% mutate(body_site_corrected = ifelse(!is.na(Cat_control), Cat_control, body_site_corrected), mom_baby = ifelse(!is.na(Cat_control), "Blanks", mom_baby)) %>% column_to_rownames(var = "sample_name") # merge the blank metadata with the feature metadata. The samples have NA in colume Cat_control
+
+taxa_qza <- read_qza("../data/processed-data/taxonomy.qza")
+taxa_tbl <- taxa_qza$data %>% mutate(Taxon = gsub(pattern = "__", replacement = "_", Taxon)) %>% separate(Taxon, into = c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "; ", remove = T)
+taxa_tbl$Domain[is.na(taxa_tbl$Domain)] <- "k_"
+taxa_tbl$Phylum[is.na(taxa_tbl$Phylum)] <- "p_"
+taxa_tbl$Class[is.na(taxa_tbl$Class)] <- "c_"
+taxa_tbl$Order[is.na(taxa_tbl$Order)] <- "o_"
+taxa_tbl$Family[is.na(taxa_tbl$Family)] <- "f_"
+taxa_tbl$Genus[is.na(taxa_tbl$Genus)] <- "g_"
+taxa_tbl$Species[is.na(taxa_tbl$Species)] <- "s_"
+
+taxa_all <- taxa_tbl %>% filter(Feature.ID %in% rownames(otu_table(otu_all))) %>% select(Feature.ID, Domain:Species) %>% column_to_rownames(var = "Feature.ID") %>% as.matrix() %>% tax_table()
+
+tree <- read_qza("../data/processed-data/tree.qza")
+tree_all <- ape::keep.tip(tree$data, rownames(otu_table(otu_all)))
+
+# this object have the otu table, taxa table, metadata and the phylogenetic tree
+phylo_all <- merge_phyloseq(otu_all, taxa_all, sample_data(mt_all), tree_all)
+phylo_all <- filter_taxa(phylo_all, function(x) {sum(x)>0}, prune = T)
+saveRDS(phylo_all, file = "phylo_SamplesAndControls.rds")
+```
+
+## Analysis of control samples alone
+```{r}
+phylo_all = readRDS("phylo_SamplesAndControls.rds")
+ft_all <- otu_table(phylo_all) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "otu_id") %>% filter(rowSums(.[,-1])!=0)
+mt_all = sample_data(phylo_all) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name") %>% mutate(seqcount = as.numeric(seqcount))
+
+BL_new = read.table("../data/processed-data/Metadata_controls.txt", header = T, sep = "\t")
+mt_ft_bl <- mt_all %>% filter(!is.na(Cat_control)) # noted that this metadata only includes samples that have sequences, those with 0 sequences were not in this metadata
+mt_ft_ss <- mt_all %>% filter(is.na(Cat_control))
+
+phylo_bl <- prune_samples(mt_ft_bl$sample_name, phylo_all) 
+ft_bl <- otu_table(phylo_bl) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "otu_id") %>% filter(rowSums(.[,-1])!=0)
+
+
+```
+
+### Check the sequencing depth of control samples
+```{r}
+ggplot(BL_new, aes(x = seqcount)) +
+    geom_histogram() +
+    facet_grid(.~Cat_control) +
+    coord_cartesian(ylim = c(0,30))
+
+split(BL_new, BL_new$Cat_control) %>% lapply(., function(x){stem(x$seqcount, scale = 4, width = 30)})
+
+BL_new  %>% mutate(ints = cut(seqcount, breaks = c(-1,1,seq(1000, 5000, by = 1000), 10000))) %>% group_by(Cat_control, ints) %>% summarise(N = n()) %>% mutate(Pct = N/sum(N)*100)
+```
+### Comparing the depth of sequenced controls and samples
+```{r}
+dat_depth <- mt_all %>% select(seqcount, Cat_control, mom_baby, body_site_corrected) %>% mutate(Group1 = ifelse(!is.na(Cat_control), Cat_control, paste(mom_baby, body_site_corrected, sep = "-")))
+dat_depth$Group1 <- factor(dat_depth$Group1, levels =  c("Field_BL", "Lib_BL", "Baby-Mouth", "Baby-Feces", "Baby-Forearm",  "Mom-Feces", "Mom-Mouth", "Mom-Nose", "Mom-Forearm", "Mom-Right_Areola", "Mom-Vagina"))
+dat_depth$mom_baby <- factor(dat_depth$mom_baby, levels = c("Blanks", "Baby", "Mom"))
+
+dat_depth_label <- dat_depth %>% group_by(mom_baby, body_site_corrected) %>% summarise(label = paste0("N = ", n()))
+
+dat_depth_ss <- dat_depth %>% filter(is.na(Cat_control))
+dat_depth_bl <- dat_depth %>% filter(!is.na(Cat_control))
+
+ggplot(dat_depth_ss, aes(seqcount)) +
+    geom_histogram(aes(fill = "Samples"), color = "black") +
+    #geom_text(data = dat_depth_label, aes(x = 2, y = Inf, label = label), hjust = -0.1, vjust = 1.5, size = 8/.pt) +
+    geom_histogram(data = dat_depth_bl %>% select(-c(mom_baby, body_site_corrected)) %>% filter(Group1=="Lib_BL"), aes(fill = "Reagent_Blanks"), color = "blue", alpha = 0.5) +
+    geom_histogram(data = dat_depth_bl %>% select(-c(mom_baby, body_site_corrected)) %>% filter(Group1=="Field_BL"), aes(fill = "Field_Blanks"), color = "green", alpha = 0.5) +
+    facet_grid(mom_baby ~ body_site_corrected, drop = T) +
+    geom_vline(xintercept = 5000, linetype = "dashed") +
+    scale_x_continuous(trans = "log10", breaks = c(10, 100, 1000, 10000)) +
+    scale_y_continuous(n.breaks = 6) +
+    coord_cartesian(ylim = c(1, 300)) +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 2.5, plot.title = element_text(hjust = 0.4)) +
+    scale_fill_manual(breaks = c("Samples", "Reagent_Blanks", "Field_Blanks"), values = c("white", "#377eb8", "#4daf4a")) +
+    labs(x = "Sequencing depth in log scale", y = "Number of samples", fill = "", title = "Distribution of number of reads per sample by different body sites") +
+    guides(fill = guide_legend(override.aes = list(color = c("black", "blue", "green"))))
+ggsave("../results/controlvsamples_0.pdf", width = 18, useDingbats = F )
+```
+
+### Check the ASV richness of control samples
+```{r}
+asv_ct <- ft_all %>% summarise(across(mt_all$sample_name, ~sum(.x>0))) %>% t()
+colnames(asv_ct) <- "ASV_ct"
+
+asv_dat <- merge(asv_ct, mt_all %>% select(sample_name, seqcount, Cat_control, mom_baby, body_site_corrected) %>% mutate(Group1 = ifelse(!is.na(Cat_control), Cat_control, paste(mom_baby, body_site_corrected, sep = "-"))), by.x = 0, by.y = 1, all.x  = T)
+asv_dat$Group1 <- factor(asv_dat$Group1, levels =  c("Field_BL", "Lib_BL", "Baby-Mouth", "Baby-Feces", "Baby-Forearm",  "Mom-Feces", "Mom-Mouth", "Mom-Nose", "Mom-Forearm", "Mom-Right_Areola", "Mom-Vagina"))
+
+ggplot(asv_dat, aes(x = Group1, y = ASV_ct)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_point(aes(fill = seqcount), shape = 21, position = position_jitter(width = 0.2), size = 1, color = "grey") +
+    scale_fill_gradientn(colours = c('#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#253494'), values = scales::rescale(c(0, 5000)), limits = c(0, 7000), na.value = '#253494', breaks = c(0, 2000, 5000)) +
+    scale_y_continuous(n.breaks = 10) +
+    theme_bw() + theme(legend.position = "bottom", legend.box = "horizontal", aspect.ratio = 0.8, axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+    labs(x = "", y = "Number of ASV", fill = "Sequences per sample", title = "Number of ASV per sample") +
+    guides(fill = guide_colourbar(title.position = "top", title.hjust = 0))
+ggsave("../results/controlvsamples_1.pdf", width = 7, useDingbats = F)
+```
+
+### Check the sequence count per ASVs in blanks
+```{r}
+ft_bl_l <- ft_bl %>% pivot_longer(-1, names_to = "sample_name", values_to = "seqcount") %>% filter(seqcount>0) %>% merge(., BL_new %>% select(sample_name, Cat_control), by = "sample_name", all.x = T) %>% group_by(otu_id) %>% mutate(Med_seq = median(seqcount)) %>% ungroup %>% arrange(Med_seq, otu_id)
+ft_bl_l$otu_id = factor(ft_bl_l$otu_id, levels = ft_bl_l$otu_id %>% unique)
+
+ggplot(ft_bl_l, aes(x = otu_id, y = seqcount)) +
+    geom_point(aes(color = Cat_control), size = 0.5) +
+    stat_summary(aes(group = 1), geom = "line", fun = median, size = 0.5) +
+    theme_bw() + theme(axis.text.x = element_blank(), aspect.ratio = 0.3) +
+    scale_y_continuous(trans = "log10", breaks = c(1, 5, 10, 100, 1000, 10000)) +
+    labs(x = "Individual ASVs ordered by median sequence count across blank samples", y = "Sequence Count per ASV in each sample", color = "", title = "Number of sequences in each ASV in individual samples")
+ggsave("../results/check_control_3.pdf", width = 9, useDingbats = F)
+
+```
+
+### Beta diversity comparison
+```{r}
+# pick samples
+sample_bl <- mt_all %>% filter(!is.na(Cat_control)) %>% pull(sample_name)
+
+set.seed(20)
+sample_mom <- mt_all %>% filter(mom_baby=="Mom", as.numeric(date_sampling_category_days_continuous)<=30, as.numeric(date_sampling_category_days_continuous)>=0) %>% pull(sample_name) %>% sample(., 60)
+sample_baby <- mt_all %>% filter(mom_baby=="Baby", as.numeric(date_sampling_category_days_continuous)<=30, as.numeric(date_sampling_category_days_continuous)>=7) %>% pull(sample_name) %>% sample(., 60)
+
+phylo_filtered <- prune_samples(c(sample_bl, sample_mom, sample_baby), phylo_all)
+
+# dist_bray <- distance(phylo_filtered, method = "bray")
+# ord_bray <- ordinate(phylo_filtered, "PCoA", distance = dist_bray)
+
+dist_jac <- distance(phylo_filtered, method = "jaccard", binary = T)
+ord_jac <- ordinate(phylo_filtered, "PCoA", distance = dist_jac)
+
+p <- plot_ordination(phylo_filtered, ord_jac)
+col <- c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf')
+names(col) <- c("Feces", "Field_BL", "Lib_BL", "Forearm", "Mouth", "Right_Areola", "Nose", "Vagina")
+
+p1 <- ggplot(p$data, aes(Axis.1, Axis.2, color = body_site_corrected, shape = mom_baby)) +
+    geom_point() +
+    scale_color_manual(values = col) +
+    stat_ellipse(aes(group = mom_baby, linetype = mom_baby)) +
+    scale_shape_manual(values = c(1, 17, 16)) + 
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1) +
+    labs(x = paste0("Axis.1 [", round(ord_jac$values$Relative_eig[1]*100,1), "%]"), y =paste0("Axis.2 [", round(ord_jac$values$Relative_eig[2]*100,1), "%]"))
+
+p2 <- ggplot(p$data, aes(Axis.1, Axis.2, shape = mom_baby)) +
+    geom_point(aes(fill = seqcount), size = 1, color = "grey") +
+    scale_fill_gradientn(colours = c('#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#253494'), values = scales::rescale(c(0, 5000)), limits = c(0, 7000), na.value = '#253494', breaks = c(0, 2000, 5000)) +
+    stat_ellipse(aes(group = mom_baby, linetype = mom_baby)) +
+    scale_shape_manual(values = c(21, 24, 22)) +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1) +
+    labs(x = paste0("Axis.1 [", round(ord_jac$values$Relative_eig[1]*100,1), "%]"), y =paste0("Axis.2 [", round(ord_jac$values$Relative_eig[2]*100,1), "%]"))
+p2
+
+p1 + p2 + plot_layout(guides = "collect") & theme(legend.position = 'bottom', legend.direction = "vertical")
+ggsave(p2, filename = "../results/controlvsamples_2.pdf", width = 7, useDingbats = F)
+```
+Similarity/distance comparison
+```{r}
+mt_filterd_phylo <- sample_data(phylo_filtered) %>% as.matrix %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
+
+# dist of mother samples by site.
+mt_filtered_phylo_mm <- mt_filterd_phylo %>% filter(mom_baby=="Mom")
+dist_mm_by_site <- split(mt_filtered_phylo_mm, mt_filtered_phylo_mm$body_site_corrected) %>% lapply(., function(x){subset_dm_by_names(dist_jac, x$sample_name) %>% as.numeric})
+
+dist_tbl <- lapply(seq_along(dist_mm_by_site), function(x){data.frame(distance = dist_mm_by_site[[x]], cat1 = names(dist_mm_by_site)[[x]], cat2 = "SampleRef")}) %>% do.call("rbind", .)
+
+
+# dist of blanks within group 
+mt_filtered_phylo_bl <- mt_filterd_phylo %>% filter(mom_baby=="Blanks")
+dist_bl_by_site <- split(mt_filtered_phylo_bl, mt_filtered_phylo_bl$body_site_corrected) %>% lapply(., function(x){subset_dm_by_names(dist_jac, x$sample_name) %>% as.numeric})
+
+dist_tbl <- rbind(dist_tbl, lapply(seq_along(dist_bl_by_site), function(x){data.frame(distance = dist_bl_by_site[[x]], cat1 = names(dist_bl_by_site)[[x]], cat2 = "Blanks")}) %>% do.call("rbind", .))
+
+
+# dist of blanks vs samples
+dist_blvSS <- (dist_jac %>% as.matrix())[mt_filtered_phylo_bl$sample_name, mt_filterd_phylo %>% filter(mom_baby!="Blanks") %>% pull(sample_name)] %>% as.data.frame() %>% rownames_to_column(var = "sample_name_bl") %>% pivot_longer(-1, names_to = "sample_name_ss", values_to = "distance") %>% arrange(sample_name_bl, distance) 
+
+## select the 3 shortest distance for each sample
+dist_blvSS_low <- dist_blvSS %>% group_by(sample_name_bl) %>% filter(distance<=distance[3]) %>% merge(., mt_filtered_phylo_bl, by.x = 1, by.y = 1)
+dist_tbl_sub <- dist_blvSS_low %>% select(sample_name_bl, distance, body_site_corrected, seqcount, sample_name_ss) %>% merge(., mt_filterd_phylo %>% select(sample_name, mom_baby, body_site_corrected), by.x = "sample_name_ss", by.y = "sample_name", all.x = T) %>% rename(cat1 = body_site_corrected.x, ss_mom_baby = mom_baby, ss_body_site = body_site_corrected.y) %>% mutate(cat2 = "BlanksToSamples", seqcount = as.numeric(seqcount))
+dist_tbl_sub2 <- dist_blvSS_low %>% select(sample_name_bl, distance, body_site_corrected, seqcount, sample_name_ss) %>% merge(., mt_filterd_phylo %>% select(sample_name, mom_baby, body_site_corrected), by.x = "sample_name_ss", by.y = "sample_name", all.x = T) %>% rename(cat1 = body_site_corrected.x, ss_mom_baby = mom_baby, ss_body_site = body_site_corrected.y) %>% mutate(cat2 = "BlanksToSamples", seqcount = as.numeric(seqcount)) %>% group_by(cat2, cat1, seqcount, sample_name_bl) %>% summarise(distance = mean(distance)) %>% ungroup()
+
+#dist_tbl <- plyr::rbind.fill(dist_tbl, dist_tbl_sub %>% select(-c(1, 2))) %>% mutate(seqcount = as.numeric(seqcount))
+
+p1 <- ggplot(dist_tbl, aes(cat2, distance)) +
+    geom_point(position = position_jitter(), color = "grey50") +
+    geom_boxplot(color = "blue", fill = NA, outlier.shape = NA) +
+    theme_bw(base_size = 10) +theme(aspect.ratio = 1) + 
+    labs(x = "")
+
+p2 <- ggplot(dist_tbl_sub2, aes(seqcount, distance)) +
+    geom_point(aes(fill= seqcount), color = "grey", shape = 21) +
+    scale_fill_gradientn(colours = c('#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#253494'), values = scales::rescale(c(0, 5000)), limits = c(0, 7000), na.value = '#253494', breaks = c(0, 2000, 5000)) +
+    scale_x_continuous(trans = "log10") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 0.6)
+
+p1 + p2 & coord_cartesian(ylim = c(0.6, 1))
+ggsave(filename = "../results/controlvsamples_3.pdf", width = 9, useDingbats = F)
+
+```
+
+### ASV prevalence in control and baby samples
+1. Controls
+```{r}
+# phylo_all
+## creating a dictionary to map OTU id with an arbitrary index
+dict_otu = tax_table(phylo_all) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "otu_id")  %>% mutate(otu_ind = paste0("ASV", seq(n())))
+
+## asv prevalence in controls
+ft_bl_l = ft_all[, c("otu_id", mt_ft_bl$sample_name)] %>%  pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% group_by(sample_name) %>% mutate(rela = count/sum(count)) %>% left_join(., mt_ft_bl, by = "sample_name")
+
+asv_prev_bl_sum = ft_bl_l %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Cat = ifelse(length(unique(Cat_control))>1, "Both", paste0(unique(Cat_control), "-Only")), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
+
+Brady <- asv_prev_bl_sum %>% filter(grepl("Bradyrhizobiaceae", Family))
+```
+162 control samples, 1804 ASVs identified in total.
+```{r}
+ggplot(asv_prev_bl_sum, aes(x = N, y = ..count..)) +
+    geom_bar(aes(fill = Cat)) +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1.5) +
+    scale_x_continuous(breaks = seq(0, 90, 10)) +
+    labs(x = "Prevalance", y = "N of ASVs", title = "Histogram of ASV prevalence in blank samples", fill = "Type of blanks")
+
+ggplot(asv_prev_bl_sum, aes(x = N, y = Med_ct)) + 
+    geom_point() +
+    scale_y_log10() + 
+    theme_bw(base_size = 10) + theme(aspect.ratio = 0.8) +
+    labs(x = "Prevalance", y = "Median count of a ASV across blank samples in which it appeared", title = "Median abundance of ASVs by their prevalance")
+```
+
+2. ASV appeared in control samples prevalence in baby samples
+
+```{r}
+mt_ft_bb <- mt_all %>% filter(mom_baby=="Baby")
+## asv prevalence in controls
+ft_bb_l = ft_all[, c("otu_id", mt_ft_bb$sample_name)] %>% filter(rowSums(.[, -1])>0) %>% pivot_longer(names_to = "sample_name", values_to = "count", cols = -1) %>% filter(count>0) %>% group_by(sample_name) %>% mutate(rela = count/sum(count)) %>% left_join(., mt_ft_bb, by = "sample_name")
+# ft_bb_l$otu_id %>% unique %>% length
+
+ft_bb_l_asv_in_bl <- ft_bb_l %>% filter(otu_id %in% ft_bl_l$otu_id)
+ft_bb_l_brady <- ft_bb_l %>% filter(otu_id %in% Brady$otu_id[1:4])
+
+ft_bb_l %>% group_by(date_sampling_category_days, body_site_type, birth_mode_ms) %>% summarise(N = length(unique(sample_name)))
+
+ft_bb_l_brady %>% group_by(date_sampling_category_days, body_site_type, birth_mode_ms, sample_name) %>% summarise(rela = sum(rela), count = sum(count)) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% View
+
+asv_prev_bb_sum <- ft_bb_l_asv_in_bl %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
+```
+3211 baby samples, 39817 ASV in total, share 1134 ASV with control samples
+
+```{r}
+# merge the baby asv table with control asv table together
+asv_prev_sum <- right_join(asv_prev_bl_sum, asv_prev_bb_sum %>% select(-c(Domain: otu_ind)), by = "otu_id", suffix = c(".bl", ".bb")) %>% arrange(N.bl)
+asv_prev_sum$otu_ind <- factor(asv_prev_sum$otu_ind, levels = asv_prev_sum$otu_ind)
+
+p1 <- ggplot(asv_prev_sum, aes(x = otu_ind)) +
+    geom_line(aes(y = N.bb, group = 1, color = "Baby Samples")) +
+    geom_line(aes(y = N.bl*30, group = 1, color = "Blank Samples")) +
+    scale_y_continuous(name = "Prevalence in baby samples", breaks = seq(0, 2500, 250), sec.axis = sec_axis(~./30, name = "Prevalence in blanks", breaks = seq(0, 80, 10))) +
+    scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +
+    labs(x = "Individual ASV ordered by prevalance in blank samples", color = "", title = "A.Prevalences of common ASVs in baby samples (blue) and blanks (red)")
+
+Hmisc::rcorr(asv_prev_sum$N.bl, asv_prev_sum$N.bb, type = "pearson")
+Hmisc::rcorr(asv_prev_sum$N.bl, asv_prev_sum$N.bb, type = "spearman")
+
+
+p2 <- ggplot(asv_prev_sum, aes(x = N.bl, y = N.bb)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1, plot.title = element_text(hjust = 0, size = 8)) +
+    scale_y_continuous(breaks = seq(0, 2500, 250)) + scale_x_continuous(breaks = seq(0, 80, 10)) +
+    coord_cartesian(ylim = c(0, 2500)) +
+    annotate(geom = "label", x = 0, y = 2400, label = "Pearson rho = 0.76; Spearman rho = 0.64", hjust = 0, size = 8/.pt) +
+    labs(x = "Prevalence in blanks", y = "Prevalence in baby samples", title = "B. Correlation between prevalences in in baby samples and blanks")
+
+p1 + p2
+
+ggsave("../results/controlvsamples_4.pdf", width = 11, useDingbats = F)
+```
+1134 ASVs appeared in both types of samples.
+
+
+3.3 ASV appeared in control samples prevlance in baby oral and skin samples
+```{r}
+mt_ft_bb_os <- mt_ft_bb %>% filter(body_site_type != "Fecal" )
+## asv prevalence in controls
+ft_bb_os_l = ft_bb_l %>% filter(sample_name %in% mt_ft_bb_os$sample_name)
+# ft_bb_os_l$otu_id %>% unique %>% length
+
+ft_bb_os_l_asv_in_bl <- ft_bb_os_l %>% filter(otu_id %in% ft_bl_l$otu_id)
+# ft_bb_os_l_asv_in_bl$otu_id %>% unique %>% length
+
+asv_prev_bb_os_sum <- ft_bb_os_l_asv_in_bl %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
+```
+1820 baby samples, 31977 ASV in total, share 1088 ASV with control samples
+
+```{r}
+# merge the baby asv table with control asv table together
+asv_prev_sum_2 <- right_join(asv_prev_bl_sum, asv_prev_bb_os_sum %>% select(-c(Domain: otu_ind)), by = "otu_id", suffix = c(".bl", ".bb")) %>% mutate(Pct.N.bl = N.bl/162, Pct.N.bb = N.bb/1820) %>% arrange(Pct.N.bb)
+asv_prev_sum_2$otu_ind <- factor(asv_prev_sum_2$otu_ind, levels = asv_prev_sum_2$otu_ind)
+
+p1 <- ggplot(asv_prev_sum_2, aes(x = otu_ind)) +
+    geom_line(aes(y = N.bb, group = 1, color = "Baby Samples")) +
+    geom_line(aes(y = N.bl*20, group = 1, color = "Blank Samples")) +
+    scale_y_continuous(name = "Prevalence in baby samples", n.breaks = 8, sec.axis = sec_axis(~./20, name = "Prevalence in blanks", breaks = seq(0, 80, 10))) +
+    scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +
+    labs(x = "Individual ASV ordered by prevalance in blank samples", color = "", title = "A.Prevalences of common ASVs in baby oral and skin samples (blue) and blanks (red)")
+p1
+Hmisc::rcorr(asv_prev_sum_2$N.bl, asv_prev_sum_2$N.bb, type = "pearson")
+Hmisc::rcorr(asv_prev_sum_2$N.bl, asv_prev_sum_2$N.bb, type = "spearman")
+
+
+p2 <- ggplot(asv_prev_sum_2, aes(x = N.bl, y = N.bb)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1, plot.title = element_text(hjust = 0, size = 8)) +
+    scale_y_continuous(breaks = seq(0, 2500, 250)) + scale_x_continuous(breaks = seq(0, 80, 10)) +
+    coord_cartesian(ylim = c(0, 2500)) +
+    annotate(geom = "label", x = 0, y = 2400, label = "Pearson rho = 0.72; Spearman rho = 0.63", hjust = 0, size = 8/.pt) +
+    labs(x = "Prevalence in blanks", y = "Prevalence in baby samples", title = "B. Correlation between prevalences in in baby oral and skin samples and blanks")
+
+p1 + p2
+
+ggsave("../results/controlvsamples_5.pdf", width = 11, useDingbats = F)
+
+ggplot(asv_prev_sum_2, aes(x = otu_ind)) +
+    geom_point(aes(y = Pct.N.bb, color = "Baby Samples"), size = 0.5) +
+    geom_point(aes(y = Pct.N.bl, color = "Blank Samples"), size = 0.5) +
+    scale_y_continuous(n.breaks = 10) +
+    scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +
+    labs(x = "Individual ASV ordered by prevalance in blank samples", y = "Prevalence of an ASV among blanks or baby samples", color = "", title = "Prevalences of common ASVs in baby oral and skin samples (blue) and blanks (red)")
+
+
+
+
+ggsave("../results/controlvsamples_5-1.pdf", width = 5, useDingbats = F)
+
+ggplot(asv_prev_sum_2, aes(x = otu_ind)) +
+    geom_point(aes(y = Med_ct.bb, color = "Baby Samples"), size = 0.5) +
+    geom_point(aes(y = Med_ct.bl, color = "Blank Samples"), size = 0.5) +
+    scale_y_continuous(n.breaks = 10) +
+    scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +
+    labs(x = "Individual ASV ordered by prevalance in blank samples", y = "Prevalence of an ASV among blanks or baby samples", color = "", title = "Prevalences of common ASVs in baby oral and skin samples (blue) and blanks (red)")
+
+```
+1088 ASVs appeared in both types of samples.
+
+
+3.4 ASV appeared in control samples prevlance in baby fecal samples
+```{r}
+mt_ft_bb_f <- mt_ft_bb %>% filter(body_site_type == "Fecal" )
+## asv prevalence in controls
+ft_bb_f_l = ft_bb_l %>% filter(sample_name %in% mt_ft_bb_f$sample_name)
+# ft_bb_f_l$otu_id %>% unique %>% length
+
+ft_bb_f_l_asv_in_bl <- ft_bb_f_l %>% filter(otu_id %in% ft_bl_l$otu_id)
+# ft_bb_f_l_asv_in_bl$otu_id %>% unique %>% length
+
+asv_prev_bb_f_sum <- ft_bb_f_l_asv_in_bl %>% group_by(otu_id) %>% summarise(N = length(unique(sample_name)), Avg_ct = mean(count), Med_ct = median(count), Avg_rela = mean(rela), Med_rela = median(rela)) %>% left_join(., dict_otu, by = "otu_id")
+```
+1391 baby samples, 11441 ASV in total, share 810 ASV with control samples
+
+```{r}
+# merge the baby asv table with control asv table together
+asv_prev_sum_3 <- right_join(asv_prev_bl_sum, asv_prev_bb_f_sum %>% select(-c(Domain: otu_ind)), by = "otu_id", suffix = c(".bl", ".bb")) %>% mutate(Pct.N.bl = N.bl/162, Pct.N.bb = N.bb/1391) %>% arrange(Pct.N.bb)
+asv_prev_sum_3$otu_ind <- factor(asv_prev_sum_3$otu_ind, levels = asv_prev_sum_3$otu_ind)
+
+p1 <- ggplot(asv_prev_sum_3, aes(x = otu_ind)) +
+    geom_line(aes(y = N.bb, group = 1, color = "Baby Samples")) +
+    geom_line(aes(y = N.bl*20, group = 1, color = "Blank Samples")) +
+    scale_y_continuous(name = "Prevalence in baby samples", n.breaks = 8, sec.axis = sec_axis(~./20, name = "Prevalence in blanks")) +
+    scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +
+    labs(x = "Individual ASV ordered by prevalance in blank samples", color = "", title = "A.Prevalences of common ASVs in baby fecal samples (blue) and blanks (red)")
+p1
+
+Hmisc::rcorr(asv_prev_sum_3$N.bl, asv_prev_sum_3$N.bb, type = "pearson")
+Hmisc::rcorr(asv_prev_sum_3$N.bl, asv_prev_sum_3$N.bb, type = "spearman")
+
+
+p2 <- ggplot(asv_prev_sum_3, aes(x = N.bl, y = N.bb)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+    theme_bw(base_size = 10) + theme(aspect.ratio = 1, plot.title = element_text(hjust = 0, size = 8)) +
+    scale_y_continuous(breaks = seq(0, 2500, 250)) + scale_x_continuous(breaks = seq(0, 80, 10)) +
+    coord_cartesian(ylim = c(0, 2500)) +
+    annotate(geom = "label", x = 0, y = 2400, label = "Pearson rho = 0.72; Spearman rho = 0.63", hjust = 0, size = 8/.pt) +
+    labs(x = "Prevalence in blanks", y = "Prevalence in baby samples", title = "B. Correlation between prevalences in in baby fecal samples and blanks")
+
+p1 + p2
+
+ggsave("../results/controlvsamples_6.pdf", width = 11, useDingbats = F)
+
+ggplot(asv_prev_sum_3, aes(x = otu_ind)) +
+    geom_point(aes(y = Pct.N.bb, color = "Baby Samples"), size = 0.5) +
+    geom_point(aes(y = Pct.N.bl, color = "Blank Samples"), size = 0.5) +
+    scale_y_continuous(breaks = seq(0, 1, 0.1), limits = c(0, 1)) +
+    scale_color_manual(breaks = c("Baby Samples", "Blank Samples"), values = c("#377eb8", "#e41a1c")) +
+    theme_bw(base_size = 10) + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), aspect.ratio = 1, legend.position = c(0.01, 0.95), legend.justification = c(0, 1), plot.title = element_text(hjust = 0, size = 8)) +
+    labs(x = "Individual ASV ordered by prevalance in blank samples", y = "Prevalence of an ASV among blanks or baby samples", color = "", title = "Prevalences of common ASVs in baby fecal samples (blue) and blanks (red)")
+
+ggsave("../results/controlvsamples_6-2.pdf", width = 5, useDingbats = F)
+```
+3.5 
+```{r}
+
+# filter appeared in more than 10% of each type, and had a med relative abundance in samples  >0.1%
+asv_prev_sum_2_cand <- asv_prev_sum_2 %>% filter(N.bl>16, N.bb>182, Med_rela.bb>0.001) %>% select(-c(Domain:Species))
+
+asv_prev_sum_3_cand <- asv_prev_sum_3 %>% filter(N.bl>16, N.bb>139, Med_rela.bb>0.001) %>% select(-c(Domain:Species))
+
+colnames(asv_prev_sum_2_cand) <- c("otu_id", "N.bl", "Cat", "Avg_ct.bl", "Med_ct.bl", "Avg_rela.bl", "Med_rela.bl", "otu_ind", "N.bb1", "Avg_ct.bb1", "Med_ct.bb1", "Avg_rela.bb1", "Med_rela.bb1")
+colnames(asv_prev_sum_3_cand) <- c("otu_id", "N.bl", "Cat", "Avg_ct.bl", "Med_ct.bl", "Avg_rela.bl", "Med_rela.bl", "otu_ind", "N.bb2", "Avg_ct.bb2", "Med_ct.bb2", "Avg_rela.bb2", "Med_rela.bb2")
+
+asv_prev_sum_all <- full_join(asv_prev_sum_2_cand, asv_prev_sum_3_cand, by = c("otu_id", "N.bl", "Cat", "Avg_ct.bl", "Med_ct.bl", "Avg_rela.bl", "Med_rela.bl", "otu_ind")) %>% left_join(., dict_otu, by = c("otu_id", "otu_ind"))
+
+write.table(asv_prev_sum_all, file = "../results/candidate_contamination.txt", sep = "\t", quote = F, row.names = F)
+
+```
+
+### decontam
+
+```{r}
+mt_all = as.data.frame(sample_data(phylo_all))
+mt_all$seqcount <- sample_sums(phylo_all)
+mt_all <- mt_all[order(mt_all$seqcount), ]
+mt_all$Index <- seq(nrow(mt_all))
+
+ggplot(mt_all, aes(Index, seqcount, color = mom_baby)) +
+    geom_point()
+ggplot(mt_all[mt_all$Index<=1000, ], aes(Index, seqcount, color = mom_baby)) +
+    geom_point()
+```
+
+```{r}
+sample_data(phylo_all)$is.neg <- !is.na(sample_data(phylo_all)$Cat_control)
+contam.prev <- isContaminant(phylo_all, method = "prevalence", neg = "is.neg")
+phylo_all.pa <- transform_sample_counts(phylo_all, function(abund)1*(abund>0))
+
+phylo_bl.pa <- prune_samples(!is.na(sample_data(phylo_all.pa)$Cat_control), phylo_all.pa)
+phylo_ss.pa <- prune_samples(is.na(sample_data(phylo_all.pa)$Cat_control), phylo_all.pa)
+
+df.pa <- data.frame(pa.ss = taxa_sums(phylo_ss.pa), pa.neg = taxa_sums(phylo_bl.pa), contaminant = contam.prev$contaminant)
+
+ggplot(data = df.pa, aes(pa.neg, pa.ss, color = contaminant)) + geom_point() + xlab("Prevalence (Negative Controls)") + ylab("Prevalence (True Samples)")
+
+df.pa2 <- merge(df.pa, tax_table(phylo_bl.pa), by = 0)
+df.pa2.contaminant = df.pa2 %>% filter(contaminant)
+
+df.pa2.contaminant.0.1 = df.pa2.contaminant %>% filter(pa.ss>=78 | pa.neg >= 16)
+
+phylo_contam <- prune_taxa(df.pa2.contaminant.0.1$Row.names %>% as.character(), phylo_all)
+
+phylo_contam_bl <- prune_samples(!is.na(sample_data(phylo_contam)$Cat_control), phylo_contam)
+phylo_contam_ss <- prune_samples(is.na(sample_data(phylo_contam)$Cat_control), phylo_contam)
+
+otu_contam_bl <- otu_table(phylo_contam_bl) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "ASV") %>% pivot_longer(cols = -1, names_to = "sample_names", values_to = "counts") 
+otu_contam_ss <- otu_table(phylo_contam_ss) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "ASV") %>% pivot_longer(cols = -1, names_to = "sample_names", values_to = "counts") 
+
+otu_contam_bl %>% group_by(ASV) %>% summarise(Med = median(counts), Mean = mean(counts))
+otu_contam_ss %>% group_by(ASV) %>% summarise(Med = median(counts), Mean = mean(counts))
+
+mean_ct_bl <- taxa_sums(phylo_contam_bl)/162
+mean_ct_ss <- taxa_sums(phylo_contam_ss)/7828
+
+df.pa2.contaminant.0.1$mean_ct.bl = mean_ct_bl[df.pa2.contaminant.0.1$Row.names]
+df.pa2.contaminant.0.1$mean_ct.ss = mean_ct_ss[df.pa2.contaminant.0.1$Row.names]
+saveRDS(df.pa2.contaminant.0.1, file = "decontam_result.Rds")
+```
+
+### Check Bradyrhizobiaceae
+```{r}
+phylo_all = readRDS("phylo_SamplesAndControls.rds")
+phylo_Brady = prune_taxa(rownames(tax_table(phylo_all) %>% as.matrix %>% as.data.frame() %>% filter(grepl("Bradyrhizobiaceae", Family))), phylo_all) 
+
+
+mt_Brady = sample_data(phylo_Brady) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "sample_name")
+
+otu_Brady = otu_table(phylo_Brady) %>% as.matrix() %>% as.data.frame() %>% rownames_to_column(var = "otu_id") %>% filter(rowSums(.[,-1])!=0)
+
+otu_Brady_l = otu_Brady %>% pivot_longer(-1, names_to = "sample_name", values_to = "seqcount") %>% filter(seqcount>0) %>% merge(., mt_Brady, by = "sample_name", all.y=T)
+
+otu_Brady_l_bb = otu_Brady_l %>% filter(mom_baby=="Baby", seqcount.x > 0)
+
+ggplot(otu_Brady_l_bb, aes(x = date_sampling_category_days_continuous, y = seqcount.x, color = birth_mode_ms)) +
+    geom_point() +
+    facet_wrap(.~body_site_type, ncol = 1) +
+    theme_classic(base_size = 10) + theme(aspect.ratio = 0.6) +
+    labs(x = "Days", y = "Count", color = "Birth Mode")
+otu_Brady_l_bb %>% group_by(body_site_type, birth_mode_ms) %>% summarise(n = length(unique(subjectid_unique)))
+
+otu_Brady_l_bl = otu_Brady_l %>% filter(!is.na(Cat_control), seqcount.x > 0)
+unique(otu_Brady_l_bl$sample_name)
+```
+
+
+## functions
+```{r}
+subset_dm_by_names <- function(DM, Sname){
+    # Extract the distance matrix using the sample names of a subset of the samples
+    #
+    # Args:
+    #   DM: the distance matrix as a dist class
+    #   Sname: a vector of the sample names
+    #
+    # Returns:
+    #   The extracted distance matrix as a class dist object
+    DM_mat <- DM %>% as.matrix
+    DM_sname <- DM_mat %>% row.names()
+    tmp <- match(Sname, DM_sname)
+    Exist <- tmp[!is.na(tmp)]
+    NoExist <- Sname[which(is.na(tmp))]
+    print("Following samples do not exist in the distance matrix:")
+    print(NoExist)
+    DM <- DM_mat[Exist, Exist] %>% as.dist()
+    return(DM)
+}
+```
+
+
+## Recyled codes:
+```{r}
+# # taxonomy
+# taxa_qza <- read_qza("../data/processed-data/taxonomy.qza")
+# taxa_tbl <- taxa_qza$data %>% filter(Feature.ID %in% ft_bl$otu_id) %>% mutate(Taxon = gsub(pattern = "__", replacement = "_", Taxon)) %>% separate(Taxon, into = c("Domain", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "; ", remove = F)
+# taxa_tbl$Domain[is.na(taxa_tbl$Domain)] <- "k_"
+# taxa_tbl$Phylum[is.na(taxa_tbl$Phylum)] <- "p_"
+# taxa_tbl$Class[is.na(taxa_tbl$Class)] <- "c_"
+# taxa_tbl$Order[is.na(taxa_tbl$Order)] <- "o_"
+# taxa_tbl$Family[is.na(taxa_tbl$Family)] <- "f_"
+# taxa_tbl$Genus[is.na(taxa_tbl$Genus)] <- "g_"
+# taxa_tbl$Species[is.na(taxa_tbl$Species)] <- "s_"
+# 
+# ft_w_taxa <- merge(taxa_tbl, ft_bl, by = 1)
+# ft_glom <- list()
+# for (tt in c("Genus", "Family", "Order", "Class", "Phylum", "Domain")){
+#     ft_glom[[tt]] <- ft_w_taxa %>% group_by_at(vars("Domain":tt)) %>% summarise(across(mt_ft_bl$sample_name, sum, na.rm = T)) %>% ungroup()
+# }
+# ft_glom_df <- data.table::rbindlist(ft_glom, use.names = T, fill = T, idcol = "taxa.glom")
+# #saveRDS(ft_glom_df, file = "tmp_ft_glom_df.Rds")
+```
+

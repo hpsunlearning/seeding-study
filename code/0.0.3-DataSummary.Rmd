@@ -29,15 +29,78 @@ controls <- read.delim("../data/processed-data/Metadata_controls.txt", header = 
 ss <- c("Feces", "Mouth", "Forearm", "Vagina", "Right_Areola", "Nose")
 mf$body_site_corrected[mf$body_site_corrected=="Right_Forearm"] = "Forearm"
 ```
+```{r}
+
+set_panel_size <- function (p = last_plot(), g = ggplot2::ggplotGrob(p), file = NULL, margin = unit(1, "mm"), width = unit(4, "cm"), height = unit(4, "cm"), panel.size = T, msg = F, bitmap = "png", useDingbats = F, ...) {
+    # This function is used to fine-tube the size of the panel
+    #
+    # Args:
+    #   p: the ggplot object
+    #   g: the ggplotGrob table for p, usually this parameter should not be changed
+    #   file: file path
+    #   margin: page margin, a unit object
+    #   width: the exact unit object
+    #   height: the exact unit object
+    #   panel.size: whether the width and height is panel size or the overall graph
+    #   msg: whether to print the grob table
+    #   bitmap: whether to also export an exact version of bitmap: "png", "tiff", NULL
+    #   ...: other ggsave parameters
+    panels <- grep("panel", g$layout$name)
+    panel_index_w <- unique(g$layout$l[panels])
+    panel_index_h <- unique(g$layout$t[panels])
+    nw <- length(panel_index_w)
+    nh <- length(panel_index_h)
+    if (panel.size){
+        if (length(width)==1 & length(height)==1){
+            g$widths[panel_index_w] <- rep(width, nw)
+            g$heights[panel_index_h] <- rep(height, nh)
+            if (!is.null(file)) {
+                ggplot2::ggsave(file, g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE), useDingbats = useDingbats, ...)
+                if (!is.null(bitmap)) {
+                    ggplot2::ggsave(paste0(tools::file_path_sans_ext(file), ".", bitmap), g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE),  dpi = 600, ...)
+                }
+            }
+        }
+        else{
+            g$widths[panel_index_w] <- width
+            g$heights[panel_index_h] <- height
+            if (!is.null(file)) {
+                ggplot2::ggsave(file, g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE), useDingbats = useDingbats, ...)
+                if (!is.null(bitmap)) {
+                    ggplot2::ggsave(paste0(tools::file_path_sans_ext(file), ".", bitmap), g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE),  dpi = 600, ...)
+                }
+            }
+        }
+    }
+    else{
+        sum_panel_width = convertWidth(width - sum(g$widths[-panel_index_w]) - 2 * margin, unitTo = "in", valueOnly = TRUE)
+        sum_panel_height = convertWidth(height - sum(g$heights[-panel_index_h]) - 2 * margin, unitTo = "in", valueOnly = TRUE)
+        panel_width_r <- as.numeric(g$widths[panel_index_w])
+        panel_height_r <- as.numeric(g$heights[panel_index_h])
+        g$widths[panel_index_w] <- unit(panel_width_r/sum(panel_width_r)*sum_panel_width, units = "in")
+        g$heights[panel_index_h] <- unit(panel_height_r/sum(panel_height_r)*sum_panel_height, units = "in")
+        if (!is.null(file)) {
+            ggplot2::ggsave(file, g, width = width, height = height, useDingbats = useDingbats, ...)
+            if (!is.null(bitmap)) {
+                ggplot2::ggsave(paste0(tools::file_path_sans_ext(file), ".", bitmap), g, width = grid::convertWidth(sum(g$widths) + 2 * margin, unitTo = "in", valueOnly = TRUE), height = grid::convertHeight(sum(g$heights) + 2 * margin, unitTo = "in", valueOnly = TRUE),  dpi = 600, ...)
+            }
+            print(g$widths[panel_index_w])
+            print(g$heights[panel_index_h])
+        }
+    }
+}
+
+```
 
 ## Figure 1
 ### Total recruited
 ```{r}
-subject_check <- mf %>% filter(!sample_name %in% controls$sample_name, !is.na(country), !is.na(birth_mode)) %>% mutate(birth_mode_sum = ifelse(birth_mode %in% "CSself", "CSseed", birth_mode)) %>% group_by(country, birth_mode_sum, familyid_unique, mom_baby, subjectid_unique) %>% summarise(N = n())
+# Count the number of samples per individual
+subject_check <- mf %>% filter(!sample_name %in% controls$sample_name, !is.na(country), !is.na(birth_mode)) %>% mutate(birth_mode_sum = ifelse(birth_mode %in% "CSself", "CSseed", birth_mode)) %>% group_by(country, birth_mode_sum, familyid_unique, mom_baby, subjectid_unique) %>% summarise(N_sample = n())
+## Total number of families, breakdown by countries
+subject_check  %>% group_by(country, birth_mode_sum) %>% summarise(N_family = length(unique(familyid_unique)), N_baby = length(unique(subjectid_unique[mom_baby=="Baby"]))) %>% mutate(N_pairs = paste0(N_family, "(", N_baby, ")")) %>% pivot_wider(id_cols = country, names_from = birth_mode_sum, values_from  = N_pairs)
 
-subject_check  %>% group_by(country, birth_mode_sum) %>% summarise(N_family = length(unique(familyid_unique)), N_baby = length(unique(subjectid_unique[mom_baby=="Baby"]))) %>% mutate(N = paste0(N_family, "(", N_baby, ")")) %>% pivot_wider(id_cols = country, names_from = birth_mode_sum, values_from  = N)
-
-## total number of samples
+# total number of samples
 mf_all_samples <- mf %>% filter(!sample_name %in% controls$sample_name, !is.na(country), !is.na(birth_mode)) %>% mutate(birth_mode_sum = ifelse(birth_mode %in% "CSself", "CSseed", birth_mode)) %>% filter((body_site_corrected %in% c("Feces", "Mouth", "Forearm") & mom_baby=="Baby")|(body_site_corrected %in% c("Feces", "Mouth", "Forearm", "Right_Areola", "Nose", "Vagina") & mom_baby=="Mom"), as.numeric(date_sampling_category_days_continuous) <= 360)
 nrow(mf_all_samples)
 ```
@@ -58,8 +121,7 @@ mf_all_samples_aval <- mf_all_samples %>% filter(familyid_unique %in% (FP %>% fi
 ### Samples available for data analysis
 ```{r}
 #mf_all_samples_aval %>% filter(manuscript_use %in% "No-misc") %>% View
-
-subject_check2 <-  mf_all_samples_aval %>% filter(manuscript_use %in% c("No-misc", "Possible")) %>% group_by(country, birth_mode_sum, familyid_unique, mom_baby, subjectid_unique) %>% summarise(N = n())
+subject_check2 <-  mf_all_samples_aval %>% filter(manuscript_use %in% c("No-misc", "Possible")) %>% group_by(country, birth_mode_sum, familyid_unique, mom_baby, subjectid_unique) %>% summarise(N_samples = n())
 
 FP2 = subject_check2 %>% pivot_wider(id_cols = c(country, birth_mode_sum, familyid_unique), names_from = mom_baby, values_from = subjectid_unique, values_fn = length) %>% ungroup
 
@@ -84,6 +146,7 @@ mf_all_samples_anal %>% group_by(country, birth_mode_sum) %>% summarise(N_family
 ### by birth mode
 mf_all_samples_anal %>% group_by(country, birth_mode_sum) %>% summarise(N_family = length(unique(familyid_unique)), N_baby = length(unique(subjectid_unique[mom_baby=="Baby"]))) %>% group_by(birth_mode_sum) %>% summarise(across(N_family:N_baby, sum))
 
+# Avaialble baby samples
 mf_all_samples_anal_bb <- mf_all_samples_anal %>% filter(mom_baby=="Baby") %>% mutate(birth_mode_ms = factor(birth_mode_ms, levels = c("Vag", "CSseed", "CS")))
 
 ## baby sex
@@ -93,7 +156,14 @@ mf_all_samples_anal_bb %>% group_by(birth_mode_sum) %>% summarise(N_baby = lengt
 mf_all_samples_anal_bb %>% group_by(birth_mode_sum, subjectid_unique) %>% summarise(Len_followup = max(date_sampling_category_days_continuous)) %>% summarise(Mean_followup = mean(Len_followup)/30, sd_followup = sd(Len_followup)/30)
 
 ## baby anitbiotic use
-mf_all_samples_anal_bb %>% filter(date_sampling_category_days_continuous>7, current_abx=="Yes") %>% group_by(birth_mode_sum) %>% distinct(subjectid_unique, date_sampling_category_days_continuous) %>% group_by(birth_mode_sum, subjectid_unique) %>% summarise(N = n()) %>% group_by(birth_mode_sum, N) %>% summarise(Ct = n()) %>% mutate(Pct = case_when(birth_mode_sum=="CS" ~ Ct/49, birth_mode_sum=="CSseed" ~ Ct/30, T ~ Ct/98)) %>% pivot_wider(id_cols = birth_mode_sum, names_from = N, values_from = Pct) %>% rowwise() %>% mutate(Total = sum(c_across(everything()), na.rm = T))
+mf_all_samples_anal_bb_abx <- mf_all_samples_anal_bb %>% filter(date_sampling_category_days_continuous>7, current_abx=="Yes") %>% group_by(birth_mode_sum) %>% distinct(subjectid_unique, date_sampling_category_days_continuous) %>% group_by(birth_mode_sum, subjectid_unique) %>% summarise(N = n()) %>% group_by(birth_mode_sum, N) %>% summarise(Ct = n()) %>% mutate(Pct = case_when(birth_mode_sum=="CS" ~ Ct/49, birth_mode_sum=="CSseed" ~ Ct/30, T ~ Ct/98)) 
+
+mf_all_samples_anal_bb_abx <- mf_all_samples_anal_bb %>% mutate(current_abx = ifelse(is.na(current_abx), "unknown", current_abx)) %>% filter(date_sampling_category_days_continuous>7) %>% group_by(birth_mode_sum, subjectid_unique, date_sampling_category_days) %>% summarise(current_abx = any(current_abx=="Yes")) %>% summarise(N= sum(current_abx)) %>% group_by(birth_mode_sum, N) %>% summarise(Ct = n()) %>% mutate(Total_N = case_when(birth_mode_sum=="CS" ~ 49, birth_mode_sum=="CSseed" ~ 30, T ~ 98), Pct = Ct/Total_N)
+
+mf_all_samples_anal_bb_abx_any <- mf_all_samples_anal_bb_abx %>% filter(N>0) %>% group_by(birth_mode_sum) %>% summarise(One = Ct[N==1], One_more = sum(Ct[N>1]), Total_Any = sum(Ct), Total_N = Total_N[1])
+
+prop.test(mf_all_samples_anal_bb_abx_any$Total_Any, mf_all_samples_anal_bb_abx_any$Total_N) # x-squared-test, p = 0.9126
+prop.test(mf_all_samples_anal_bb_abx_any$One_more, mf_all_samples_anal_bb_abx_any$Total_Any) 
 
 ## baby feeding
 baby_feeding <- mf_all_samples_anal_bb  %>% distinct(birth_mode_sum, subjectid_unique, date_sampling_category_days_continuous, exclusive_breastfeed)
@@ -110,6 +180,7 @@ baby_feeding %>% filter(date_sampling_category_days_continuous<=120) %>%
     summarise(Pct_bd = sum(bd>=0.6, na.rm = T)/n())
 
 # mother gbs
+## available mom samples
 mf_all_samples_anal_mm <- mf_all_samples_anal %>% filter(mom_baby=="Mom")
 
 mom_abx <- mf_all_samples_anal_mm %>% distinct(birth_mode_sum, familyid_unique, mother_prenatal_gbs, mother_abx_perinatal, mother_abx_1st_trimester, mother_abx_2nd_trimester, mother_abx_3rd_trimester)
@@ -163,5 +234,38 @@ mf_all_samples_anal %>% group_by(date_sampling_category_days_continuous, mom_bab
 mf_all_samples_anal_bb %>% group_by(date_sampling_category_days_continuous, body_site_corrected, birth_mode_ms) %>% summarise(N = n(), N_check = length(unique(subjectid_unique))) %>% pivot_wider(id_cols = date_sampling_category_days_continuous, names_from = c(body_site_corrected, birth_mode_ms), values_from = N) %>% View
 
 mf_all_samples_anal_bb %>% filter(country=="USA") %>% group_by(date_sampling_category_days_continuous, body_site_corrected, birth_mode_ms) %>% summarise(N = n(), N_check = length(unique(subjectid_unique))) %>% pivot_wider(id_cols = date_sampling_category_days_continuous, names_from = c(body_site_corrected, birth_mode_ms), values_from = N) %>% View
+```
+
+## Sample collection
+```{r}
+clr_bm = c("#e41a1c", "#4daf4a", "#377eb8")
+names(clr_bm) = c("CS", "CSseed", "Vag")
+
+head(mf_all_samples_anal_bb)
+
+sc_dat_bb <- mf_all_samples_anal_bb %>% ungroup() %>% arrange(body_site_type, birth_mode_sum, subjectid_unique) %>% mutate(subject_seq = seq(nrow(.)), x_trans = ifelse(date_sampling_category_days_continuous==0, 2-2^0.25, date_sampling_category_days_continuous^0.25))
+#sc_dat_bb[, c("date_sampling_category_days_continuous", "x_trans")] %>% unique()
+ggplot(sc_dat_bb, aes(x = x_trans, y = subject_seq, color = birth_mode_sum)) +
+    geom_point(size = 1.5, alpha = 0.5, position = position_jitter(width = 0.01)) +
+    theme_classic(base_size = 14) + theme(axis.text.y = element_blank(), aspect.ratio = 0.3, panel.grid.major.x = element_line(), axis.ticks.y = element_blank()) +
+    facet_wrap(body_site_type~., scales = "free_y", ncol = 1) +
+    scale_x_continuous(breaks = sort(unique(sc_dat_bb$x_trans)), labels = c(0, 1,2,7, "", "", 30, 60, "", 120, "", 180, "", 240, "", "", "", 360)) +
+    scale_color_manual(values = clr_bm) +
+    labs(x = "Days", y = "Individuals", color = "Birth Mode")
+set_panel_size(file = "../results/sample_distributions_babies.pdf", width = unit(7, "in"), height = unit(2.1, "in"))
+sc_dat_bb %>% group_by(birth_mode_sum, subjectid_unique) %>% summarise(N_samples = n()) %>% summarise(Mean_n_samples = mean(N_samples), Range_n = range(N_samples) %>% paste(collapse = ","))
+
+sc_dat_mm <- mf_all_samples_anal_mm %>% filter(date_sampling_category_days_continuous<=30, date_sampling_category_days_continuous>=0) %>% ungroup() %>% arrange(body_site_corrected, subjectid_unique) %>% mutate(subject_seq = seq(nrow(.)), x_trans = ifelse(date_sampling_category_days_continuous==0, 2-2^0.25, date_sampling_category_days_continuous^0.25))
+
+
+ggplot(sc_dat_mm, aes(x = x_trans, y = subject_seq, color = body_site_corrected)) +
+    geom_point(size = 1.5, alpha = 0.5, position = position_jitter(width = 0.05), show.legend = F) +
+    facet_wrap(body_site_corrected~., scales = "free_y") +
+    theme_classic(base_size = 14) + theme(axis.text.y = element_blank(), aspect.ratio = 0.8, panel.grid.major.x = element_line(), axis.ticks.y = element_blank()) +
+    scale_x_continuous(breaks = sort(unique(sc_dat_mm$x_trans)), labels = c(0, 1,2,7, 14, 21, 30)) +
+    labs(x = "Days", y = "Individuals")
+set_panel_size(file = "../results/sample_distributions_mothers.pdf", width = unit(3.5, "in"), height = unit(2.8, "in"))
+
+sc_dat_mm %>% group_by(subjectid_unique) %>% summarise(N_samples = n()) %>% summarise(Mean_n_samples = mean(N_samples), Range_n = range(N_samples) %>% paste(collapse = ","))
 ```
 

@@ -1,0 +1,53 @@
+---
+title: "Untitled"
+author: "Jincheng Wang"
+date: "3/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(phyloseq)
+library(decontam)
+```
+
+
+```{r}
+# read the pre-created phyloseq object with all baby and maternal samples as well as control samples.
+# control samples can be recognized using either body_site_corrected, Cat_control, or mom_baby columes
+phylo_all = readRDS("phylo_SamplesAndControls.rds")
+```
+
+```{r}
+mt_all = as.data.frame(sample_data(phylo_all))
+mt_all$seqcount <- sample_sums(phylo_all)
+mt_all <- mt_all[order(mt_all$seqcount), ]
+mt_all$Index <- seq(nrow(mt_all))
+
+ggplot(mt_all, aes(Index, seqcount, color = mom_baby)) +
+    geom_point()
+ggplot(mt_all[mt_all$Index<=1000, ], aes(Index, seqcount, color = mom_baby)) +
+    geom_point()
+```
+
+```{r}
+sample_data(phylo_all)$is.neg <- !is.na(sample_data(phylo_all)$Cat_control)
+contam.prev <- isContaminant(phylo_all, method = "prevalence", neg = "is.neg")
+phylo_all.pa <- transform_sample_counts(phylo_all, function(abund)1*(abund>0))
+
+phylo_bl.pa <- prune_samples(!is.na(sample_data(phylo_all.pa)$Cat_control), phylo_all.pa)
+phylo_ss.pa <- prune_samples(is.na(sample_data(phylo_all.pa)$Cat_control), phylo_all.pa)
+
+df.pa <- data.frame(pa.ss = taxa_sums(phylo_ss.pa), pa.neg = taxa_sums(phylo_bl.pa), contaminant = contam.prev$contaminant)
+
+ggplot(data = df.pa, aes(pa.neg, pa.ss, color = contaminant)) + geom_point() + xlab("Prevalence (Negative Controls)") + ylab("Prevalence (True Samples)")
+
+df.pa2 <- merge(df.pa, tax_table(phylo_bl.pa), by = 0)
+df.pa2.contaminant = df.pa2 %>% filter(contaminant)
+
+df.pa2.contaminant.0.1 = df.pa2.contaminant %>% filter(pa.ss>=78 | pa.neg >= 16)
+
+```
+
+

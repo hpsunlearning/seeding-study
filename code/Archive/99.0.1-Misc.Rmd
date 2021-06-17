@@ -1,0 +1,230 @@
+---
+title: "Traditional Beta"
+author: "Jincheng Wang"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, message = FALSE)
+# Loading library here
+library(tidyverse)
+library(qiime2R)
+np = switch(Sys.info()[['sysname']], Windows = 1, Darwin = 4)
+```
+## Stats on antibiotics among CSseed
+```{r}
+# load CTF ordination
+data_path = "../data/ctf-results"
+data_q2 <- lapply(dir(data_path, pattern = "7-360", recursive = F, full.names = T), function(x){
+    read_qza(paste0(x, "/state_subject_ordination.qza"), tmp = "./Tmp", rm = F)
+})
+
+names(data_q2) <- (dir(data_path, pattern = "7-360", recursive = F, full.names = F) %>% str_split(pattern = "-", simplify = T))[, 2]
+
+data_ord = lapply(data_q2, function(x){read.table(file = paste0("Tmp/", x$uuid, "/data/trajectory.tsv"), sep = "\t", header = T, comment.char = "%")})
+data_ord_wk = lapply(data_ord, function(x){x %>% filter(birth_mode_ms=="CSseed") %>% select(PC1:PC3, date_sampling_category_days_continuous, current_abx, current_breast_feeding, baby_sex)})
+```
+```{r}
+library(vegan)
+for (i in seq(3)){
+    #break
+    dat_ord = data_ord_wk[[i]] %>% select(PC1:PC3)
+    dat_met = data_ord_wk[[i]] %>% select(-PC1, -PC2, -PC3)
+    (dbrda_0 <- rda(dat_ord ~ 1., 
+                    dat_met)) # Model with intercept only
+    (dbrda_1 <- rda(dat_ord ~ .,
+                    dat_met)) # Model with all explanatory variables
+    step.res <- ordiR2step(dbrda_0, dbrda_1,
+                           perm.max = 5000,
+                           steps = 5000,
+                           R2permutations = 5000,
+                           permutations = how(nperm = 5000),
+                           trace = TRUE,
+                           Pin = 0.1,
+                           direction = c("both", "forward"),
+                           R2scope = TRUE)
+    anova_table = step.res$anova
+    print(names(data_ord_wk)[i])
+    print(anova_table)
+    
+}
+```
+
+
+```{r}
+# all body sites to use for now
+ss <- c("Feces", "Mouth", "Forearm")
+
+# distance matreces qza path
+data_path <- "../data/beta-diversity"
+
+dm_dat <- parallel::mclapply(dir(data_path, pattern = "Baby-", full.names = T, recursive = F), function(x){read_qza(paste0(x, "/distance_matrix.qza"))$data}, mc.cores = np)
+names(dm_dat) <- (dir(data_path, pattern = "Baby-", full.names = T, recursive = F) %>% str_split(., "/", simplify = T))[, 4]
+
+# import metadata
+mf <- read.delim("../data/processed-data/Metadata_Baby_Seeding_all_samples_final.txt", header = T, sep = "\t", na.strings = c("", "NA"), stringsAsFactors = F)
+mf$body_site_corrected[mf$body_site_corrected=="Right_Forearm"] = "Forearm"
+clr_bm = c("#e41a1c", "#4daf4a", "#377eb8")
+names(clr_bm) = c("CS", "CSseed", "Vag")
+```
+
+## All countries together
+```{r}
+ss <- c("Feces", "Mouth", "Forearm")
+mm <- c("aitchison", "braycurtis", "unifrac", "wunifrac")
+TP = c(7, 14, 30, 60, 120, 180, 360)
+
+mf_wk <- list()
+for (ss_ in ss){
+    for (mm_ in mm){
+        #break
+        ## mapping file
+        mf_tmp <- mf %>% filter(mom_baby=="Baby", body_site_corrected==ss_, date_sampling_category_days_continuous %in% TP)
+        ## distance matrix 
+        dm_tmp = dm_dat[[paste("Baby", ss_, mm_, sep = "-")]]
+        
+        ## matching dm with mapping data
+        dm_tmp_ = subset_dm_by_names(dm_tmp, mf_tmp$sample_name)
+        mf_tmp = mf_tmp %>% filter(sample_name %in% attr(dm_tmp_, "Labels"))
+        
+        pcoa_tmp = pcoa(dm_tmp_)
+        
+        varPC1 <- round(pcoa_tmp$values$Relative_eig[1]*100, 2)
+        varPC2 <- round(pcoa_tmp$values$Relative_eig[2]*100, 2)
+        varPC3 <- round(pcoa_tmp$values$Relative_eig[3]*100, 2)
+        
+        plot_data = merge(pcoa_tmp$vectors[, 1:3], mf_tmp, by.x = 0, by.y = "sample_name", all = F) %>%
+            mutate(x_trans = date_sampling_category_days_continuous)
+        p = ggplot(data = plot_data %>% filter(date_sampling_category_days_continuous>=7), aes(x = x_trans, y = Axis.1, color = birth_mode_ms)) +
+            geom_path(aes(group = "subjectid_unique"), size = 0.1, alpha = 0.6) +
+            geom_point(size = 1, alpha = 0.5) +
+            stat_summary(fun.data = "mean_cl_boot", geom = "ribbon", aes(fill = birth_mode_ms), color = NA, alpha = 0.4) +
+            stat_summary(fun = "mean", geom = "line", aes(linetype = birth_mode_ms), size = 2/.pt) +
+            theme_Pub(base_size = 14) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), aspect.ratio = 0.6) +
+            labs(x = "Age (Days)", y = paste0("Axis.1 (", varPC1, "%)"), title = paste(ss_, mm_, sep = "-"), color = "Birth_Mode", fill = "Birth_Mode", linetype = "Birth_Mode") +
+            scale_color_manual(values = clr_bm) +
+            scale_fill_manual(values = clr_bm) +
+            scale_x_continuous(breaks = TP[-2]) +
+            scale_linetype_manual(values = c("dashed", "solid", "longdash")) +
+            scale_y_continuous(n.breaks = 5)
+        print(p)
+        set_panel_size(p, file = paste0(fig_path, "pc1_baby", ss_, "_", mm_, ".pdf"), width = unit(6, "in"), height = unit(3.6, "in"), useDingbats = F)
+    }
+    mf_wk[[ss_]] <- mf_tmp
+}
+```
+Stats
+```{r}
+ss <- c("Feces", "Mouth", "Forearm")
+mm <- c("aitchison", "braycurtis", "unifrac", "wunifrac")
+
+pairwise.adonis = function(dm_tmp, mf_tmp, main_var, min_n){
+    #browser()
+    mf_tmp = mf_tmp %>% ungroup() %>% group_by(across(main_var)) %>% filter(n()>=min_n)
+    levels = unique(mf_tmp[[main_var]])
+    if (length(levels)>3){
+        stop("There are too many levels in main variable")
+    }
+    
+    if (length(levels)==1){
+        return(NULL)
+    } else if (length(levels)==2){
+        dm_tmp = subset_dm_by_names(dm_tmp, mf_tmp$sample_name)
+        fit = adonis(formula(paste0("dm_tmp ~ ", main_var)), data = mf_tmp)
+        tbl = fit$aov.tab[1,] %>% as.data.frame() %>% mutate(comp = paste(sort(levels), collapse = "-"))
+        return(tbl)
+    } else {
+        tbl = list()
+        for (ll in levels){
+            mf_tmp_ = mf_tmp %>% filter(get(main_var)!=ll)
+            dm_tmp_ = subset_dm_by_names(dm_tmp, mf_tmp_$sample_name)
+            tbl[[ll]] = pairwise.adonis(dm_tmp_, mf_tmp_, main_var, min_n)
+        }
+        tbl = data.table::rbindlist(tbl)
+        return(tbl)
+    }
+}
+
+adonis_tbls = list()
+for (ss_ in ss){
+    for (mm_ in mm){
+        dm_tmp = dm_dat[[paste("Baby", ss_, mm_, sep = "-")]]
+        mf_tmp = mf %>% filter(sample_name %in% attr(dm_tmp, "Labels"))
+        
+        adonis_tmp = split(mf_tmp, mf_tmp$date_sampling_category_days_continuous) %>% 
+            lapply(., function(x){pairwise.adonis(dm_tmp, x, "birth_mode_ms", 5)})
+       adonis_tbls[[paste(ss_, mm_, sep = "-")]] = data.table::rbindlist(adonis_tmp, idcol = "days") %>% mutate(dist = mm_, bodysite = ss_)
+    }
+}
+adonis_tbl = data.table::rbindlist(adonis_tbls)
+adonis_tbl$q = p.adjust(adonis_tbl$`Pr(>F)`, method = "BY")
+
+adonis_tbl_out = adonis_tbl %>% pivot_wider(id_cols = c(dist, bodysite, comp), names_from = days, values_from = q) %>% ungroup %>% mutate(across(.cols = -(1:3), ~case_when(is.na(.x) ~ "-", .x<=0.2 ~ "*", T ~ "NS")))
+write.table(adonis_tbl_out, file = "../results/beta_diversity_stats_table.txt", sep = "\t", quote = F, row.names = F)
+```
+
+## Country specific
+```{r}
+ss <- c("Feces", "Mouth", "Forearm")
+mm <- c("unifrac", "aitchison", "braycurtis", "wunifrac")
+TP = c(7, 14, 30, 60, 120, 180, 360)
+
+mf_2 = mf %>% mutate(country = ifelse(country=="PuertoRico", "USA", country))
+cc <- c("USA", "Spain", "Chile", "Bolivia")
+
+i = 1
+p_list = list()
+for (mm_ in mm){
+    for (cc_ in cc){
+        for (ss_ in ss){
+            ## mapping file
+            #break
+            mf_tmp <- mf_2 %>% filter(country==cc_, mom_baby=="Baby", body_site_corrected==ss_, date_sampling_category_days_continuous %in% TP)
+            ## distance matrix 
+            dm_tmp = dm_dat[[paste("Baby", ss_, mm_, sep = "-")]]
+            
+            ## matching dm with mapping data
+            dm_tmp_ = subset_dm_by_names(dm_tmp, mf_tmp$sample_name)
+            mf_tmp = mf_tmp %>% filter(sample_name %in% attr(dm_tmp_, "Labels"))
+            
+            pcoa_tmp = pcoa(dm_tmp_)
+            
+            varPC1 <- round(pcoa_tmp$values$Relative_eig[1]*100, 2)
+            varPC2 <- round(pcoa_tmp$values$Relative_eig[2]*100, 2)
+            varPC3 <- round(pcoa_tmp$values$Relative_eig[3]*100, 2)
+            
+            plot_data = merge(pcoa_tmp$vectors[, 1:3], mf_tmp, by.x = 0, by.y = "sample_name", all = F) %>%
+                mutate(x_trans = date_sampling_category_days_continuous)
+            p = ggplot(data = plot_data %>% filter(date_sampling_category_days_continuous>=7), aes(x = x_trans, y = Axis.1, color = birth_mode_ms)) +
+                geom_path(aes(group = "subjectid_unique"), size = 0.1, alpha = 0.6) +
+                geom_point(size = 1, alpha = 0.5) +
+                stat_summary(fun.data = "mean_cl_boot", geom = "ribbon", aes(fill = birth_mode_ms), color = NA, alpha = 0.4) +
+                stat_summary(fun = "mean", geom = "line", aes(linetype = birth_mode_ms), size = 2) +
+                theme_Pub(base_size = 14) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), aspect.ratio = 0.6, plot.title.position = "plot", plot.title = element_text(hjust = 0)) +
+                labs(x = "Age (Days)", y = paste0("Axis.1 (", varPC1, "%)"), title = paste0(letters[i], ".", " ", cc_, ", ", ifelse(ss_=="Forearm", "Skin", ss_), ", ", mm_), color = "Birth_Mode", fill = "Birth_Mode", linetype = "Birth_Mode") +
+                scale_color_manual(values = clr_bm) +
+                scale_fill_manual(values = clr_bm) +
+                scale_x_continuous(breaks = TP[-2]) +
+                scale_linetype_manual(values = c("dashed", "solid", "longdash")) +
+                scale_y_continuous(n.breaks = 5)
+            print(p)
+            set_panel_size(p, file = paste0(fig_path, "pc1_baby", ss_, "_", mm_, "_", cc_, ".pdf"), width = unit(6, "in"), height = unit(3.6, "in"), useDingbats = F)
+            p_list[[i]] = p
+            i = i + 1
+        }
+    }
+}
+
+
+```
+```{r}
+library(patchwork)
+wrap_plots(p_list[1:24], ncol = 3) + plot_layout(guides = "collect")
+set_panel_size(g = patchworkGrob(last_plot()), file = "../results/beta_diversity_traditional.pdf", width = unit(6, "in"), height = unit(3.6, "in"), useDingbats = F)
+```
+

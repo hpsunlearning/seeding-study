@@ -14,3 +14,6 @@ data/beta-diversity/
 
 __pycache__/
 
+
+# Trash folders
+**/Trash/*

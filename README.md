@@ -6,7 +6,7 @@ This repository includes all the source code, tests and notebooks to generate th
 
 While we do not provide all the data in this repository we provide the BIOM tables, sample information, alpha and beta diversity tables. The raw and quality controlled sequences from which the BIOM table originates can be found in Qiita study 10894, 10249, and 1718 (remember to login).
 
-EBI Accession: `coming soon`.
+Sequence data have been deposited at European Bioinformatics Institute (EBI) under study accession number ENA: ERP120105, ENA: ERP016173 and ENA: ERP120109.
 
 ### Repository Structure
 

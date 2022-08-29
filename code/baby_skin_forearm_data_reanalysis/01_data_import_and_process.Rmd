@@ -1,0 +1,76 @@
+---
+title: "Data process"
+author: "Haipeng Sun"
+date: "7/29/2022"
+output: html_document
+---
+
+## library
+```{r}
+library(qiime2R)
+library(usedist)
+library(tidyverse)
+```
+
+## import 16S data
+```{r}
+## alpha
+faith <- read.table("../../data/alpha-diversity/skin/faiths-alpha.tsv", sep = "\t", header = T)
+faith <- faith %>% filter(country == "Chile") 
+shannon <- read.table("../../data/alpha-diversity/skin/shannon-alpha.tsv", sep = "\t", header = T)
+shannon <- shannon %>% filter(country == "Chile") 
+alpha <- inner_join(faith %>% select(Sample.ID, faith_pd), shannon, by = "Sample.ID")
+
+## beta
+a <- qiime2R::read_qza("../../data/beta-diversity/Baby-Forearm-aitchison/distance_matrix.qza")
+select_id <- intersect(alpha$Sample.ID, labels(a$data))
+dm_aitchison <- dist_subset(a$data, select_id)
+
+a <- qiime2R::read_qza("../../data/beta-diversity/Baby-Forearm-braycurtis/distance_matrix.qza")
+select_id <- intersect(alpha$Sample.ID, labels(a$data))
+dm_bray <- dist_subset(a$data, select_id)
+
+a <- qiime2R::read_qza("../../data/beta-diversity/Baby-Forearm-unifrac/distance_matrix.qza")
+select_id <- intersect(alpha$Sample.ID, labels(a$data))
+dm_uu <- dist_subset(a$data, select_id)
+
+a <- qiime2R::read_qza("../../data/beta-diversity/Baby-Forearm-wunifrac/distance_matrix.qza")
+select_id <- intersect(alpha$Sample.ID, labels(a$data))
+dm_wu <- dist_subset(a$data, select_id)
+
+## taxa
+a <- qiime2R::read_qza("../../data/processed-data/taxonomy.qza")
+taxa <- a$data
+
+## table
+a <- qiime2R::read_qza("../../data/split-data/Baby-Forearm/rarefy-table.qza")
+ft_rf <- a$data
+ft_rf <- ft_rf[,select_id]
+ft_rf <- ft_rf[rowSums(ft_rf)>0,]
+```
+
+## process
+```{r}
+## meta 
+meta <- alpha %>% select(-c(faith_pd, shannon))
+## taxa 
+taxa <- taxa %>% filter(Feature.ID %in% rownames(ft_rf)) %>% 
+  separate(Taxon, into = c("Kingdom","Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = ";") %>% 
+  mutate_at(vars(Kingdom:Species), ~ str_replace(.,"__","_"))
+taxa <- taxa %>% mutate(
+  ASV = str_c("asv_", 1:nrow(taxa)),
+  Kingdom = str_replace_na(Kingdom,"k_"),
+  Phylum = str_replace_na(Phylum,"p_"),
+  Class = str_replace_na(Class,"c_"),
+  Order = str_replace_na(Order,"o_"),
+  Family = str_replace_na(Family,"f_"),
+  Genus = str_replace_na(Genus,"g_"),
+  Species = str_replace_na(Species,"s_"),
+  taxa_long = str_c(Kingdom,Phylum,Class,Order,Family,Genus,Species,ASV,sep = ";")
+)
+rm(a, faith, shannon, select_id)
+temp_out <- "~/Dropbox/Rutgers/20220829_baby_skin_development/"
+#save.image(file = "~/Dropbox/Rutgers/20220829_baby_skin_development/baby_chile_skin.Rdata")
+#load(file = "~/Dropbox/Rutgers/20220829_baby_skin_development/baby_chile_skin.Rdata")
+```
+
